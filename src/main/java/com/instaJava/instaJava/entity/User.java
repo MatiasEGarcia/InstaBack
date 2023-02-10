@@ -26,7 +26,6 @@ import lombok.Data;
 @Entity
 @Table(name = "users" , schema="insta_java")
 public class User implements UserDetails{
-	
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -46,7 +45,8 @@ public class User implements UserDetails{
 	@Column(name = "visible")
 	private boolean visible;
 	
-	@OneToMany(mappedBy = "user",fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST,CascadeType.REMOVE,CascadeType.MERGE})
+	@OneToMany(mappedBy = "user",
+			fetch = FetchType.EAGER)
 	private List<Rol> roles;
 
 	@Override
