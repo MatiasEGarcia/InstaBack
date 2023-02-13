@@ -1,26 +1,27 @@
 package com.instaJava.instaJava.entity;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Builder
 @Entity
@@ -45,20 +46,13 @@ public class User implements UserDetails{
 	@Column(name = "visible")
 	private boolean visible;
 	
-	@OneToMany(mappedBy = "user",
-			fetch = FetchType.EAGER)
-	private List<Rol> roles;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "rol")
+	private RolesEnum role;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		final Set<SimpleGrantedAuthority> grntdAuths = new HashSet<>();
-		List<Rol> roles = this.getRoles();
-		if(roles != null) {
-			for(Rol rol:roles) {
-				grntdAuths.add(new SimpleGrantedAuthority(rol.getName().toString()));
-			}
-		}
-		return grntdAuths;
+		return List.of(new SimpleGrantedAuthority(this.getRole().toString()));
 	}
 
 	@Override
