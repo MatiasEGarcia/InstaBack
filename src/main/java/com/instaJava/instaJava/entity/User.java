@@ -14,6 +14,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,8 +41,9 @@ public class User implements UserDetails{
 	@Column(name = "password")
 	private String password;
 	
-	@Column(name = "image")
-	private String image;
+	@Lob
+	@Column(name = "image" )
+	private byte[] image;
 	
 	@Column(name = "visible")
 	private boolean visible;

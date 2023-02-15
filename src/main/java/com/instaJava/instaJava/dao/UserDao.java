@@ -7,4 +7,5 @@ import com.instaJava.instaJava.entity.User;
 public interface UserDao extends JpaRepository<User, Long>{
 
 	User findByUsername(String username);
+
 }
