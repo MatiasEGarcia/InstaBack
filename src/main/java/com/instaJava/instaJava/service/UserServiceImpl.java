@@ -53,7 +53,5 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		return ImageUtils.decompressImage(user.getImage());
 	}
-	
-	
 
 }

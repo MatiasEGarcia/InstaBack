@@ -1,7 +1,6 @@
 package com.instaJava.instaJava.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,15 +18,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 
-	private final AuthService service;
+	private final AuthService authService;
 	
 	@PostMapping("/register")
 	public ResponseEntity<ResAuthToken> register(@RequestBody ReqUserRegistration reqUserRegistration){
-		return ResponseEntity.ok(service.register(reqUserRegistration));
+		return ResponseEntity.ok(authService.register(reqUserRegistration));
 	}
 	
 	@PostMapping("/authenticate")
 	public ResponseEntity<ResAuthToken> authenticate(@RequestBody ReqLogin reqLogin){
-		return ResponseEntity.ok(service.authenticate(reqLogin));
+		return ResponseEntity.ok(authService.authenticate(reqLogin));
 	}
+	
+
 }

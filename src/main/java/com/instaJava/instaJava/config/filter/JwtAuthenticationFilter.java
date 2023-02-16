@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.instaJava.instaJava.dto.response.ResMessage;
+import com.instaJava.instaJava.service.InvTokenService;
 import com.instaJava.instaJava.service.JwtService;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -31,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtService jwtService;
 	private final UserDetailsService userDetailsService;
+	private final InvTokenService invTokenService;
 
 	
 	@Override
@@ -44,6 +47,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			return;
 		}
 		jwt = authHeader.substring(7);
+		//Now I have to check if this token is invalidated from a logout user
+		if(invTokenService.existByToken(jwt)) {
+			response.setStatus(FORBIDDEN.value());
+			new ObjectMapper().writeValue(response.getOutputStream(), new ResMessage("Token invalidated"));
+		}
+		
 		try {
 			username = jwtService.extractUsername(jwt);
 			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -65,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			error.put("error_exception_message", e.getMessage());
 			error.put("error_messages", "Token invalidated");
 			response.setContentType(APPLICATION_JSON_VALUE);
-			new ObjectMapper().writeValue(response.getOutputStream(), error);;
+			new ObjectMapper().writeValue(response.getOutputStream(), error);
 		}
 	}
 
