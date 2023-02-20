@@ -21,17 +21,19 @@ public class InvTokenServiceImpl implements InvTokenService{
 	@Transactional
 	public void invalidateToken(String token) {
 		Calendar calendar = Calendar.getInstance();
-		invTokenDao.save(InvToken.builder().token(token).invalidateDate(calendar).build());
+		invTokenDao.save(InvToken.builder().token(token).invalidateDate(calendar.getTime()).build());
 	}
 
-	//I want to delete all the tokens that were been for 5minuts in the bdd
+	//When a user logout, it's token is saved in bdd, the token still will be valid for some time
+	//so each hour I will delete those tokens already expired
 	@Override
 	@Transactional
-	@Scheduled(cron="0 */5 * * * *")
+	@Scheduled(cron="0 0 * * * *") //1 hour 
 	public void deleteTokensSheduler() {
 		Calendar calendar = Calendar.getInstance();
-		calendar.set(Calendar.MINUTE,-5); 
-		invTokenDao.deleteAllByInvalidateDate(calendar);
+		//token expire after 10min, refresh after 30 min
+		calendar.set(Calendar.MINUTE,-35); 
+		invTokenDao.deleteByInvalidateDateLessThan(calendar.getTime());
 	}
 
 	@Override

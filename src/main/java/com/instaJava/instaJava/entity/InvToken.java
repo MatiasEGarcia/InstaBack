@@ -1,6 +1,6 @@
 package com.instaJava.instaJava.entity;
 
-import java.util.Calendar;
+import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,5 +33,5 @@ public class InvToken {
 	
 	@Temporal(value = TemporalType.TIMESTAMP)
 	@Column(name = "invalidate_date")
-	private Calendar invalidateDate;
+	private Date invalidateDate;
 }
