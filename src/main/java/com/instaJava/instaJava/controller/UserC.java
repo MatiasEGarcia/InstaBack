@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,18 +21,20 @@ import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.service.InvTokenService;
 import com.instaJava.instaJava.service.UserService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@Validated
 public class UserC {
 	
 	private final InvTokenService invTokenService;
 	private final UserService userService;
 
 	@PostMapping("/image")
-	public ResponseEntity<byte[]> uploadImage(@RequestParam("img") MultipartFile file){
+	public ResponseEntity<byte[]> uploadImage(@RequestParam("img") MultipartFile file){//I HAVE TO FIND the way to validate this
 		userService.updateImage(file);
 		return ResponseEntity.status(HttpStatus.OK)
 				.contentType(MediaType.valueOf("image/png"))
@@ -46,7 +49,7 @@ public class UserC {
 	}
 	
 	@GetMapping("/logout")
-	public ResponseEntity<ResMessage> logout(@RequestBody ReqLogout reqLogout){
+	public ResponseEntity<ResMessage> logout(@Valid @RequestBody ReqLogout reqLogout){
 		List<String> invTokens = new ArrayList<>();
 		invTokens.add(reqLogout.getToken());
 		invTokens.add(reqLogout.getRefreshToken());
@@ -55,7 +58,7 @@ public class UserC {
 	}
 	
 	@PostMapping("/personalDetails")
-	public ResponseEntity<PersonalDetailsDto> savePersonalDetails(@RequestBody PersonalDetailsDto personalDetailsDto){
+	public ResponseEntity<PersonalDetailsDto> savePersonalDetails(@Valid @RequestBody PersonalDetailsDto personalDetailsDto){
 		return ResponseEntity.ok().body(userService.savePersonalDetails(personalDetailsDto));
 	}
 	

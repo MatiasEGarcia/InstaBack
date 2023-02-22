@@ -13,6 +13,7 @@ import com.instaJava.instaJava.dto.request.ReqUserRegistration;
 import com.instaJava.instaJava.dto.response.ResAuthToken;
 import com.instaJava.instaJava.service.AuthService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -23,17 +24,17 @@ public class AuthController {
 	private final AuthService authService;
 	
 	@PostMapping("/register")
-	public ResponseEntity<ResAuthToken> register(@RequestBody ReqUserRegistration reqUserRegistration){
+	public ResponseEntity<ResAuthToken> register(@Valid @RequestBody ReqUserRegistration reqUserRegistration){
 		return ResponseEntity.ok(authService.register(reqUserRegistration));
 	}
 	
 	@PostMapping("/authenticate")
-	public ResponseEntity<ResAuthToken> authenticate(@RequestBody ReqLogin reqLogin){
+	public ResponseEntity<ResAuthToken> authenticate(@Valid @RequestBody ReqLogin reqLogin){
 		return ResponseEntity.ok(authService.authenticate(reqLogin));
 	}
 	
 	@GetMapping("/refreshToken")
-	public ResponseEntity<ResAuthToken> refreshToken(@RequestBody ReqRefreshToken reqRefreshToken){
+	public ResponseEntity<ResAuthToken> refreshToken(@Valid @RequestBody ReqRefreshToken reqRefreshToken){
 		return ResponseEntity.ok(authService.refreshToken(reqRefreshToken));
 	}
 	

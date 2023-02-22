@@ -2,15 +2,16 @@ package com.instaJava.instaJava.dto.request;
 
 import java.io.Serializable;
 
-import lombok.Builder;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-@Builder
 public class ReqLogin implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 	
+	@NotBlank
 	private String username;
+	@NotBlank
 	private String password;
 }
