@@ -1,6 +1,6 @@
 package com.instaJava.instaJava.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,8 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,7 +29,6 @@ public class InvToken {
 	@Column(name= "token")
 	private String token;
 	
-	@Temporal(value = TemporalType.TIMESTAMP)
 	@Column(name = "invalidate_date")
-	private Date invalidateDate;
+	private LocalDateTime invalidateDate;
 }

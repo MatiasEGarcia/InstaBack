@@ -1,6 +1,8 @@
 package com.instaJava.instaJava.service;
 
-import java.util.Calendar;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,9 +21,16 @@ public class InvTokenServiceImpl implements InvTokenService{
 	
 	@Override
 	@Transactional
-	public void invalidateToken(String token) {
-		Calendar calendar = Calendar.getInstance();
-		invTokenDao.save(InvToken.builder().token(token).invalidateDate(calendar.getTime()).build());
+	public void invalidateTokens(List<String> tokens) {
+		List<InvToken> invTokens = new ArrayList<>();
+		LocalDateTime localDateTime = LocalDateTime.now();
+		for(int i = 0 ; i< tokens.size() ; i++) {
+			invTokens.add(InvToken.builder()
+					.invalidateDate(localDateTime)
+					.token(tokens.get(i)).
+					build());
+		}
+		invTokenDao.saveAll(invTokens);
 	}
 
 	//When a user logout, it's token is saved in bdd, the token still will be valid for some time
@@ -30,10 +39,10 @@ public class InvTokenServiceImpl implements InvTokenService{
 	@Transactional
 	@Scheduled(cron="0 0 * * * *") //1 hour 
 	public void deleteTokensSheduler() {
-		Calendar calendar = Calendar.getInstance();
+		LocalDateTime localDateTime = LocalDateTime.now();
 		//token expire after 10min, refresh after 30 min
-		calendar.set(Calendar.MINUTE,-35); 
-		invTokenDao.deleteByInvalidateDateLessThan(calendar.getTime());
+		localDateTime.minusMinutes(35);
+		invTokenDao.deleteByInvalidateDateLessThan(localDateTime);
 	}
 
 	@Override

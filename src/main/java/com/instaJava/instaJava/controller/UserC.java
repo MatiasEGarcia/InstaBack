@@ -1,5 +1,8 @@
 package com.instaJava.instaJava.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +46,10 @@ public class UserC {
 	
 	@GetMapping("/logout")
 	public ResponseEntity<ResMessage> logout(@RequestBody ReqLogout reqLogout){
-		invTokenService.invalidateToken(reqLogout.getToken());
+		List<String> invTokens = new ArrayList<>();
+		invTokens.add(reqLogout.getToken());
+		invTokens.add(reqLogout.getRefreshToken());
+		invTokenService.invalidateTokens(invTokens);
 		return ResponseEntity.ok().body(new ResMessage("User logout successfully!"));
 	}
 }

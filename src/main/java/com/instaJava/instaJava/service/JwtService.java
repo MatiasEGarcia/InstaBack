@@ -34,16 +34,24 @@ public class JwtService {
 	}
 	
 	public String generateToken(Map<String,Object> extraClaims,UserDetails userDetails) {
-		return Jwts.builder()
+		String accessToken = Jwts.builder()
 				.setClaims(extraClaims)
 				.setSubject(userDetails.getUsername())
 				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + 10 * 60 * 1000 ))//10min
+				.setExpiration(new Date(System.currentTimeMillis() + 10 * 60 * 1000 ))// 10 min
 				.signWith(getSignKey(), SignatureAlgorithm.HS256)
 				.compact();
+		return accessToken;
 	}
 	
-	
+	public String generateRefreshToken(UserDetails userDetails) {
+		String refreshToken = Jwts.builder()
+				.setSubject(userDetails.getUsername())
+				.setExpiration(new Date(System.currentTimeMillis() + 30 * 60 * 1000 ))// 30 min
+				.signWith(getSignKey(), SignatureAlgorithm.HS256)
+				.compact();
+		return refreshToken;
+	}
 	
 	public boolean isTokenValid(String token,UserDetails userDetails) {//we need userDetails to see if the tokens belongs to this user
 		final String username = this.extractUsername(token);

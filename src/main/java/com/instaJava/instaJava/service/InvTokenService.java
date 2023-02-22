@@ -1,8 +1,10 @@
 package com.instaJava.instaJava.service;
 
+import java.util.List;
+
 public interface InvTokenService {
 
-	void invalidateToken(String token);
+	void invalidateTokens(List<String> tokens);
 	
 	void deleteTokensSheduler();
 	
