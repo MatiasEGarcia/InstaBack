@@ -20,8 +20,10 @@ import com.instaJava.instaJava.dto.request.ReqLogout;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.service.InvTokenService;
 import com.instaJava.instaJava.service.UserService;
+import com.instaJava.instaJava.validator.Image;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,7 +36,7 @@ public class UserC {
 	private final UserService userService;
 
 	@PostMapping("/image")
-	public ResponseEntity<byte[]> uploadImage(@RequestParam("img") MultipartFile file){//I HAVE TO FIND the way to validate this
+	public ResponseEntity<byte[]> uploadImage( @RequestParam("img") @NotNull @Image  MultipartFile file){//I HAVE TO FIND the way to validate this
 		userService.updateImage(file);
 		return ResponseEntity.status(HttpStatus.OK)
 				.contentType(MediaType.valueOf("image/png"))
