@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.instaJava.instaJava.dto.request.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.service.InvTokenService;
@@ -52,4 +53,18 @@ public class UserC {
 		invTokenService.invalidateTokens(invTokens);
 		return ResponseEntity.ok().body(new ResMessage("User logout successfully!"));
 	}
+	
+	@PostMapping("/personalDetails")
+	public ResponseEntity<PersonalDetailsDto> savePersonalDetails(@RequestBody PersonalDetailsDto personalDetailsDto){
+		return ResponseEntity.ok().body(userService.savePersonalDetails(personalDetailsDto));
+	}
+	
+	@GetMapping("/personalDetails")
+	public ResponseEntity<PersonalDetailsDto> getPersonalDetails(){
+		return ResponseEntity.ok().body(userService.getPersonalDetailsByUser());
+	}
+	
+	
+	
+	
 }
