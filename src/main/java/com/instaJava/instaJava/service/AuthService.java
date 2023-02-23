@@ -17,6 +17,7 @@ import com.instaJava.instaJava.dto.response.ResAuthToken;
 import com.instaJava.instaJava.entity.RolesEnum;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.util.MessagesUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +31,7 @@ public class AuthService {
 	private final AuthenticationManager authenticationManager;
 	private final UserDetailsService userDetailsService;
 	private final InvTokenService invTokenService;
+	private final MessagesUtils messUtils;
  	
 	@Transactional
 	public ResAuthToken register(ReqUserRegistration reqUserRegistration) {
@@ -48,7 +50,7 @@ public class AuthService {
 	public ResAuthToken authenticate(ReqLogin reqLogin) {
 		User user = userDao.findByUsername(reqLogin.getUsername());
 		if(user == null) {
-			throw new UsernameNotFoundException("This username : "+ reqLogin.getUsername() +" not found");
+			throw new UsernameNotFoundException(messUtils.getMessage("exepcion.username-not-found"));
 		}
 		authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(
@@ -70,7 +72,7 @@ public class AuthService {
 					.refreshToken(reqRefreshToken.getRefreshToken()) //we return the same refreshToken
 					.build();
 		}else {
-			throw new InvalidException("RefreshToken was invalid,try authenticate again");
+			throw new InvalidException(messUtils.getMessage("exepcion.refreshToken-invalid"));
 		}
 	}
 	

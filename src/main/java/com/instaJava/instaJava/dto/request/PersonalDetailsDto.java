@@ -16,17 +16,17 @@ public class PersonalDetailsDto implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 
-	@NotBlank
+	@NotBlank(message = "{vali.name-not-blank}")
 	private String name;
 	
-	@NotBlank
+	@NotBlank(message = "{vali.lastname-not-blank}")
 	private String lastname;
 	
-	@NotNull
-	@Range( min = 18, max = 150)
+	@NotNull(message = "{vali.age-not-null}")
+	@Range( min = 18, max = 150 , message = "{vali.age-range}")
 	private byte age;
 	
-	@NotBlank
-	@Email
+	@NotBlank(message = "{vali.email-not-blank}")
+	@Email(message = "{vali.email-email}")
 	private String email;
 }

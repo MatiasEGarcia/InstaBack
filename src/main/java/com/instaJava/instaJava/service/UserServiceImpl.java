@@ -17,6 +17,7 @@ import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
 import com.instaJava.instaJava.util.ImageUtils;
+import com.instaJava.instaJava.util.MessagesUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,13 +27,14 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 
 	private final UserDao userDao;
 	private final PersonalDetailsDao personalDetailsDao;
+	private final MessagesUtils messUtils;
 
 	@Override
 	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		User user = userDao.findByUsername(username);
 		if(user == null) {
-			throw new UsernameNotFoundException("Username not found");
+			throw new UsernameNotFoundException(messUtils.getMessage("exepcion.username-not-found"));
 		}
 		return user;
 	}

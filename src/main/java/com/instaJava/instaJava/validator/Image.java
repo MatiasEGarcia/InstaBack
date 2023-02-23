@@ -13,7 +13,7 @@ import jakarta.validation.Payload;
 @Target(value = {ElementType.METHOD, ElementType.FIELD,ElementType.PARAMETER})
 public @interface Image {
 
-	String message() default "Only PNG,JPEG or JPG images are allowed";
+	String message() default "{vali.image}";
 	
 	public Class<?>[] groups() default {};
 

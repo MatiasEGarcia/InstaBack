@@ -10,9 +10,9 @@ public class ReqRefreshToken implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 	
-	@NotBlank
+	@NotBlank(message = "{vali.token-not-blank}")
 	private String token;
 	
-	@NotBlank
+	@NotBlank(message = "{vali.refreshToken-not-blank}")
 	private String refreshToken;
 }
