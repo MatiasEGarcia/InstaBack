@@ -1,4 +1,4 @@
-package com.instaJava.instaJava.dto.request;
+package com.instaJava.instaJava.dto;
 
 import java.io.Serializable;
 

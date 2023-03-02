@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.instaJava.instaJava.dto.request.PersonalDetailsDto;
+import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.service.InvTokenService;
@@ -36,17 +35,15 @@ public class UserC {
 	private final UserService userService;
 
 	@PostMapping("/image")
-	public ResponseEntity<byte[]> uploadImage( @RequestParam("img") @NotNull @Image  MultipartFile file){//I HAVE TO FIND the way to validate this
+	public ResponseEntity<String> uploadImage( @RequestParam("img") @NotNull @Image  MultipartFile file){
 		userService.updateImage(file);
 		return ResponseEntity.status(HttpStatus.OK)
-				.contentType(MediaType.valueOf("image/png"))
 				.body(userService.getImage());
 	}
 	
 	@GetMapping("/image")
-	public ResponseEntity<byte[]> downloadImage(){
+	public ResponseEntity<String> downloadImage(){
 		return ResponseEntity.status(HttpStatus.OK)
-				.contentType(MediaType.valueOf("image/png"))
 				.body(userService.getImage());
 	}
 	

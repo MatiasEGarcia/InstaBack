@@ -1,6 +1,7 @@
 package com.instaJava.instaJava.service;
 
 import java.io.IOException;
+import java.util.Base64;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,11 +13,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dao.PersonalDetailsDao;
 import com.instaJava.instaJava.dao.UserDao;
-import com.instaJava.instaJava.dto.request.PersonalDetailsDto;
+import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
-import com.instaJava.instaJava.util.ImageUtils;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	public void updateImage(MultipartFile file){
 		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		try {
-			user.setImage(ImageUtils.compressImage(file.getBytes()));
+			user.setImage(Base64.getEncoder().encodeToString(file.getBytes()));
 		}catch(IOException e) {
 			throw new ImageException(e);
 		}
@@ -55,9 +55,9 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 
 	@Override
 	@Transactional(readOnly = true)
-	public byte[] getImage(){
+	public String getImage(){
 		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		return ImageUtils.decompressImage(user.getImage());
+		return user.getImage();
 	}
 
 
