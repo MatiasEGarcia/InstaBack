@@ -1,6 +1,7 @@
 package com.instaJava.instaJava.service;
 
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +24,10 @@ public class InvTokenServiceImpl implements InvTokenService{
 	@Transactional
 	public void invalidateTokens(List<String> tokens) {
 		List<InvToken> invTokens = new ArrayList<>();
-		LocalDateTime localDateTime = LocalDateTime.now();
+		Clock clock = Clock.systemUTC();
 		for(int i = 0 ; i< tokens.size() ; i++) {
 			invTokens.add(InvToken.builder()
-					.invalidateDate(localDateTime)
+					.invalidateDate(ZonedDateTime.now(clock))
 					.token(tokens.get(i)).
 					build());
 		}
@@ -39,10 +40,10 @@ public class InvTokenServiceImpl implements InvTokenService{
 	@Transactional
 	@Scheduled(cron="0 0 * * * *") //1 hour 
 	public void deleteTokensSheduler() {
-		LocalDateTime localDateTime = LocalDateTime.now();
+		Clock clock = Clock.systemUTC();
+		ZonedDateTime zonedDateTime = ZonedDateTime.now(clock);
 		//token expire after 10min, refresh after 30 min
-		localDateTime.minusMinutes(35);
-		invTokenDao.deleteByInvalidateDateLessThan(localDateTime);
+		invTokenDao.deleteByInvalidateDateLessThan(zonedDateTime.minusMinutes(35));
 	}
 
 	@Override

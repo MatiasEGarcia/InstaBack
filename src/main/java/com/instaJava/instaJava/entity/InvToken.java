@@ -1,6 +1,6 @@
 package com.instaJava.instaJava.entity;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,5 +30,5 @@ public class InvToken {
 	private String token;
 	
 	@Column(name = "invalidate_date")
-	private LocalDateTime invalidateDate;
+	private ZonedDateTime invalidateDate;
 }
