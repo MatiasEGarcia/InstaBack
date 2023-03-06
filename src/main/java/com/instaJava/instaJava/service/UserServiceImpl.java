@@ -2,6 +2,7 @@ package com.instaJava.instaJava.service;
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.List;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,9 +15,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.instaJava.instaJava.dao.PersonalDetailsDao;
 import com.instaJava.instaJava.dao.UserDao;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
+import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.mapper.UserMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	private final UserDao userDao;
 	private final PersonalDetailsDao personalDetailsDao;
 	private final MessagesUtils messUtils;
+	private final UserMapper userMapper;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -87,6 +91,17 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 				.user(user)
 				.build());
 		return this.getPersonalDetailsByUser();
+	}
+
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<ResUser> findByUsernameLike(String username, int limit) {
+		List<User> users = userDao.findByUsernameLike(username, limit);
+		if(users == null || users.isEmpty()) {
+			return null;
+		}
+		return userMapper.UserToResUser(users);
 	}
 
 	

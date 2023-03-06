@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,8 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
 import com.instaJava.instaJava.dto.response.ResMessage;
+import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.service.InvTokenService;
 import com.instaJava.instaJava.service.UserService;
+import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
 
 import jakarta.validation.Valid;
@@ -33,6 +36,7 @@ public class UserC {
 	
 	private final InvTokenService invTokenService;
 	private final UserService userService;
+	private final MessagesUtils messUtils;
 
 	@PostMapping("/image")
 	public ResponseEntity<String> uploadImage( @RequestParam("img") @NotNull @Image  MultipartFile file){
@@ -65,6 +69,24 @@ public class UserC {
 	public ResponseEntity<PersonalDetailsDto> getPersonalDetails(){
 		return ResponseEntity.ok().body(userService.getPersonalDetailsByUser());
 	}
+	
+	@GetMapping("/{username}/like/{limit}")
+	public ResponseEntity<List<ResUser>> getUserForUsernameLike(@PathVariable("username") String username,
+			@PathVariable(name = "limit", required = false) int limit){
+		//ME FALTA EN EL CASO EN EL QUE NO ENVIEN UN LIMIT
+		List<ResUser> resUser =userService.findByUsernameLike(username, limit);
+		if(resUser == null) {
+			ResponseEntity
+			.noContent()
+			.header("moreInfo", messUtils.getMessage("mess.there-no-users"));
+		}
+		return ResponseEntity.ok().body(resUser);
+	}
+	
+	
+	
+	
+	
 	
 	
 	
