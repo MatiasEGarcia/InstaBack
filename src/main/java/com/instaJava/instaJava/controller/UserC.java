@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -70,15 +69,17 @@ public class UserC {
 		return ResponseEntity.ok().body(userService.getPersonalDetailsByUser());
 	}
 	
-	@GetMapping("/{username}/like/{limit}")
-	public ResponseEntity<List<ResUser>> getUserForUsernameLike(@PathVariable("username") String username,
-			@PathVariable(name = "limit", required = false) int limit){
-		//ME FALTA EN EL CASO EN EL QUE NO ENVIEN UN LIMIT
-		List<ResUser> resUser =userService.findByUsernameLike(username, limit);
+	@GetMapping("/like")
+	public ResponseEntity<?> getUserForUsernameLike(
+			@RequestParam(name = "username") String username,
+			@RequestParam(name = "limit", defaultValue = "100") String limit
+			){
+		List<ResUser> resUser =userService.findByUsernameLike(username, Integer.parseInt(limit));
 		if(resUser == null) {
-			ResponseEntity
-			.noContent()
-			.header("moreInfo", messUtils.getMessage("mess.there-no-users"));
+		return ResponseEntity
+				.noContent()
+				.header("moreInfo", messUtils.getMessage("mess.there-no-users"))
+				.build();
 		}
 		return ResponseEntity.ok().body(resUser);
 	}
