@@ -19,6 +19,7 @@ import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 
@@ -32,6 +33,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	private final PersonalDetailsDao personalDetailsDao;
 	private final MessagesUtils messUtils;
 	private final UserMapper userMapper;
+	private final PersonalDetailsMapper personalDetailsMapper;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -70,12 +72,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	public PersonalDetailsDto getPersonalDetailsByUser() {
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		PersonalDetails perDet = personalDetailsDao.findByUser(user);
-		return PersonalDetailsDto.builder()
-				.name(perDet.getName())
-				.lastname(perDet.getLastname())
-				.age(perDet.getAge())
-				.email(perDet.getEmail())
-				.build();
+		return personalDetailsMapper.personalDetailsToPersonalDetailsDto(perDet);
 	}
 
 
@@ -83,13 +80,10 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	@Transactional
 	public PersonalDetailsDto savePersonalDetails(PersonalDetailsDto personalDetailsDto) {
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		personalDetailsDao.save(PersonalDetails.builder()
-				.name(personalDetailsDto.getName())
-				.lastname(personalDetailsDto.getLastname())
-				.age(personalDetailsDto.getAge())
-				.email(personalDetailsDto.getEmail())
-				.user(user)
-				.build());
+		personalDetailsDao.save(
+				personalDetailsMapper
+				.personalDetailsDtoAndUserToPersonalDetails(personalDetailsDto, user)
+				);
 		return this.getPersonalDetailsByUser();
 	}
 

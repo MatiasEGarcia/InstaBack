@@ -27,7 +27,7 @@ public class PublicatedImage {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name= "id")
-	private Long id;
+	private Long pubImaId;
 	
 	@Column(name = "img", columnDefinition = "BLOB")
     private String image;

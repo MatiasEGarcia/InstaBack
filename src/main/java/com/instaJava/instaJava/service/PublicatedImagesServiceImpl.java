@@ -15,6 +15,7 @@ import com.instaJava.instaJava.dto.response.ResPublicatedImage;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 
 import lombok.AllArgsConstructor;
 
@@ -23,6 +24,7 @@ import lombok.AllArgsConstructor;
 public class PublicatedImagesServiceImpl implements PublicatedImageService {
 
 	private final PublicatedImagesDao publicatedImagesDao;
+	private final PublicatedImageMapper publicImaMapper;
 
 	@Override
 	@Transactional
@@ -41,13 +43,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 			throw new ImageException(e);
 		}
 		publicatedImage = publicatedImagesDao.save(publicatedImage);
-		return ResPublicatedImage.builder()
-				.id(publicatedImage.getId())
-				.description(publicatedImage.getDescription())
-				.image(publicatedImage.getImage())
-				.createdAt(publicatedImage.getCreatedAt())
-				.userOwner(user.getUsername())
-				.build();
+		return publicImaMapper.publicatedImageAndUserToResPublicatedImage(publicatedImage, user);
 	}
 
 	@Override
