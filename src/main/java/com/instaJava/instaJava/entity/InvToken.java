@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "invalid_tokens" , schema="insta_java")
+@Table(name = "invalid_tokens")
 public class InvToken {
 
 	@Id

@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "publicated_images", schema = "insta_java")
+@Table(name = "publicated_images")
 public class PublicatedImage {
 
 	@Id

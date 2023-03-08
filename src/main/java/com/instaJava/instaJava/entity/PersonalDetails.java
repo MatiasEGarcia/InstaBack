@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "personal_details" , schema = "insta_java")
+@Table(name = "personal_details")
 public class PersonalDetails {
 
 	@Id
@@ -39,7 +39,7 @@ public class PersonalDetails {
 	private String email;
 	
 	@OneToOne
-	@JoinColumn(name = "user")
+	@JoinColumn(name = "associate_user")
 	private User user;
 	
 }

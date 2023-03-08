@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "users" , schema="insta_java")
+@Table(name = "users")
 public class User implements UserDetails{
 	private static final long serialVersionUID = 1L;
 
