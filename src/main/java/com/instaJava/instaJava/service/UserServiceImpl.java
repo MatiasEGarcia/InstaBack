@@ -1,6 +1,5 @@
 package com.instaJava.instaJava.service;
 
-import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 
@@ -52,7 +51,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		try {
 			user.setImage(Base64.getEncoder().encodeToString(file.getBytes()));
-		}catch(IOException e) {
+		}catch(Exception e) {
 			throw new ImageException(e);
 		}
 		userDao.save(user);
@@ -72,6 +71,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	public PersonalDetailsDto getPersonalDetailsByUser() {
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		PersonalDetails perDet = personalDetailsDao.findByUser(user);
+		if(perDet == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.perDet-not-found"));
 		return personalDetailsMapper.personalDetailsToPersonalDetailsDto(perDet);
 	}
 
@@ -79,12 +79,13 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	@Override
 	@Transactional
 	public PersonalDetailsDto savePersonalDetails(PersonalDetailsDto personalDetailsDto) {
+		if(personalDetailsDto == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		personalDetailsDao.save(
+		PersonalDetails perDet = personalDetailsDao.save(
 				personalDetailsMapper
 				.personalDetailsDtoAndUserToPersonalDetails(personalDetailsDto, user)
 				);
-		return this.getPersonalDetailsByUser();
+		return personalDetailsMapper.personalDetailsToPersonalDetailsDto(perDet);
 	}
 
 
@@ -92,7 +93,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	@Transactional(readOnly = true)
 	public List<ResUser> findByUsernameLike(String username, int limit) {
 		List<User> users = userDao.findByUsernameLike(username, limit);
-		if(users == null || users.isEmpty()) {
+		if(users.isEmpty()) {
 			return null;
 		}
 		return userMapper.UserToResUser(users);
