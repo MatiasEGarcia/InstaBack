@@ -27,7 +27,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.instaJava.instaJava.dao.PersonalDetailsDao;
 import com.instaJava.instaJava.dao.UserDao;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
-import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
@@ -50,7 +49,6 @@ class UserServiceImplTest {
 	static private User user;
 	static private PersonalDetails personalDetails;
 	static private PersonalDetailsDto personalDetailsDto;
-	static private ResUser resUser;
 	
 	@BeforeAll
 	static void entitiesSetUp() throws IOException {
@@ -64,7 +62,6 @@ class UserServiceImplTest {
 		
 		personalDetails = PersonalDetails.builder().build();
 		personalDetailsDto = PersonalDetailsDto.builder().build();
-		resUser = ResUser.builder().build();
 		
 	}
 	
@@ -120,7 +117,6 @@ class UserServiceImplTest {
 		when(personalDetailsDao.findByUser(user)).thenReturn(null);
 		assertThrows(IllegalArgumentException.class, () -> {userService.getPersonalDetailsByUser();});
 		verify(personalDetailsDao).findByUser(user);
-		verify(personalDetailsMapper,never()).personalDetailsToPersonalDetailsDto(null);
 	}
 	
 	@Test
@@ -132,7 +128,6 @@ class UserServiceImplTest {
 		when(personalDetailsDao.findByUser(user)).thenReturn(personalDetails);
 		userService.getPersonalDetailsByUser();
 		verify(personalDetailsDao).findByUser(user);
-		verify(personalDetailsMapper).personalDetailsToPersonalDetailsDto(personalDetails);
 	}
 	
 	@Test
@@ -151,7 +146,6 @@ class UserServiceImplTest {
 		when(personalDetailsMapper.
 				personalDetailsDtoAndUserToPersonalDetails(personalDetailsDto, user))
 				.thenReturn(personalDetails);
-		when(personalDetailsMapper.personalDetailsToPersonalDetailsDto(personalDetails)).thenReturn(personalDetailsDto);
 		when(personalDetailsDao.save(personalDetails)).thenReturn(personalDetails);
 		
 		userService.savePersonalDetails(personalDetailsDto);
@@ -159,7 +153,6 @@ class UserServiceImplTest {
 		verify(personalDetailsMapper)
 			.personalDetailsDtoAndUserToPersonalDetails(personalDetailsDto, user);
 		verify(personalDetailsDao).save(personalDetails);
-		verify(personalDetailsMapper).personalDetailsToPersonalDetailsDto(personalDetails);
 	}
 	
 	@Test
@@ -169,21 +162,17 @@ class UserServiceImplTest {
 		assertNull(userService.findByUsernameLike(user.getUsername(),10));
 		
 		verify(userDao).findByUsernameLike(user.getUsername(),10);
-		verify(userMapper, never()).UserToResUser(Collections.emptyList());
 	}
 	
 	
 	@Test
 	void findByUsernameLikeReturnEquals() {
 		List<User> users = List.of(user);
-		List<ResUser> resUsers = List.of(resUser);
 		when(userDao.findByUsernameLike(user.getUsername(),10)).thenReturn(users);
-		when(userMapper.UserToResUser(users)).thenReturn(resUsers);
 	
-		assertEquals(resUsers,userService.findByUsernameLike(user.getUsername(),10));
+		assertEquals(users,userService.findByUsernameLike(user.getUsername(),10));
 		
 		verify(userDao).findByUsernameLike(user.getUsername(),10);
-		verify(userMapper).UserToResUser(users);
 	}
 	
 	
