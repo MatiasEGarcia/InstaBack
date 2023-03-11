@@ -5,7 +5,8 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
-import com.instaJava.instaJava.dto.response.ResUser;
+import com.instaJava.instaJava.entity.PersonalDetails;
+import com.instaJava.instaJava.entity.User;
 
 public interface UserService {
 
@@ -13,9 +14,9 @@ public interface UserService {
 	
 	String getImage();
 	
-	PersonalDetailsDto savePersonalDetails(PersonalDetailsDto personalDetailsDto);
+	PersonalDetails getPersonalDetailsByUser();
 	
-	PersonalDetailsDto getPersonalDetailsByUser();
+	PersonalDetails savePersonalDetails(PersonalDetailsDto personalDetailsDto);
 	
-	List<ResUser> findByUsernameLike(String username,int limit);
+	List<User> findByUsernameLike(String username,int limit);
 }

@@ -17,7 +17,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
 import com.instaJava.instaJava.dto.response.ResMessage;
-import com.instaJava.instaJava.dto.response.ResUser;
+import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
+import com.instaJava.instaJava.mapper.UserMapper;
 import com.instaJava.instaJava.service.InvTokenService;
 import com.instaJava.instaJava.service.UserService;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -32,64 +34,56 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Validated
 public class UserC {
-	
+
 	private final InvTokenService invTokenService;
 	private final UserService userService;
 	private final MessagesUtils messUtils;
+	private final PersonalDetailsMapper personalDetailsMapper;
+	private final UserMapper userMapper;
 
 	@PostMapping("/image")
-	public ResponseEntity<String> uploadImage( @RequestParam("img") @NotNull @Image  MultipartFile file){
+	public ResponseEntity<String> uploadImage(@RequestParam("img") @NotNull @Image MultipartFile file) {
 		userService.updateImage(file);
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(userService.getImage());
+		return ResponseEntity.status(HttpStatus.OK).body(userService.getImage());
 	}
-	
+
 	@GetMapping("/image")
-	public ResponseEntity<String> downloadImage(){
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(userService.getImage());
+	public ResponseEntity<String> downloadImage() {
+		return ResponseEntity.status(HttpStatus.OK).body(userService.getImage());
 	}
-	
+
 	@GetMapping("/logout")
-	public ResponseEntity<ResMessage> logout(@Valid @RequestBody ReqLogout reqLogout){
+	public ResponseEntity<ResMessage> logout(@Valid @RequestBody ReqLogout reqLogout) {
 		List<String> invTokens = new ArrayList<>();
 		invTokens.add(reqLogout.getToken());
 		invTokens.add(reqLogout.getRefreshToken());
 		invTokenService.invalidateTokens(invTokens);
 		return ResponseEntity.ok().body(new ResMessage("User logout successfully!"));
 	}
-	
+
 	@PostMapping("/personalDetails")
-	public ResponseEntity<PersonalDetailsDto> savePersonalDetails(@Valid @RequestBody PersonalDetailsDto personalDetailsDto){
-		return ResponseEntity.ok().body(userService.savePersonalDetails(personalDetailsDto));
+	public ResponseEntity<PersonalDetailsDto> savePersonalDetails(
+			@Valid @RequestBody PersonalDetailsDto personalDetailsDto) {
+		personalDetailsDto = personalDetailsMapper
+				.personalDetailsToPersonalDetailsDto(userService.savePersonalDetails(personalDetailsDto));
+		return ResponseEntity.ok().body(personalDetailsDto);
 	}
-	
+
 	@GetMapping("/personalDetails")
-	public ResponseEntity<PersonalDetailsDto> getPersonalDetails(){
-		return ResponseEntity.ok().body(userService.getPersonalDetailsByUser());
+	public ResponseEntity<PersonalDetailsDto> getPersonalDetails() {
+		PersonalDetailsDto personalDetailsDto = personalDetailsMapper
+				.personalDetailsToPersonalDetailsDto(userService.getPersonalDetailsByUser());
+		return ResponseEntity.ok().body(personalDetailsDto);
 	}
-	
+
 	@GetMapping("/like")
-	public ResponseEntity<?> getUserForUsernameLike(
-			@RequestParam(name = "username") String username,
-			@RequestParam(name = "limit", defaultValue = "100") String limit
-			){
-		List<ResUser> resUser =userService.findByUsernameLike(username, Integer.parseInt(limit));
-		if(resUser == null) {
-		return ResponseEntity
-				.noContent()
-				.header("moreInfo", messUtils.getMessage("mess.there-no-users"))
-				.build();
+	public ResponseEntity<?> getUserForUsernameLike(@RequestParam(name = "username") String username,
+			@RequestParam(name = "limit", defaultValue = "100") String limit) {
+		List<User> users = userService.findByUsernameLike(username, Integer.parseInt(limit));
+		if (users == null) {
+			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.there-no-users")).build();
 		}
-		return ResponseEntity.ok().body(resUser);
+		return ResponseEntity.ok().body(userMapper.UserToResUser(users));
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 }
