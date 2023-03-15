@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
+import com.instaJava.instaJava.dto.response.ResImageString;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
@@ -42,9 +43,11 @@ public class UserC {
 	private final UserMapper userMapper;
 
 	@PostMapping("/image")
-	public ResponseEntity<String> uploadImage(@RequestParam("img") @NotNull @Image MultipartFile file) {
+	public ResponseEntity<ResImageString> uploadImage(@RequestParam("img") @NotNull @Image MultipartFile file) {
 		userService.updateImage(file);
-		return ResponseEntity.status(HttpStatus.OK).body(userService.getImage());
+		return ResponseEntity.status(HttpStatus.OK).body(ResImageString.builder()
+				.image64(userService.getImage())
+				.build());
 	}
 
 	@GetMapping("/image")

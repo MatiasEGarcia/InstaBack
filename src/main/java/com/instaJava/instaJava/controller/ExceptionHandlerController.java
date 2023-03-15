@@ -1,7 +1,9 @@
 package com.instaJava.instaJava.controller;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.instaJava.instaJava.exception.InvalidException;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 
 @ControllerAdvice
@@ -43,5 +48,46 @@ public class ExceptionHandlerController {
 		});
 		return ResponseEntity.badRequest().body(errors);
 	}
+	
+	@ExceptionHandler(value = { ConstraintViolationException.class })
+	public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException e) {
+		LOGGER.error("ConstraintViolationException :", e.getMessage());
+		Map<String, String> errors = new HashMap<>();
+		Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+		
+		constraintViolations.forEach((constraintViolation) -> {
+			String fieldName = constraintViolation.getPropertyPath().toString();
+			//as a fieldName I get method.objetName from constraingViolation, I only want the objectName (an example is in UserC with uploadImage,method.objetName -> uploadImage.file)
+			String result[] = fieldName.split("[.]");
+			fieldName = result[1];
+			String message = constraintViolation.getMessage();
+			errors.put(fieldName, message);
+		});
+		return ResponseEntity.badRequest().body(errors);
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 }
