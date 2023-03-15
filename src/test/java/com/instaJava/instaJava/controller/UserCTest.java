@@ -26,9 +26,12 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.instaJava.instaJava.dao.UserDao;
+import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
+import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.RolesEnum;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
@@ -52,15 +55,16 @@ class UserCTest {
 	@Autowired
 	private MessagesUtils messUtils;
 	@MockBean
+	private PersonalDetailsMapper personalDetailsMapper;
+	@MockBean
+	private UserMapper userMapper;
+	@MockBean
 	private UserDao userDao;
 	@MockBean
 	private InvTokenServiceImpl invTokenService;
 	@MockBean
 	private UserServiceImpl userService;
-	@MockBean
-	private PersonalDetailsMapper personalDetailsMapper;
-	@MockBean
-	private UserMapper userMapper;
+	
 	private static final MediaType APPLICATION_JSON_UTF8 = MediaType.APPLICATION_JSON;
 	private final User USER_AUTH = User.builder()
 			.username("random")
@@ -75,7 +79,7 @@ class UserCTest {
 	} 
 
 	@Test
-	void uploadImageStatusOk() throws Exception {
+	void postUploadImageStatusOk() throws Exception {
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
 				 MediaType.IMAGE_JPEG_VALUE, 
 		        "Hello, World!".getBytes()
@@ -100,7 +104,7 @@ class UserCTest {
 	}
 	
 	@Test
-	void uploadImageStatusBadRequst() throws Exception {
+	void postUploadImageStatusBadRequst() throws Exception {
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
 				"text/plain", 
 		        "Hello, World!".getBytes()
@@ -121,7 +125,7 @@ class UserCTest {
 	}
 
 	@Test
-	void downloadImageStatusOk() throws Exception {
+	void getDownloadImageStatusOk() throws Exception {
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
 				 MediaType.IMAGE_JPEG_VALUE, 
 		        "Hello, World!".getBytes()
@@ -142,7 +146,7 @@ class UserCTest {
 	}
 	
 	@Test
-	void logoutStatusOk() throws Exception {
+	void postLogoutStatusOk() throws Exception {
 		String token = jwtService.generateToken(USER_AUTH);
 		//for authentication filter
 		when(userService.loadUserByUsername(USER_AUTH.getUsername())).thenReturn(USER_AUTH);
@@ -162,23 +166,124 @@ class UserCTest {
 			.invalidateTokens(List.of(reqLogout.getToken(), reqLogout.getRefreshToken()));
 	}
 	
+	@Test
+	void postLogoutStatusBadRequest() throws Exception {
+		String token = jwtService.generateToken(USER_AUTH);
+		//for authentication filter
+		when(userService.loadUserByUsername(USER_AUTH.getUsername())).thenReturn(USER_AUTH);
+		ReqLogout reqLogout=ReqLogout.builder().build();
+		
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/logout")
+				.header("Authorization", "Bearer " + token)
+				.contentType(APPLICATION_JSON_UTF8)
+				.content(objectMapper.writeValueAsString(reqLogout)))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.token",is(messUtils.getMessage("vali.token-not-blank"))))
+				.andExpect(jsonPath("$.refreshToken", is(messUtils.getMessage("vali.refreshToken-not-blank"))));
+		
+		verify(invTokenService,never()).invalidateTokens(null);
+	}
 	
+	@Test
+	void postSavePersonalDetailsStatusOk() throws Exception {
+		String token = jwtService.generateToken(USER_AUTH);
+		Byte age = 23;
+		PersonalDetailsDto perDetDto = PersonalDetailsDto.builder()
+				.name("Mati")
+				.lastname("Gar")
+				.age(age)
+				.email("matig@gmail.com")
+				.build();
+		PersonalDetails perDet = PersonalDetails.builder()
+				.name(token)
+				.lastname(token)
+				.age(age)
+				.email("matig@gmail.com")
+				.build();
+		//for authentication filter
+		when(userService.loadUserByUsername(USER_AUTH.getUsername())).thenReturn(USER_AUTH);
+		when(userService.savePersonalDetails(perDetDto)).thenReturn(perDet);
+		when(personalDetailsMapper.personalDetailsToPersonalDetailsDto(perDet)).thenReturn(perDetDto);
+		
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/personalDetails")
+				.header("Authorization", "Bearer " + token)
+				.contentType(APPLICATION_JSON_UTF8)
+				.content(objectMapper.writeValueAsBytes(perDetDto)))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.name",is(perDetDto.getName())))
+				.andExpect(jsonPath("$.lastname",is(perDetDto.getLastname())))
+				.andExpect(jsonPath("$.age",is(23)))
+				.andExpect(jsonPath("$.email",is(perDetDto.getEmail())));
+		
+		verify(userService).savePersonalDetails(perDetDto);
+		verify(personalDetailsMapper).personalDetailsToPersonalDetailsDto(perDet);
+		
+	}
 	
+	@Test
+	void postSavePersonalDetailsStatusBadRequest() throws Exception {
+		String token = jwtService.generateToken(USER_AUTH);
+		PersonalDetailsDto perDetDto = PersonalDetailsDto.builder().build();
+		PersonalDetails perDet = PersonalDetails.builder().build();
+		//for authentication filter
+		when(userService.loadUserByUsername(USER_AUTH.getUsername())).thenReturn(USER_AUTH);
+		
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/personalDetails")
+				.header("Authorization", "Bearer " + token)
+				.contentType(APPLICATION_JSON_UTF8)
+				.content(objectMapper.writeValueAsBytes(perDet)))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.name",is(messUtils.getMessage("vali.name-not-blank"))))
+				.andExpect(jsonPath("$.lastname",is(messUtils.getMessage("vali.lastname-not-blank"))))
+				.andExpect(jsonPath("$.age",is(messUtils.getMessage("vali.age-range"))))
+				.andExpect(jsonPath("$.email",is(messUtils.getMessage("vali.email-not-blank"))));
+		
+		verify(userService,never()).savePersonalDetails(perDetDto);
+		verify(personalDetailsMapper,never()).personalDetailsToPersonalDetailsDto(perDet);
+	}
 	
+	@Test
+	void getGetPersonalDetailsStatusOk() throws Exception {
+		String token = jwtService.generateToken(USER_AUTH);
+		Byte age = 23;
+		PersonalDetailsDto perDetDto = PersonalDetailsDto.builder()
+				.name("Mati")
+				.lastname("Gar")
+				.age(age)
+				.email("matig@gmail.com")
+				.build();
+		PersonalDetails perDet = PersonalDetails.builder()
+				.name(token)
+				.lastname(token)
+				.age(age)
+				.email("matig@gmail.com")
+				.build();
+		//for authentication filter
+		when(userService.loadUserByUsername(USER_AUTH.getUsername())).thenReturn(USER_AUTH);
+		when(userService.getPersonalDetailsByUser()).thenReturn(perDet);
+		when(personalDetailsMapper.personalDetailsToPersonalDetailsDto(perDet)).thenReturn(perDetDto);
+		
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/personalDetails")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.name",is(perDetDto.getName())))
+				.andExpect(jsonPath("$.lastname",is(perDetDto.getLastname())))
+				.andExpect(jsonPath("$.age",is(23)))
+				.andExpect(jsonPath("$.email",is(perDetDto.getEmail())));
+		
+		verify(userService).getPersonalDetailsByUser();
+		verify(personalDetailsMapper).personalDetailsToPersonalDetailsDto(perDet);
+		
+	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	void getGetUserForUsernameLikeStatusOk() {
+		String token = jwtService.generateToken(USER_AUTH);
+		//for authentication filter
+		when(userService.loadUserByUsername(USER_AUTH.getUsername())).thenReturn(USER_AUTH);
+	}
 	
 	
 	

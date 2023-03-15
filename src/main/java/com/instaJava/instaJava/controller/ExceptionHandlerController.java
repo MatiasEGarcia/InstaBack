@@ -10,9 +10,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.instaJava.instaJava.dto.response.RespMissingServlReqParam;
 import com.instaJava.instaJava.exception.InvalidException;
 
 import jakarta.validation.ConstraintViolation;
@@ -65,7 +67,14 @@ public class ExceptionHandlerController {
 		return ResponseEntity.badRequest().body(errors);
 	}
 
-	
+	@ExceptionHandler(value = {MissingServletRequestParameterException.class})
+	public ResponseEntity<RespMissingServlReqParam> handleMissingServletRequestParameterException(MissingServletRequestParameterException e){
+		return ResponseEntity.badRequest().body(RespMissingServlReqParam.builder()
+				.field(e.getParameterName())
+				.errorMessage(e.getMessage())
+				.parameterType(e.getParameterType())
+				.build());
+	}
 	
 	
 	
