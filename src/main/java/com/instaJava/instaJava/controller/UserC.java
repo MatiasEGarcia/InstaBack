@@ -51,17 +51,20 @@ public class UserC {
 	}
 
 	@GetMapping("/image")
-	public ResponseEntity<String> downloadImage() {
-		return ResponseEntity.status(HttpStatus.OK).body(userService.getImage());
+	public ResponseEntity<ResImageString> downloadImage() {
+		return ResponseEntity.status(HttpStatus.OK).body(ResImageString.builder()
+				.image64(userService.getImage())
+				.build());
 	}
 
-	@GetMapping("/logout")
+	//Why post? Because I'm creating invTokens and saving them in the db
+	@PostMapping("/logout")
 	public ResponseEntity<ResMessage> logout(@Valid @RequestBody ReqLogout reqLogout) {
 		List<String> invTokens = new ArrayList<>();
 		invTokens.add(reqLogout.getToken());
 		invTokens.add(reqLogout.getRefreshToken());
 		invTokenService.invalidateTokens(invTokens);
-		return ResponseEntity.ok().body(new ResMessage("User logout successfully!"));
+		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("mess.successfully-logout")));
 	}
 
 	@PostMapping("/personalDetails")
