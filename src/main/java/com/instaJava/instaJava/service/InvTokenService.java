@@ -8,7 +8,5 @@ public interface InvTokenService {
 
 	List<InvToken> invalidateTokens(List<String> tokens);
 	
-	void deleteTokensSheduler();
-	
 	boolean existByToken(String token);
 }
