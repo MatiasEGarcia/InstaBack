@@ -1,5 +1,6 @@
 package com.instaJava.instaJava.service;
 
+
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.instaJava.instaJava.dao.InvTokenDao;
 import com.instaJava.instaJava.entity.InvToken;
+import com.instaJava.instaJava.util.MessagesUtils;
 
 import lombok.AllArgsConstructor;
 
@@ -18,20 +20,22 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class InvTokenServiceImpl implements InvTokenService{
 
+	private final Clock clock;
 	private final InvTokenDao invTokenDao;
+	private final MessagesUtils messUtils;
 	
 	@Override
 	@Transactional
-	public void invalidateTokens(List<String> tokens) {
+	public List<InvToken> invalidateTokens(List<String> tokens) {
+		if(tokens == null || tokens.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
 		List<InvToken> invTokens = new ArrayList<>();
-		Clock clock = Clock.systemUTC();
 		for(int i = 0 ; i< tokens.size() ; i++) {
 			invTokens.add(InvToken.builder()
 					.invalidateDate(ZonedDateTime.now(clock))
 					.token(tokens.get(i)).
 					build());
 		}
-		invTokenDao.saveAll(invTokens);
+		return invTokenDao.saveAll(invTokens);
 	}
 
 	//When a user logout, it's token is saved in bdd, the token still will be valid for some time
