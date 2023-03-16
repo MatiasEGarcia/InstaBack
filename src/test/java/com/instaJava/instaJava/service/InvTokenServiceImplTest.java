@@ -1,7 +1,9 @@
 package com.instaJava.instaJava.service;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,8 +73,20 @@ class InvTokenServiceImplTest {
 		verify(invTokenDao).saveAll(invTokens);
 	}
 	
+	@Test
+	void existByTokenReturnFalse() {
+		String token = "someToken";
+		when(invTokenDao.existsByToken(token)).thenReturn(false);
+		assertFalse(invTokenService.existByToken(token));
+		verify(invTokenDao).existsByToken(token);
+	}
 	
-	
-	
+	@Test
+	void existByTokenReturnTrue() {
+		String token = "someToken";
+		when(invTokenDao.existsByToken(token)).thenReturn(true);
+		assertTrue(invTokenService.existByToken(token));
+		verify(invTokenDao).existsByToken(token);
+	}
 	
 }
