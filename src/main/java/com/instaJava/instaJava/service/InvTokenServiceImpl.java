@@ -13,10 +13,10 @@ import com.instaJava.instaJava.dao.InvTokenDao;
 import com.instaJava.instaJava.entity.InvToken;
 import com.instaJava.instaJava.util.MessagesUtils;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class InvTokenServiceImpl implements InvTokenService{
 
 	private final Clock clock;

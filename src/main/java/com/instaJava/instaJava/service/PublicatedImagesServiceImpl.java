@@ -17,10 +17,10 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
 import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class PublicatedImagesServiceImpl implements PublicatedImageService {
 
 	private final PublicatedImagesDao publicatedImagesDao;
