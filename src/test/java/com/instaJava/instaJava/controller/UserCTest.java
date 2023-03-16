@@ -2,6 +2,7 @@ package com.instaJava.instaJava.controller;
 
 
 import static org.hamcrest.Matchers.equalToIgnoringCase;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -26,11 +28,11 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.instaJava.instaJava.dao.UserDao;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
+import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.RolesEnum;
 import com.instaJava.instaJava.entity.User;
@@ -279,13 +281,71 @@ class UserCTest {
 		
 	}
 	
-	void getGetUserForUsernameLikeStatusOk() {
+	@Test
+	void getGetUserForUsernameLikeStatusOk() throws Exception {
 		String token = jwtService.generateToken(USER_AUTH);
+		String username = "Mat";
+		String limit = "5";
+		List<User> users = List.of(User.builder().username("Matias").build());
+		List<ResUser> ResUsers = List.of(ResUser.builder().username("Matias").build());
 		//for authentication filter
 		when(userService.loadUserByUsername(USER_AUTH.getUsername())).thenReturn(USER_AUTH);
+		when(userService.findByUsernameLike(username, Integer.parseInt(limit)))
+				.thenReturn(users);
+		when(userMapper.UserToResUser(users)).thenReturn(ResUsers);
+		
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/like")
+				.header("Authorization", "Bearer " + token)
+				.param("username", username)
+				.param("limit", limit))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$",hasSize(1)));
+		
+		verify(userService).findByUsernameLike(username, Integer.parseInt(limit));
+		verify(userMapper).UserToResUser(users);
 	}
 	
+	@Test
+	void getGetUserForUsernameLikeStatusNoContent() throws Exception {
+		String token = jwtService.generateToken(USER_AUTH);
+		String username = "Mat";
+		String limit = "5";
+		List<User> users = null;
+		//for authentication filter
+		when(userService.loadUserByUsername(USER_AUTH.getUsername())).thenReturn(USER_AUTH);
+		when(userService.findByUsernameLike(username, Integer.parseInt(limit)))
+		.thenReturn(users);
+		
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/like")
+				.header("Authorization", "Bearer " + token)
+				.param("username", username)
+				.param("limit", limit))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("moreInfo",messUtils.getMessage("mess.there-no-users")));
+		
+		verify(userService).findByUsernameLike(username, Integer.parseInt(limit));
+		verify(userMapper,never()).UserToResUser(users);
+	}
 	
-	
-	
+	@Test
+	void getGetUserForUsernameLikeStatusBadRequest() throws Exception {
+		String token = jwtService.generateToken(USER_AUTH);
+		String username = "Mat";
+		String limit = "5";
+		List<User> users = null;
+		//for authentication filter
+		when(userService.loadUserByUsername(USER_AUTH.getUsername())).thenReturn(USER_AUTH);
+		when(userService.findByUsernameLike(username, Integer.parseInt(limit)))
+		.thenReturn(users);
+		
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/like")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isBadRequest())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.field", is("username")));
+		
+		verify(userService,never()).findByUsernameLike(username, Integer.parseInt(limit));
+		verify(userMapper,never()).UserToResUser(users);
+	}
 }
