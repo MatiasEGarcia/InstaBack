@@ -1,6 +1,7 @@
 package com.instaJava.instaJava.service;
 
 import java.security.Key;
+import java.time.Clock;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,10 +15,13 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
 
+	private final Clock clock;
 	private static final String SECRET_KEY = "7638792F423F4428472B4B6250655368566D597133743677397A244326462948";
 
 	public String extractUsername(String token) {
@@ -37,8 +41,8 @@ public class JwtService {
 		String accessToken = Jwts.builder()
 				.setClaims(extraClaims)
 				.setSubject(userDetails.getUsername())
-				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + 10 * 60 * 1000 ))// 10 min
+				.setIssuedAt(new Date(clock.millis()))
+				.setExpiration(new Date(clock.millis() + 10 * 60 * 1000 ))// 10 min //I have to test this.
 				.signWith(getSignKey(), SignatureAlgorithm.HS256)
 				.compact();
 		return accessToken;
@@ -47,7 +51,7 @@ public class JwtService {
 	public String generateRefreshToken(UserDetails userDetails) {
 		String refreshToken = Jwts.builder()
 				.setSubject(userDetails.getUsername())
-				.setExpiration(new Date(System.currentTimeMillis() + 30 * 60 * 1000 ))// 30 min
+				.setExpiration(new Date(clock.millis() + 30 * 60 * 1000 ))// 30 min
 				.signWith(getSignKey(), SignatureAlgorithm.HS256)
 				.compact();
 		return refreshToken;
@@ -59,7 +63,9 @@ public class JwtService {
 	}
 	
 	private boolean isTokenExpired(String token) {
-		return extractExpiration(token).before(new Date());
+		//if expiration is before current time means that is expired and return true
+		//If expiration is after current time means that is not expired and return false
+		return extractExpiration(token).before(new Date(clock.millis()));
 	}
 	
 	private Date extractExpiration(String token) {
