@@ -1,9 +1,9 @@
 package com.instaJava.instaJava.service;
 
-import java.io.IOException;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.Optional;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -14,6 +14,7 @@ import com.instaJava.instaJava.dao.PublicatedImagesDao;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.util.MessagesUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,20 +24,22 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 
 	private final Clock clock;
 	private final PublicatedImagesDao publicatedImagesDao;
+	private final MessagesUtils messUtils;
 	
 
 	@Override
 	@Transactional
-	public PublicatedImage save(String Description, MultipartFile file) {
+	public PublicatedImage save(String description, MultipartFile file) {
+		if(file == null || file.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
 		PublicatedImage publicatedImage;
 		try {
 			publicatedImage = PublicatedImage.builder()
-					.description(Description)
+					.description(description)
 					.image(Base64.getEncoder().encodeToString(file.getBytes()))
 					.userOwner((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 					.createdAt(ZonedDateTime.now(clock))
 					.build();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new ImageException(e);
 		}
 		
@@ -46,7 +49,16 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Override
 	@Transactional
 	public void deleteById(Long id) {//I should search if the entity exist first
+		findById(id); //if not exist will throw an Exception
 		publicatedImagesDao.deleteById(id);
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public PublicatedImage findById(Long id) {
+		Optional<PublicatedImage> publicatedImage = publicatedImagesDao.findById(id);
+		if(publicatedImage.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exepcion.publicatedImage-not-found-id"));
+		return publicatedImage.get();
 	}
 	
 }

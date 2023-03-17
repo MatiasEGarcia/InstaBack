@@ -10,4 +10,6 @@ public interface PublicatedImageService {
 	PublicatedImage save(String Description,MultipartFile file);
 	
 	void deleteById(Long id);
+	
+	PublicatedImage findById(Long id);
 }
