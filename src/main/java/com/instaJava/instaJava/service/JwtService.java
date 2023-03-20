@@ -10,6 +10,8 @@ import java.util.function.Function;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import com.instaJava.instaJava.util.MessagesUtils;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -22,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtService {
 
 	private final Clock clock;
+	private final MessagesUtils messUtils;
 	private static final String SECRET_KEY = "7638792F423F4428472B4B6250655368566D597133743677397A244326462948";
 
 	public String extractUsername(String token) {
@@ -38,6 +41,9 @@ public class JwtService {
 	}
 	
 	public String generateToken(Map<String,Object> extraClaims,UserDetails userDetails) {
+		if(userDetails == null || extraClaims == null) {
+			throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		}
 		String accessToken = Jwts.builder()
 				.setClaims(extraClaims)
 				.setSubject(userDetails.getUsername())
@@ -49,6 +55,7 @@ public class JwtService {
 	}
 	
 	public String generateRefreshToken(UserDetails userDetails) {
+		if(userDetails == null)  throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
 		String refreshToken = Jwts.builder()
 				.setSubject(userDetails.getUsername())
 				.setExpiration(new Date(clock.millis() + 30 * 60 * 1000 ))// 30 min
@@ -58,6 +65,7 @@ public class JwtService {
 	}
 	
 	public boolean isTokenValid(String token,UserDetails userDetails) {//we need userDetails to see if the tokens belongs to this user
+		if(userDetails == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
 		final String username = this.extractUsername(token);
 		return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
 	}
