@@ -35,6 +35,7 @@ public class AuthService {
  	
 	@Transactional
 	public ResAuthToken register(ReqUserRegistration reqUserRegistration) {
+		if(reqUserRegistration == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
 		User user = User.builder()
 				.username(reqUserRegistration.getUsername())
 				.password(passwordEncoder.encode(reqUserRegistration.getPassword()))
@@ -48,10 +49,9 @@ public class AuthService {
 	
 	@Transactional(readOnly = true)
 	public ResAuthToken authenticate(ReqLogin reqLogin) {
+		if(reqLogin == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
 		User user = userDao.findByUsername(reqLogin.getUsername());
-		if(user == null) {
-			throw new UsernameNotFoundException(messUtils.getMessage("exepcion.username-not-found"));
-		}
+		if(user == null) throw new UsernameNotFoundException(messUtils.getMessage("exepcion.username-not-found"));
 		authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(
 						reqLogin.getUsername(), 
@@ -64,6 +64,7 @@ public class AuthService {
 
 	@Transactional(readOnly = true)
 	public ResAuthToken refreshToken(ReqRefreshToken reqRefreshToken) {
+		if(reqRefreshToken == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
 		UserDetails userDetails = userDetailsService.loadUserByUsername(jwtService.extractUsername(reqRefreshToken.getRefreshToken()));
 		if(jwtService.isTokenValid(reqRefreshToken.getRefreshToken(), userDetails)
 				&& !invTokenService.existByToken(reqRefreshToken.getRefreshToken())) {

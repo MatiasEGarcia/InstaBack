@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -39,11 +39,7 @@ import com.instaJava.instaJava.dto.request.ReqLogout;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.RolesEnum;
 import com.instaJava.instaJava.entity.User;
-import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
-import com.instaJava.instaJava.mapper.UserMapper;
-import com.instaJava.instaJava.service.InvTokenService;
 import com.instaJava.instaJava.service.JwtService;
-import com.instaJava.instaJava.service.UserService;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 @TestPropertySource("/application-test.properties")
