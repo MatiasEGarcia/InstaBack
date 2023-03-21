@@ -16,9 +16,9 @@ public class ReqUserRegistration implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 	
-	@NotBlank
+	@NotBlank(message="{vali.username-not-blank}")
 	private String username;
 	
-	@NotBlank
+	@NotBlank(message = "{vali.password-not-blank}")
 	private String password;
 }
