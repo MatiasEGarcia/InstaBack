@@ -2,6 +2,7 @@ package com.instaJava.instaJava.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,19 +19,21 @@ import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/publicatedImages")
 @RequiredArgsConstructor
+@Validated
 public class PublicatedImageC {
 	
 	private final PublicatedImageMapper publicImaMapper;
 	private final PublicatedImageService publicatedImageService;
 	private final MessagesUtils messUtils;
 
-	@PostMapping
-	public ResponseEntity<ResPublicatedImage> save(@RequestParam("img") @Image  MultipartFile file,
+	@PostMapping("/save")
+	public ResponseEntity<ResPublicatedImage> save(@RequestParam("img")  @Image  MultipartFile file,
 			@RequestParam("description") String description){
 		ResPublicatedImage resPublicatedImage = publicImaMapper
 				.publicatedImageAndUserToResPublicatedImage(

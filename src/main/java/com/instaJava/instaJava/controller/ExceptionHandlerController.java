@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
-import com.instaJava.instaJava.dto.response.RespMissingServlReqParam;
+import com.instaJava.instaJava.dto.response.RespValidError;
 import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.util.MessagesUtils;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -24,6 +27,7 @@ import jakarta.validation.ConstraintViolationException;
 @ControllerAdvice
 public class ExceptionHandlerController {
 	
+	@Autowired MessagesUtils messUtils;
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlerController.class);
 
 	@ExceptionHandler(value = { Exception.class })
@@ -68,15 +72,21 @@ public class ExceptionHandlerController {
 	}
 
 	@ExceptionHandler(value = {MissingServletRequestParameterException.class})
-	public ResponseEntity<RespMissingServlReqParam> handleMissingServletRequestParameterException(MissingServletRequestParameterException e){
-		return ResponseEntity.badRequest().body(RespMissingServlReqParam.builder()
+	public ResponseEntity<RespValidError> handleMissingServletRequestParameterException(MissingServletRequestParameterException e){
+		return ResponseEntity.badRequest().body(RespValidError.builder()
 				.field(e.getParameterName())
 				.errorMessage(e.getMessage())
-				.parameterType(e.getParameterType())
 				.build());
 	}
 	
-	
+	//when a controller has as argument a MultipartFile but the client didn't send anything, this exception is throw
+	@ExceptionHandler(value = {MissingServletRequestPartException.class})
+	public ResponseEntity<RespValidError> handleMissingServletRequestPartException(MissingServletRequestPartException e){
+		return ResponseEntity.badRequest().body(RespValidError.builder()
+				.field(e.getRequestPartName())
+				.errorMessage(messUtils.getMessage("vali.part.not.present"))
+				.build());
+	}
 	
 	
 	

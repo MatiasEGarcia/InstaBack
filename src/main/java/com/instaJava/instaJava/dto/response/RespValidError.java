@@ -9,13 +9,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class RespMissingServlReqParam {
+public class RespValidError {
 
 private static final long serialVersionUID = 1L;
 	
 	private String field;
 	
 	private String errorMessage;
-	
-	private String parameterType;
 }
