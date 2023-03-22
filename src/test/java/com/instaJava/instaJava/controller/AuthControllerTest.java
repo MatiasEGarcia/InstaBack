@@ -95,7 +95,7 @@ class AuthControllerTest {
 	}
 	
 	@Test
-	void postRegisterStatusBadRequest() throws Exception {
+	void postRegisterStatusBadRequestUsernamePasswordBlank() throws Exception {
 		ReqUserRegistration reqUserRegistration = ReqUserRegistration.builder().build();
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
 				.contentType(APPLICATION_JSON_UTF8)

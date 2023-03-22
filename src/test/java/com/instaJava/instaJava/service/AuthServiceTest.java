@@ -23,6 +23,7 @@ import com.instaJava.instaJava.dto.request.ReqRefreshToken;
 import com.instaJava.instaJava.dto.request.ReqUserRegistration;
 import com.instaJava.instaJava.entity.RolesEnum;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.exception.AlreadyExistsException;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
@@ -45,6 +46,16 @@ class AuthServiceTest {
 	}
 
 	@Test
+	void registerUsernameAlreadyExistThrow() {
+		ReqUserRegistration reqUserR = ReqUserRegistration.builder()
+				.username("random")
+				.password("random")
+				.build();
+		when(userDao.existsByUsername(reqUserR.getUsername())).thenReturn(true);
+		assertThrows(AlreadyExistsException.class,() -> authService.register(reqUserR));
+	}
+	
+	@Test
 	void register() {
 		String token = "token";
 		String refreshToken = "refreshToken";
@@ -57,6 +68,7 @@ class AuthServiceTest {
 				.password("randomEnconde")
 				.role(RolesEnum.ROLE_USER)
 				.build();
+		when(userDao.existsByUsername(reqUserR.getUsername())).thenReturn(false);
 		when(passwordEncoder.encode(reqUserR.getPassword())).thenReturn("randomEnconde");
 		when(userDao.save(user)).thenReturn(user);
 		when(jwtService.generateToken(user)).thenReturn(token);
@@ -66,6 +78,7 @@ class AuthServiceTest {
 		verify(jwtService).generateToken(user);
 		verify(jwtService).generateRefreshToken(user);
 	}
+
 	
 	@Test
 	void authenticateArgNullThrow() {

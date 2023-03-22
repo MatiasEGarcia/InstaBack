@@ -15,4 +15,5 @@ public interface UserDao extends JpaRepository<User, Long>{
 	@Query(value= "SELECT * FROM users WHERE username LIKE %:username% LIMIT :limit" , nativeQuery = true)
 	List<User> findByUsernameLike(@Param("username")String username,@Param("limit") int limit);
 
+	Boolean existsByUsername(String username);
 }

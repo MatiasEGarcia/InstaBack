@@ -96,6 +96,14 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return users;
 	}
 
+
+	@Override
+	@Transactional(readOnly= true)
+	public boolean existsByUsername(String username) {
+		if(username == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+		return userDao.existsByUsername(username);
+	}
+
 	
 	
 	

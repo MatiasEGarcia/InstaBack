@@ -16,6 +16,7 @@ import com.instaJava.instaJava.dto.request.ReqUserRegistration;
 import com.instaJava.instaJava.dto.response.ResAuthToken;
 import com.instaJava.instaJava.entity.RolesEnum;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.exception.AlreadyExistsException;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
@@ -36,6 +37,7 @@ public class AuthService {
 	@Transactional
 	public ResAuthToken register(ReqUserRegistration reqUserRegistration) {
 		if(reqUserRegistration == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		if(userDao.existsByUsername(reqUserRegistration.getUsername())) throw new AlreadyExistsException(messUtils.getMessage("exepcion.username-already-exists"));
 		User user = User.builder()
 				.username(reqUserRegistration.getUsername())
 				.password(passwordEncoder.encode(reqUserRegistration.getPassword()))

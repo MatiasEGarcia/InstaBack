@@ -19,4 +19,6 @@ public interface UserService {
 	PersonalDetails savePersonalDetails(PersonalDetailsDto personalDetailsDto);
 	
 	List<User> findByUsernameLike(String username,int limit);
+	
+	boolean existsByUsername(String username);
 }

@@ -1,8 +1,10 @@
 package com.instaJava.instaJava.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -173,6 +175,27 @@ class UserServiceImplTest {
 		assertEquals(users,userService.findByUsernameLike(user.getUsername(),10));
 		
 		verify(userDao).findByUsernameLike(user.getUsername(),10);
+	}
+	
+	@Test
+	void existByUsernameArgNullThrow() {
+		assertThrows(IllegalArgumentException.class,() -> userService.existsByUsername(null));
+	}
+	
+	@Test
+	void existByUsernameReturnTrue() {
+		String username = "random";
+		when(userDao.existsByUsername(username)).thenReturn(true);
+		assertTrue(userService.existsByUsername(username));
+		verify(userDao).existsByUsername(username);
+	}
+	
+	@Test
+	void existByUsernameReturnFalse() {
+		String username = "random";
+		when(userDao.existsByUsername(username)).thenReturn(false);
+		assertFalse(userService.existsByUsername(username));
+		verify(userDao).existsByUsername(username);
 	}
 	
 	

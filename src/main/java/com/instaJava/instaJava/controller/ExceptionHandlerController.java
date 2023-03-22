@@ -44,7 +44,7 @@ public class ExceptionHandlerController {
 	
 	@ExceptionHandler(value= {MethodArgumentNotValidException.class})
 	public ResponseEntity<Map<String,String>> handleValidateException(MethodArgumentNotValidException e){
-		LOGGER.error("MethodArgumentNotValidException");
+		LOGGER.error("------------MethodArgumentNotValidException");
 		Map<String,String> errors = new HashMap<>();
 		e.getBindingResult().getAllErrors().forEach((error) -> {
 			String fieldName = ((FieldError)error).getField();
