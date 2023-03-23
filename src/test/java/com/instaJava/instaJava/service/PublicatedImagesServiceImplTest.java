@@ -33,8 +33,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.instaJava.instaJava.dao.PublicatedImagesDao;
 import com.instaJava.instaJava.entity.PublicatedImage;
-import com.instaJava.instaJava.entity.RolesEnum;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 @ExtendWith(MockitoExtension.class)

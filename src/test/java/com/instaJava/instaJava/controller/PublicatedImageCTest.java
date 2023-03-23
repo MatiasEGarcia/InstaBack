@@ -33,8 +33,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.instaJava.instaJava.dao.PublicatedImagesDao;
 import com.instaJava.instaJava.entity.PublicatedImage;
-import com.instaJava.instaJava.entity.RolesEnum;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.service.JwtService;
 import com.instaJava.instaJava.util.MessagesUtils;
 
@@ -199,17 +199,18 @@ class PublicatedImageCTest {
 	}
 	
 	@Test
-	void getGetByUserWithArgSortFieldNoExistBadRequest() throws Exception {
+	void getGetByUserWithArgSortFieldAndSortDirNoExistBadRequest() throws Exception {
 		String token = jwtService.generateToken(userAuthMati);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUser")
 				.header("authorization", "Bearer "+token)
 				.param("page", "1")
 				.param("pageSize", "2")
 				.param("sortField", "created") //this field no exist
-				.param("sortDir", "asc"))
+				.param("sortDir", "ascssss")) //this not exist
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.sortField",is(messUtils.getMessage("vali.wrong-field-name"))));
+				.andExpect(jsonPath("$.sortField",is(messUtils.getMessage("vali.wrong-field-name"))))
+				.andExpect(jsonPath("$.sortDir",is(messUtils.getMessage("vali.string-no-valid"))));
 	}
 	
 	@Test

@@ -23,10 +23,12 @@ import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.dto.response.ResPublicatedImage;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.SortDirEnum;
 import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
+import com.instaJava.instaJava.validator.IsEnum;
 import com.instaJava.instaJava.validator.IsField;
 
 import lombok.RequiredArgsConstructor;
@@ -65,7 +67,7 @@ public class PublicatedImageC {
 			@RequestParam(name ="page", defaultValue = "1") String page,
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue="pubImaId") @IsField(classSource = PublicatedImage.class) String sortField,//IsField will ask if the field exist in the class
-			@RequestParam(name = "sortDir" , defaultValue = "asc") String sortDir){
+			@RequestParam(name = "sortDir" , defaultValue = "asc")@IsEnum(enumSource = SortDirEnum.class) String sortDir){
 		Map<String,String> map;
 		HttpHeaders headers;
 		Page<PublicatedImage> pagePublicatedImage = publicatedImageService

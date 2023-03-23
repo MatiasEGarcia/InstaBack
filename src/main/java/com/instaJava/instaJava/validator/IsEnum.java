@@ -8,16 +8,16 @@ import java.lang.annotation.Target;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
-//IsField will ask if the field exist in the classSource
-@Constraint(validatedBy = {IsFieldConstraint.class})
+//Will ask if the String is equals to a value in some enum
+@Constraint(validatedBy = {IsEnumConstraint.class})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.METHOD, ElementType.FIELD,ElementType.PARAMETER})
-public @interface IsField {
+public @interface IsEnum {
 
-	String message() default "{vali.wrong-field-name}";
+	String message() default "{vali.string-no-valid}";
 	
-	Class<?> classSource();
-	
+	Class<?> enumSource();
+
 	public Class<?>[] groups() default {};
 
     public Class<? extends Payload>[] payload() default {};

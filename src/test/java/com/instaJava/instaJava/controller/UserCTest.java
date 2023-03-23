@@ -37,8 +37,8 @@ import com.instaJava.instaJava.dao.UserDao;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
 import com.instaJava.instaJava.entity.PersonalDetails;
-import com.instaJava.instaJava.entity.RolesEnum;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.service.JwtService;
 import com.instaJava.instaJava.util.MessagesUtils;
 

@@ -22,8 +22,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.instaJava.instaJava.entity.RolesEnum;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import io.jsonwebtoken.Jwts;
