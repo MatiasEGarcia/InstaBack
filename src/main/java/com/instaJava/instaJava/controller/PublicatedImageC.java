@@ -61,18 +61,21 @@ public class PublicatedImageC {
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getByUser(
 			@RequestParam(name ="page", defaultValue = "1") String page,
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
-			@RequestParam(name = "sortField", required = false) String sorField,
+			@RequestParam(name = "sortField", required = false) String sortField,
 			@RequestParam(name = "sortDir" , required = false) String sortDir){
 		Map<String,String> map = new HashMap<>();
 		Page<PublicatedImage> pagePublicatedImage = null; // just for now, when I add else in the if it won't be necessary 
 		
-		if(sorField == null || sorField.isBlank() || sortDir.isBlank() || sortDir == null) {
+		if(sortField == null || sortField.isBlank() || sortDir.isBlank() || sortDir == null) {
 			pagePublicatedImage = publicatedImageService
 					.findPublicatedImagesByOwner(Integer.parseInt(page), Integer.parseInt(pageSize));
+		}else {
+			pagePublicatedImage = publicatedImageService
+					.findPublicatedImagesByOwnerSorted(Integer.parseInt(page), Integer.parseInt(pageSize), sortField, sortDir);
 		}
 		map.put("actualPage", page);
 		map.put("pageSize", pageSize);
-		map.put("sorField", sorField);
+		map.put("sortField", sortField);
 		map.put("sortDir", sortDir);
 		return ResponseEntity.ok().body(publicImaMapper
 				.pageAndMapToResPaginationG(pagePublicatedImage, map));

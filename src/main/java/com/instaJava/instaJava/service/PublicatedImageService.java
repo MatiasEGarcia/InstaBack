@@ -14,4 +14,6 @@ public interface PublicatedImageService {
 	PublicatedImage findById(Long id);
 	
 	Page<PublicatedImage> findPublicatedImagesByOwner(int pageNo, int pageSize);
+	
+	Page<PublicatedImage> findPublicatedImagesByOwnerSorted(int pageNo, int pageSize, String sortField, String sortDir);
 }
