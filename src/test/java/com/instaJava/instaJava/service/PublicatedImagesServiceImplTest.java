@@ -134,39 +134,7 @@ class PublicatedImagesServiceImplTest {
 		assertEquals(publicatedImage, publicatedImagesService.findById(id));
 		verify(publicatedImagesDao).findById(id);
 	}
-	
-	@Test
-	void findPublicatedImagesByOwner() {
-		int pageNo = 1;
-		int pageSize = 2;
-		;
-		Pageable pag= PageRequest.of(pageNo - 1, pageSize);
-		Page<PublicatedImage> publicatedImages = new PageImpl<>(List.of(new PublicatedImage()));
-		when(publicatedImagesDao.findPublicatedImagesByOwner(user, pag)).thenReturn(publicatedImages);
-		when(securityContext.getAuthentication()).thenReturn(auth);
-		SecurityContextHolder.setContext(securityContext);
-		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.thenReturn(user);
-		assertNotNull(publicatedImagesService.findPublicatedImagesByOwner(pageNo, pageSize));
-		verify(publicatedImagesDao).findPublicatedImagesByOwner(user, pag);
-	}
-	
-	@Test
-	void findPublicatedImagesByOwnerReturnEmptyPage() {
-		int pageNo = 1;
-		int pageSize = 2;
-		Pageable pag= PageRequest.of(pageNo - 1, pageSize);
-		Page<PublicatedImage> publicatedImages = Page.empty();
-		when(publicatedImagesDao.findPublicatedImagesByOwner(user, pag)).thenReturn(publicatedImages);
-		when(securityContext.getAuthentication()).thenReturn(auth);
-		SecurityContextHolder.setContext(securityContext);
-		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.thenReturn(user);
-		assertNotNull(publicatedImagesService.findPublicatedImagesByOwner(pageNo, pageSize));
-		verify(publicatedImagesDao).findPublicatedImagesByOwner(user, pag);
-	}
-	
-	
+
 	@Test
 	void findPublicatedImagesByOwnerSorted() {
 		int pageNo = 1;

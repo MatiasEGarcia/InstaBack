@@ -1,10 +1,12 @@
 package com.instaJava.instaJava.controller;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -50,8 +52,14 @@ class PublicatedImageCTest {
 	
 	@Value("${sql.script.create.user.1}")
 	private String sqlAddUser1;
+	@Value("${sql.script.create.user.2}")
+	private String sqlAddUser2;
+	@Value("${sql.script.create.publicatedImage}")
+	private String sqlAddPublicatedImage;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
+	@Value("${sql.script.truncate.publicatedImages}")
+	private String sqlTruncatePublicatedImages;
 	@Value("${sql.script.ref.integrity.false}")
 	private String sqlRefIntegrityFalse;
 	@Value("${sql.script.ref.integrity.true}")
@@ -60,9 +68,16 @@ class PublicatedImageCTest {
 	
 	private static final MediaType APPLICATION_JSON_UTF8 = MediaType.APPLICATION_JSON;
 	//same user that sqlAddUser1
-	private User userAuth = User.builder()
+	private User userAuthMati = User.builder()
 			.userId(1L)
 			.username("matias")
+			.password("123456")
+			.role(RolesEnum.ROLE_USER)
+			.build();
+	//same user that sqlAddUser2
+	private User userAuthRoci = User.builder()
+			.userId(2L)
+			.username("rocio")
 			.password("123456")
 			.role(RolesEnum.ROLE_USER)
 			.build();
@@ -76,11 +91,14 @@ class PublicatedImageCTest {
 	@BeforeEach
 	void bddSetUp() {
 		jdbc.execute(sqlAddUser1);
+		jdbc.execute(sqlAddUser2);
+		jdbc.execute(sqlAddPublicatedImage); //this has as user -> sqlAddUser1
+		
 	}
 	
 	@Test
 	void postSaveStatusOk() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(userAuthMati);
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
 				 MediaType.IMAGE_JPEG_VALUE, 
 		        "Hello, World!".getBytes()
@@ -92,17 +110,17 @@ class PublicatedImageCTest {
 				.header("authorization", "Bearer " + token)
 				.param("description", description))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id",is(1)))
+				.andExpect(jsonPath("$.id",is(2)))
 				.andExpect(jsonPath("$.createdAt",instanceOf(String.class)))
 				.andExpect(jsonPath("$.image", is(imgBase64)))
 				.andExpect(jsonPath("$.description",is(description)))
-				.andExpect(jsonPath("$.userOwner",is(userAuth.getUsername())));
+				.andExpect(jsonPath("$.userOwner",is(userAuthMati.getUsername())));
 		assertNotNull(publicatedImagesDao.findById(1L));
 	}
 
 	@Test
 	void postSaveStatusBadRequestImageTypeInvalid() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(userAuthMati);
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
 				"text/plain", 
 		        "Hello, World!".getBytes()
@@ -119,7 +137,7 @@ class PublicatedImageCTest {
 	
 	@Test
 	void postSaveStatusBadRequestImgNotGiven() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(userAuthMati);
 		String description = "description";
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/publicatedImages/save")
 				.header("authorization", "Bearer " + token)
@@ -132,7 +150,7 @@ class PublicatedImageCTest {
 	
 	@Test
 	void deleteDeleteByIdStatusOk() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(userAuthMati);
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
 				 MediaType.IMAGE_JPEG_VALUE, 
 		        "Hello, World!".getBytes()
@@ -142,24 +160,72 @@ class PublicatedImageCTest {
 				.image(imgBase64)
 				.createdAt(ZonedDateTime.now(Clock.systemUTC()))
 				.description("random")
-				.userOwner(userAuth)
+				.userOwner(userAuthMati)
 				.build());
 		
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/publicatedImages/{id}",1)
 				.header("authorization", "Bearer " + token))
 				.andExpect(status().isOk())
-				.andExpectAll(jsonPath("$.message",is(messUtils.getMessage("mess.publi-image-deleted"))));
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.publi-image-deleted"))));
 		
 		Optional<PublicatedImage> PublicatedImage = publicatedImagesDao.findById(1L);
 		if(PublicatedImage.isPresent()) fail();
 	}
 	
+	///
 	
+	@Test
+	void getGetByUserWithoutArgStatusOk() throws Exception {
+		String token = jwtService.generateToken(userAuthMati);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUser")
+				.header("authorization", "Bearer "+token))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.list",hasSize(1)));
+	}
+	
+	@Test
+	void getGetByUserWithArgStatusOk() throws Exception {
+		String token = jwtService.generateToken(userAuthMati);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUser")
+				.header("authorization", "Bearer "+token)
+				.param("page", "1")
+				.param("pageSize", "2")
+				.param("sortField", "createdAt")
+				.param("sortDir", "asc"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.list",hasSize(1)));
+	}
+	
+	@Test
+	void getGetByUserWithArgSortFieldNoExistBadRequest() throws Exception {
+		String token = jwtService.generateToken(userAuthMati);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUser")
+				.header("authorization", "Bearer "+token)
+				.param("page", "1")
+				.param("pageSize", "2")
+				.param("sortField", "created") //this field no exist
+				.param("sortDir", "asc"))
+				.andExpect(status().isBadRequest())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.sortField",is(messUtils.getMessage("vali.wrong-field-name"))));
+	}
+	
+	@Test
+	void getGetByUserWithoutArgStatusNoContent() throws Exception {
+		String token = jwtService.generateToken(userAuthRoci);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUser")
+				.header("authorization", "Bearer "+token))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("Info-header",messUtils.getMessage("mess.not-publi-image")));
+	}
 	
 	@AfterEach
 	void bddDataDelete() {
 		jdbc.execute(sqlRefIntegrityFalse);
 		jdbc.execute(sqlTruncateUsers);
+		jdbc.execute(sqlTruncatePublicatedImages);
 		jdbc.execute(sqlRefIntegrityTrue);
 	}
 	

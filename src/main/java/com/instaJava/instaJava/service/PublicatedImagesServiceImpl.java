@@ -67,16 +67,6 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public Page<PublicatedImage> findPublicatedImagesByOwner(int pageNo, int pageSize) {
-		//first page for the most people is 1 , but for us is 0 
-		Pageable pag= PageRequest.of(pageNo - 1, pageSize);
-		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		Page<PublicatedImage> pagePublicatedImage = publicatedImagesDao.findPublicatedImagesByOwner(user, pag);
-		return pagePublicatedImage;
-	}
-
-	@Override
-	@Transactional(readOnly = true)
 	public Page<PublicatedImage> findPublicatedImagesByOwnerSorted(int pageNo, int pageSize, String sortField,
 			String sortDir) {
 		if(sortField == null || sortField.isBlank() 

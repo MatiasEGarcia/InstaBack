@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
@@ -25,6 +27,7 @@ import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
+import com.instaJava.instaJava.validator.IsField;
 
 import lombok.RequiredArgsConstructor;
 
@@ -61,25 +64,34 @@ public class PublicatedImageC {
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getByUser(
 			@RequestParam(name ="page", defaultValue = "1") String page,
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
-			@RequestParam(name = "sortField", required = false) String sortField,
-			@RequestParam(name = "sortDir" , required = false) String sortDir){
-		Map<String,String> map = new HashMap<>();
-		Page<PublicatedImage> pagePublicatedImage = null; // just for now, when I add else in the if it won't be necessary 
-		
-		if(sortField == null || sortField.isBlank() || sortDir.isBlank() || sortDir == null) {
-			pagePublicatedImage = publicatedImageService
-					.findPublicatedImagesByOwner(Integer.parseInt(page), Integer.parseInt(pageSize));
-		}else {
-			pagePublicatedImage = publicatedImageService
-					.findPublicatedImagesByOwnerSorted(Integer.parseInt(page), Integer.parseInt(pageSize), sortField, sortDir);
+			@RequestParam(name = "sortField", defaultValue="pubImaId") @IsField(classSource = PublicatedImage.class) String sortField,//IsField will ask if the field exist in the class
+			@RequestParam(name = "sortDir" , defaultValue = "asc") String sortDir){
+		Map<String,String> map;
+		HttpHeaders headers;
+		Page<PublicatedImage> pagePublicatedImage = publicatedImageService
+				.findPublicatedImagesByOwnerSorted(Integer.parseInt(page), Integer.parseInt(pageSize), sortField, sortDir);
+		if(!pagePublicatedImage.isEmpty()) {
+			map = new HashMap<>();
+			map.put("actualPage", page);
+			map.put("pageSize", pageSize);
+			map.put("sortField", sortField);
+			map.put("sortDir", sortDir);
+			return ResponseEntity.ok().body(publicImaMapper
+					.pageAndMapToResPaginationG(pagePublicatedImage, map));
 		}
-		map.put("actualPage", page);
-		map.put("pageSize", pageSize);
-		map.put("sortField", sortField);
-		map.put("sortDir", sortDir);
-		return ResponseEntity.ok().body(publicImaMapper
-				.pageAndMapToResPaginationG(pagePublicatedImage, map));
+		headers = new HttpHeaders();
+		headers.add("Info-header", messUtils.getMessage("mess.not-publi-image"));
+		return new ResponseEntity<> (headers, HttpStatus.NO_CONTENT);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 }

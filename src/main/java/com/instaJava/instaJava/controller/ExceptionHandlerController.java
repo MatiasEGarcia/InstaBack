@@ -54,9 +54,10 @@ public class ExceptionHandlerController {
 		return ResponseEntity.badRequest().body(errors);
 	}
 	
+	//this exception occurs for example I try to save a file incorrect , save in PublicatedImageC
 	@ExceptionHandler(value = { ConstraintViolationException.class })
 	public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException e) {
-		LOGGER.error("ConstraintViolationException :", e.getMessage());
+		LOGGER.error("-----------------ConstraintViolationException :", e.getMessage());
 		Map<String, String> errors = new HashMap<>();
 		Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
 		
