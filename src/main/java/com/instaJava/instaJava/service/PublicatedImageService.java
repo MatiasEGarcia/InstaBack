@@ -1,8 +1,8 @@
 package com.instaJava.instaJava.service;
 
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.instaJava.instaJava.dto.response.ResPublicatedImage;
 import com.instaJava.instaJava.entity.PublicatedImage;
 
 public interface PublicatedImageService {
@@ -12,4 +12,6 @@ public interface PublicatedImageService {
 	void deleteById(Long id);
 	
 	PublicatedImage findById(Long id);
+	
+	Page<PublicatedImage> findPublicatedImagesByOwner(int pageNo, int pageSize);
 }
