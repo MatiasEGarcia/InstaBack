@@ -285,6 +285,16 @@ class UserCTest {
 				.andExpect(jsonPath("$.field", is("username")));
 	}
 	
+	@Test
+	void putVisibleStatusOk() throws Exception {
+		String token = jwtService.generateToken(USER_AUTH);
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/users/visible")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.visible", is(false))); //before user was visible = true
+	}
+	
 	@AfterEach
 	void setUpAfterTransaction() {
 		jdbc.execute(sqlRefIntegrityFalse);

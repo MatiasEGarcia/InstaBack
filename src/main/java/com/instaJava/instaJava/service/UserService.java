@@ -21,4 +21,6 @@ public interface UserService {
 	List<User> findByUsernameLike(String username,int limit);
 	
 	boolean existsByUsername(String username);
+	
+	User changeVisible();
 }

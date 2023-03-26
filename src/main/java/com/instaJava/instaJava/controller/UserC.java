@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +19,7 @@ import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
 import com.instaJava.instaJava.dto.response.ResImageString;
 import com.instaJava.instaJava.dto.response.ResMessage;
+import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
@@ -92,4 +94,9 @@ public class UserC {
 		return ResponseEntity.ok().body(userMapper.UserToResUser(users));
 	}
 
+	@PutMapping("/visible")
+	public ResponseEntity<ResUser> setVisible(){
+		return ResponseEntity.ok().body(userMapper.UserToResUser(userService.changeVisible()));
+	}
+	
 }

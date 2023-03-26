@@ -17,4 +17,6 @@ public class ResUser implements Serializable{
 	private String username;
 	
 	private String image;
+	
+	private boolean visible;
 }

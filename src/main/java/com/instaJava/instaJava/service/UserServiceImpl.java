@@ -104,6 +104,15 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.existsByUsername(username);
 	}
 
+
+	@Override
+	@Transactional
+	public User changeVisible() {
+		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		user.setVisible(user.isVisible() ? false : true);
+		return userDao.save(user);
+	}
+
 	
 	
 	

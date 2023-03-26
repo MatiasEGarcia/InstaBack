@@ -60,6 +60,7 @@ class UserServiceImplTest {
 				.userId(1L)
 				.username("Mati")
 				.image(Base64.getEncoder().encodeToString(multipartFile.getBytes()))
+				.visible(true)
 				.build();
 		
 		personalDetails = PersonalDetails.builder().build();
@@ -198,7 +199,16 @@ class UserServiceImplTest {
 		verify(userDao).existsByUsername(username);
 	}
 	
-	
-	
+	@Test
+	void changeVisible() {
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.thenReturn(user);//here the user is visible = true
+		user.setVisible(false);
+		when(userDao.save(user)).thenReturn(user);
+		assertEquals(user, userService.changeVisible());
+		verify(userDao).save(user);
+	}
 	
 }
