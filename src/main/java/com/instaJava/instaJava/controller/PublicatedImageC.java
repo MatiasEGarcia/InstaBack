@@ -86,8 +86,29 @@ public class PublicatedImageC {
 		return new ResponseEntity<> (headers, HttpStatus.NO_CONTENT);
 	}
 	
-	
-	
+	@GetMapping("/byVisibleUser")
+	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getByVisibleUser(
+			@RequestParam(name ="page", defaultValue = "1") String page,
+			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
+			@RequestParam(name = "sortField", defaultValue="createdAt") @IsField(classSource = PublicatedImage.class) String sortField,//IsField will ask if the field exist in the class
+			@RequestParam(name = "sortDir" , defaultValue = "asc")@IsEnum(enumSource = SortDirEnum.class) String sortDir){
+		Map<String,String> map;
+		HttpHeaders headers;
+		Page<PublicatedImage> pagePublicatedImage = publicatedImageService
+				.findPublicatedImagesByOwnerSortedVisibleTrue(Integer.parseInt(page), Integer.parseInt(pageSize), sortField, sortDir);
+		if(!pagePublicatedImage.isEmpty()) {
+			map = new HashMap<>();
+			map.put("actualPage", page);
+			map.put("pageSize", pageSize);
+			map.put("sortField", sortField);
+			map.put("sortDir", sortDir);
+			return ResponseEntity.ok().body(publicImaMapper
+					.pageAndMapToResPaginationG(pagePublicatedImage, map));
+		}
+		headers = new HttpHeaders();
+		headers.add("Info-header", messUtils.getMessage("mess.not-publi-image"));
+		return new ResponseEntity<> (headers, HttpStatus.NO_CONTENT);
+	}
 	
 	
 	

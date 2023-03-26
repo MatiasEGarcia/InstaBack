@@ -12,4 +12,7 @@ public interface PublicatedImagesDao extends JpaRepository<PublicatedImage, Long
 	
 	@Query(value="SELECT p FROM PublicatedImage p WHERE p.userOwner = ?1")
 	Page<PublicatedImage> findPublicatedImagesByOwner(User user, Pageable pag);
+	
+	@Query(value="Select p FROM PublicatedImage p WHERE p.userOwner IN (Select u FROM User u WHERE u.visible = true)")
+	Page<PublicatedImage> findPublicatedImagesByOwnerVisibleTrue(Pageable pag);
 }

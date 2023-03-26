@@ -78,6 +78,18 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		Page<PublicatedImage> pagePublicatedImage = publicatedImagesDao.findPublicatedImagesByOwner(user, pag);
 		return pagePublicatedImage;
 	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<PublicatedImage> findPublicatedImagesByOwnerSortedVisibleTrue(int pageNo, int pageSize, String sortField,
+			String sortDir) {
+		if(sortField == null || sortField.isBlank() 
+				|| sortDir == null || sortDir.isBlank()) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
+		Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+		//first page for the most people is 1 , but for us is 0
+		Pageable pag = PageRequest.of(pageNo-1, pageSize, sort);
+		return publicatedImagesDao.findPublicatedImagesByOwnerVisibleTrue(pag);
+	}
 	
 	
 	

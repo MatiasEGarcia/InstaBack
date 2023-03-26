@@ -181,9 +181,29 @@ class PublicatedImagesServiceImplTest {
 		verify(publicatedImagesDao).findPublicatedImagesByOwner(user, pag);
 	}
 	
+	@Test
+	void findPublicatedImagesByOwnerSortedVisibleTrueArgNullThrow() {
+		int pageNo = 1;
+		int pageSize = 2;
+		String sortField = null;
+		String sortDir = null;
+		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService
+				.findPublicatedImagesByOwnerSortedVisibleTrue(pageNo, pageSize, sortField, sortDir));
+	}
 	
-	
-	
+	@Test
+	void findBulicatedImagesByOwnerSortedVisibleTrue() {
+		int pageNo = 1;
+		int pageSize = 2;
+		String sortField = "random";
+		String sortDir = "asc";
+		Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+		Pageable pag= PageRequest.of(pageNo - 1, pageSize,sort);
+		Page<PublicatedImage> publicatedImages = Page.empty();
+		when(publicatedImagesDao.findPublicatedImagesByOwnerVisibleTrue(pag)).thenReturn(publicatedImages);
+		assertNotNull(publicatedImagesService.findPublicatedImagesByOwnerSortedVisibleTrue(pageNo, pageSize, sortField, sortDir));
+		verify(publicatedImagesDao).findPublicatedImagesByOwnerVisibleTrue(pag);
+	}
 	
 	
 	

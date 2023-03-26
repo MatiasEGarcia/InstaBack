@@ -222,6 +222,49 @@ class PublicatedImageCTest {
 				.andExpect(header().string("Info-header",messUtils.getMessage("mess.not-publi-image")));
 	}
 	
+	@Test
+	void getGetByVisibleUserhArgSortFieldAndSortDirNoExistStatusBadRequest() throws Exception {
+		String token = jwtService.generateToken(userAuthMati);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisibleUser")
+				.header("authorization", "Bearer "+token)
+				.param("page", "1")
+				.param("pageSize", "2")
+				.param("sortField", "created") //this field no exist
+				.param("sortDir", "ascssss")) //this not exist
+				.andExpect(status().isBadRequest())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.sortField",is(messUtils.getMessage("vali.wrong-field-name"))))
+				.andExpect(jsonPath("$.sortDir",is(messUtils.getMessage("vali.string-no-valid"))));
+	}
+	
+	@Test
+	void getGetByVisibleUserStatusIsOk() throws Exception {
+		String token = jwtService.generateToken(userAuthMati);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisibleUser")
+				.header("authorization", "Bearer "+token)
+				.param("page", "1")
+				.param("pageSize", "2")
+				.param("sortField", "createdAt") 
+				.param("sortDir", "asc"))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.list", hasSize(1)));
+	}
+	
+	@Test
+	void getGetByVisibleUserStatusIsNoContent() throws Exception {
+		publicatedImagesDao.deleteById(1L); //I delete the only publicated image in the db
+		String token = jwtService.generateToken(userAuthMati);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisibleUser")
+				.header("authorization", "Bearer "+token)
+				.param("page", "1")
+				.param("pageSize", "2")
+				.param("sortField", "createdAt") 
+				.param("sortDir", "asc"))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("Info-header",messUtils.getMessage("mess.not-publi-image")));
+	}
+	
 	@AfterEach
 	void bddDataDelete() {
 		jdbc.execute(sqlRefIntegrityFalse);
