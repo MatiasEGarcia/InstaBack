@@ -42,12 +42,13 @@ CREATE TABLE messages(
 );
 
 CREATE TABLE chats_users(
+	id int not null auto_increment primary key,
 	associate_user int not null,
     chat int not null,
-	primary key (associate_user,chat),
 	foreign key (associate_user) references users(id) on delete cascade,
 	foreign key (chat) references chats(id) on delete cascade
 );
+
 CREATE TABLE comments(
 	id int primary key auto_increment not null,
     body varchar(100) not null,
@@ -60,18 +61,18 @@ CREATE TABLE comments(
 );
 
 CREATE TABLE chats_admins(
+	id int not null auto_increment primary key,
 	associate_user int not null,
     chat int not null,
-    primary key (associate_user,chat),
 	foreign key (associate_user) references users(id) on delete cascade,
 	foreign key (chat) references chats(id) on delete cascade
 );
 
 CREATE TABLE followers(
+	id int not null primary key auto_increment,
     followed int not null,
     follower int not null,
     status varchar(20) not null,
-    primary key (followed,follower),
 	foreign key (followed) references users(id) on delete cascade,
 	foreign key (follower) references users(id) on delete cascade
 );

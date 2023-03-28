@@ -2,6 +2,7 @@ package com.instaJava.instaJava.service;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -111,6 +112,15 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		user.setVisible(user.isVisible() ? false : true);
 		return userDao.save(user);
+	}
+
+	//no ta testeado
+	@Override
+	@Transactional(readOnly= true)
+	public User findById(Long id) {
+		Optional<User> user = userDao.findById(id);
+		if(user.isEmpty()) throw new IllegalArgumentException();
+		return user.get();
 	}
 
 	

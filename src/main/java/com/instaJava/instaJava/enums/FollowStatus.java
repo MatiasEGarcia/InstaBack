@@ -1,6 +1,7 @@
 package com.instaJava.instaJava.enums;
 
-
 public enum FollowStatus {
-	ACCEPTED, REJECTED,IN_PROCESS
+	ACCEPTED,
+	REJECTED,
+	IN_PROCESS;
 }

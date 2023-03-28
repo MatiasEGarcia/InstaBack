@@ -3,10 +3,12 @@ package com.instaJava.instaJava.entity;
 import com.instaJava.instaJava.enums.FollowStatus;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
@@ -21,11 +23,13 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "followers", schema="insta_java")
+@Table(name = "followers")
 public class Follower {
 
-	@EmbeddedId
-	private FollowerId id;
+	@Id
+	@GeneratedValue(strategy= GenerationType.IDENTITY)
+	@Column(name= "id")
+	private Long FollowerId;
 	
 	@ManyToOne
 	@MapsId("followed")

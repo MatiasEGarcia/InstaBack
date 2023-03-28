@@ -23,4 +23,6 @@ public interface UserService {
 	boolean existsByUsername(String username);
 	
 	User changeVisible();
+	
+	User findById(Long id);
 }
