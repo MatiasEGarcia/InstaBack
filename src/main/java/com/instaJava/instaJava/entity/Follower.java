@@ -11,7 +11,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,15 +28,13 @@ public class Follower {
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	@Column(name= "id")
-	private Long FollowerId;
+	private Long followerId;
 	
 	@ManyToOne
-	@MapsId("followed")
 	@JoinColumn(name = "followed")
 	private User userFollowed; 
 	
 	@ManyToOne
-	@MapsId("follower")
 	@JoinColumn(name = "follower")
 	private User userFollower;
 	

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
+import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.RespValidError;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -89,24 +91,11 @@ public class ExceptionHandlerController {
 				.build());
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	//for example : This error happens when I post an object that needs an enum, but the string value is not the same any enum values
+	@ExceptionHandler(value= {HttpMessageNotReadableException.class})
+	public ResponseEntity<ResMessage> hanlderHttpMessageNotReadableException(HttpMessageNotReadableException e){
+		return ResponseEntity.badRequest().body(ResMessage.builder().message(e.getMessage()).build());
+	}
+
 	
 }

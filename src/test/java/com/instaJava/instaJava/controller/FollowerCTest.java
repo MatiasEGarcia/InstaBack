@@ -85,7 +85,7 @@ class FollowerCTest {
 	void postSaveStatusBadRequest() throws Exception {
 		String token = jwtService.generateToken(userAuth);
 		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower")
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/save")
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.field", is("followed")));
@@ -95,7 +95,7 @@ class FollowerCTest {
 	@Test
 	void postSave() throws Exception {
 		String token = jwtService.generateToken(userAuth);
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower")
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/save")
 				.header("Authorization", "Bearer " + token)
 				.param("followed", "2"))
 				.andExpect(status().isOk())
