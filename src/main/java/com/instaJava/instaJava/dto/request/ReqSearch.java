@@ -6,6 +6,8 @@ import java.util.List;
 import com.instaJava.instaJava.dto.SearchRequestDto;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +21,8 @@ public class ReqSearch implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 
-	private List<SearchRequestDto> searchRequestDtos;
-	
+	@NotNull(message="{vali.searchRequestDtos-list-not-null}")
+	private List<@Valid SearchRequestDto> searchRequestDtos;
+	@NotNull(message = "{vali.globalOperator-not-null}")
 	private GlobalOperationEnum globalOperator;
 }

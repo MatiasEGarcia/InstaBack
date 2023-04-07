@@ -11,16 +11,20 @@ import org.springframework.stereotype.Service;
 
 import com.instaJava.instaJava.dto.SearchRequestDto;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
+import com.instaJava.instaJava.util.MessagesUtils;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class SpecificationServiceImpl<T> implements SpecificationService<T> {
-
-	@Override
-	public List<Predicate> getPredicates(List<SearchRequestDto> searchRequestDto,
+	
+	private final MessagesUtils messUtils;
+	
+	private List<Predicate> getPredicates(List<SearchRequestDto> searchRequestDto,
 			Root<T> root, CriteriaBuilder criteriaBuilder) {
 		List<Predicate> predicates = new ArrayList<>();
 
@@ -28,7 +32,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 
 			switch (requestDto.getOperation()) {
 			case EQUAL:
-				if(requestDto.isDateValue()) {
+				if(requestDto.getDateValue().booleanValue()) {
 					predicates.add(criteriaBuilder.equal(root.get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
 				}
 				predicates.add(criteriaBuilder.equal(root.get(requestDto.getColumn()), requestDto.getValue()));
@@ -38,7 +42,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 				break;
 			case IN:
 				String[] splitIn = requestDto.getValue().split(",");
-				if(requestDto.isDateValue()) {
+				if(requestDto.getDateValue().booleanValue()) {
 					List<ZonedDateTime> values = new ArrayList<>();
 					for(String value : splitIn) {
 						values.add(ZonedDateTime.parse(value));
@@ -48,14 +52,14 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 				predicates.add(root.get(requestDto.getColumn()).in(Arrays.asList(splitIn)));
 				break;
 			case GREATER_THAN:
-				if(requestDto.isDateValue()) {
+				if(requestDto.getDateValue().booleanValue()) {
 					predicates.add(criteriaBuilder.greaterThan(root.get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
 				}
 				predicates.add(criteriaBuilder.greaterThan(root.get(requestDto.getColumn()),
 						Long.parseLong(requestDto.getValue())));
 				break;
 			case LESS_THAN:
-				if(requestDto.isDateValue()) {
+				if(requestDto.getDateValue().booleanValue()) {
 					predicates.add(criteriaBuilder.lessThan(root.get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
 				}
 				predicates.add(criteriaBuilder.lessThan(root.get(requestDto.getColumn()),
@@ -63,7 +67,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 				break;
 			case BETWEEN:
 				String[] splitBetween = requestDto.getValue().split(",");
-				if(requestDto.isDateValue()) {
+				if(requestDto.getDateValue().booleanValue()) {
 					predicates.add(criteriaBuilder.between(root.get(requestDto.getColumn()), ZonedDateTime.parse(splitBetween[0]),ZonedDateTime.parse(splitBetween[1])));
 				}
 				
@@ -78,8 +82,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 		return predicates;
 	}
 
-	@Override
-	public List<Predicate> getPredicatesJoin(List<SearchRequestDto> searchRequestDto,
+	private List<Predicate> getPredicatesJoin(List<SearchRequestDto> searchRequestDto,
 			Root<T> root, CriteriaBuilder criteriaBuilder) {
 		List<Predicate> predicates = new ArrayList<>();
 		
@@ -87,7 +90,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 			
 			switch (requestDto.getOperation()) {
 			case EQUAL:
-				if(requestDto.isDateValue()) {
+				if(requestDto.getDateValue().booleanValue()) {
 					predicates.add(criteriaBuilder.equal(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
 				}
 				predicates.add(criteriaBuilder.equal(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), requestDto.getValue()));
@@ -98,7 +101,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 				break;
 			case IN:
 				String[] splitIn = requestDto.getValue().split(",");
-				if(requestDto.isDateValue()) {
+				if(requestDto.getDateValue().booleanValue()) {
 					List<ZonedDateTime> values = new ArrayList<>();
 					for(String value : splitIn) {
 						values.add(ZonedDateTime.parse(value));
@@ -108,14 +111,14 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 				predicates.add(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()).in(Arrays.asList(splitIn)));
 				break;
 			case GREATER_THAN:
-				if(requestDto.isDateValue()) {
+				if(requestDto.getDateValue().booleanValue()) {
 					predicates.add(criteriaBuilder.greaterThan(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
 				}
 				predicates.add(criteriaBuilder.greaterThan(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()),
 						Long.parseLong(requestDto.getValue())));
 				break;
 			case LESS_THAN:
-				if(requestDto.isDateValue()) {
+				if(requestDto.getDateValue().booleanValue()) {
 					predicates.add(criteriaBuilder.lessThan(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
 				}
 				predicates.add(criteriaBuilder.lessThan(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()),
@@ -123,7 +126,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 				break;
 			case BETWEEN:
 				String[] splitBetween = requestDto.getValue().split(",");
-				if(requestDto.isDateValue()) {
+				if(requestDto.getDateValue().booleanValue()) {
 					predicates.add(criteriaBuilder.between(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), ZonedDateTime.parse(splitBetween[0]),
 							ZonedDateTime.parse(splitBetween[1])));
 				}
@@ -141,6 +144,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 	@Override
 	public Specification<T> getSpecification(List<SearchRequestDto> searchRequestDto,
 			GlobalOperationEnum globalOperator) {
+		if(searchRequestDto == null || searchRequestDto.isEmpty() || globalOperator == null ) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
 		return (root, query, criteriaBuilder) -> {
 			List<jakarta.persistence.criteria.Predicate> allPredicates = new ArrayList<>();
 			List<jakarta.persistence.criteria.Predicate> predicates;

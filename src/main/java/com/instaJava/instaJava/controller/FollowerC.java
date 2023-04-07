@@ -8,7 +8,6 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +24,7 @@ import com.instaJava.instaJava.service.FollowerService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.IsEnum;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -42,9 +42,9 @@ public class FollowerC {
 		return ResponseEntity.ok().body(follMapper.FollowerToResFollowStatus(fol));
 	}
 	
-	@PostMapping("/AllBy")
-	public ResponseEntity<ResPaginationG<ResFollower>> getFollower(
-			@RequestBody ReqSearch reqSearch,
+	@PostMapping("/findAllBy")
+	public ResponseEntity<ResPaginationG<ResFollower>> getFollowers(
+			@Valid @RequestBody ReqSearch reqSearch,
 			@RequestParam(name ="page", defaultValue = "1") String page,
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue="FollowerId") String sortField,
