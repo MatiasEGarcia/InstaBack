@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +20,7 @@ import com.instaJava.instaJava.dto.response.ResFollowStatus;
 import com.instaJava.instaJava.dto.response.ResFollower;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Follower;
+import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.mapper.FollowerMapper;
 import com.instaJava.instaJava.service.FollowerService;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -68,5 +70,10 @@ public class FollowerC {
 		return new ResponseEntity<> (headers, HttpStatus.NO_CONTENT);
 	}
 	
-	
+	@PutMapping("/followStatus")
+	public ResponseEntity<ResFollower> updateFollowStatus(@RequestParam(name = "followStatus") FollowStatus followStatus,
+			@RequestParam(name = "followerId")Long id ){
+		Follower fol  = follService.updateFollowStatusById(id, followStatus);
+		return ResponseEntity.ok().body(follMapper.followerToResFollower(fol));
+	}
 }

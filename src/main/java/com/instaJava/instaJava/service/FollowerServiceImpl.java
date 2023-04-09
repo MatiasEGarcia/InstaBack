@@ -1,5 +1,7 @@
 package com.instaJava.instaJava.service;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -58,6 +60,27 @@ public class FollowerServiceImpl implements FollowerService{
 		Specification<Follower> spec = specService.getSpecification(reqSearch.getSearchRequestDtos()
 				, reqSearch.getGlobalOperator());
 		return followerDao.findAll(spec, pag);
+	}
+
+	//the only one that can change the follow status is the user followed, 
+	@Override
+	@Transactional
+	public Follower updateFollowStatusById(Long id, FollowStatus newStatus){
+		if(newStatus == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		User userFollowed;
+		Follower follower = findById(id);
+		userFollowed = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		if(!follower.getUserFollowed().equals(userFollowed)) throw new IllegalArgumentException("exception.followed-is-not-same");
+		follower.setFollowStatus(newStatus);
+		return followerDao.save(follower);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Follower findById(Long id) {
+		Optional<Follower> followerOpt = followerDao.findById(id);
+		if(followerOpt.isEmpty()) throw new IllegalArgumentException("exception.follower-id-not-found");
+		return followerOpt.get();
 	}
 
 

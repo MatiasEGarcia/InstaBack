@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 import java.util.List;
@@ -188,6 +189,33 @@ class FollowerCTest {
 				.content(objectMapper.writeValueAsString(reqSearch)))
 				.andExpect(status().isNoContent())
 				.andExpect(header().string("Info-header", messUtils.getMessage("mess.not-followers")));
+	}
+	
+	@Test
+	void putUpdateFollowStatusOK() throws Exception {
+		String token = jwtService.generateToken(userAuth);
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follower/followStatus")
+				.header("Authorization", "Bearer " + token)
+				.param("followStatus", FollowStatus.ACCEPTED.toString())
+				.param("followerId", "1"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.followerId", is(1)))
+				.andExpect(jsonPath("$.followStatus", is(FollowStatus.ACCEPTED.toString())));
+		
+		
+	}
+	
+	@Test
+	void putUpdateFollowStatusBadRequest() throws Exception {
+		String token = jwtService.generateToken(userAuth);
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follower/followStatus")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isBadRequest())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.field", is("followStatus")));
 	}
 	
 	@AfterEach

@@ -2,8 +2,11 @@ package com.instaJava.instaJava.service;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,7 +73,65 @@ class FollowerServiceImplTest {
 		
 	}
 	
+	@Test
+	void findByIdNoExistThrow() {
+		when(followerDao.findById(1L)).thenReturn(Optional.empty());
+		assertThrows(IllegalArgumentException.class, () ->followerService.findById(1L));
+	}
 	
+	@Test
+	void findByIdExistReturnNotNull() {
+		when(followerDao.findById(1L)).thenReturn(Optional.of(new Follower()));
+		assertNotNull(followerService.findById(1L));
+	}
+
+	@Test
+	void updateFollowStatusByIdFollowedNotSameThrow() {
+		User userFollowedWhoAuth= User.builder()
+				.userId(2L)
+				.build();
+		User otherUserFollowed = User.builder()
+				.userId(3L)
+				.build();
+		Follower follower = Follower.builder()
+				.userFollowed(otherUserFollowed)
+				.followStatus(FollowStatus.ACCEPTED)
+				.build();
+		when(followerDao.findById(2L)).thenReturn(Optional.of(follower));
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.thenReturn(userFollowedWhoAuth);
+		assertThrows(IllegalArgumentException.class,() -> followerService.updateFollowStatusById(2L, FollowStatus.ACCEPTED));
+		verify(followerDao).findById(2L);
+		verify(followerDao,never()).save(follower);
+	}
+
+	
+	@Test
+	void updateFollowStatusByIdReturnNotNull() {
+		User userFollowedWhoAuth= User.builder()
+				.userId(2L)
+				.build();
+		Follower follower = Follower.builder()
+				.userFollowed(userFollowedWhoAuth)
+				.followStatus(FollowStatus.ACCEPTED)
+				.build();
+		when(followerDao.findById(2L)).thenReturn(Optional.of(follower));
+		when(followerDao.save(follower)).thenReturn(follower);
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.thenReturn(userFollowedWhoAuth);
+		assertNotNull(followerService.updateFollowStatusById(2L, FollowStatus.ACCEPTED));
+		verify(followerDao).findById(2L);
+		verify(followerDao).save(follower);
+	}
+	
+	@Test
+	void updateFollowStatusByIdArgFollowStatusNullThrow() {
+		assertThrows(IllegalArgumentException.class,() -> followerService.updateFollowStatusById(1L, null));
+	}
 	
 	
 	
