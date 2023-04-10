@@ -8,6 +8,8 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.response.ResFollowStatus;
 import com.instaJava.instaJava.dto.response.ResFollower;
+import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Follower;
 import com.instaJava.instaJava.enums.FollowStatus;
@@ -76,4 +79,11 @@ public class FollowerC {
 		Follower fol  = follService.updateFollowStatusById(id, followStatus);
 		return ResponseEntity.ok().body(follMapper.followerToResFollower(fol));
 	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id){
+		follService.deleteById(id);
+		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("mess.record-delete")));
+	}
+
 }

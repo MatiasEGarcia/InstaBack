@@ -3,10 +3,10 @@ package com.instaJava.instaJava.controller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 
@@ -71,9 +71,16 @@ class FollowerCTest {
 	
 	private static final MediaType APPLICATION_JSON_UTF8 = MediaType.APPLICATION_JSON;
 	//this user is in the bdd , because we save it with sqlAddUser1
-	private  User userAuth = User.builder()
+	private  User matiasUserAuth = User.builder()
 			.userId(1L)
 			.username("matias")
+			.password("123456")
+			.role(RolesEnum.ROLE_USER)
+			.build();
+	
+	private User rociUserAuth = User.builder()
+			.userId(2L)
+			.username("rocio")
 			.password("123456")
 			.role(RolesEnum.ROLE_USER)
 			.build();
@@ -92,7 +99,7 @@ class FollowerCTest {
 	
 	@Test
 	void postSaveStatusBadRequest() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(matiasUserAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/save")
 				.header("Authorization", "Bearer " + token))
@@ -103,7 +110,7 @@ class FollowerCTest {
 	
 	@Test
 	void postSave() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(matiasUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/save")
 				.header("Authorization", "Bearer " + token)
 				.param("followed", "2"))
@@ -114,7 +121,7 @@ class FollowerCTest {
 	
 	@Test
 	void postGetFollowersBadRequestReqSearchDidntPassed() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(matiasUserAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/findAllBy")
 				.header("Authorization", "Bearer " + token))
@@ -124,7 +131,7 @@ class FollowerCTest {
 	
 	@Test
 	void postGetFollowersBadRequestReqSearchSearchRequestDtoWithBlankOrNullValues() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(matiasUserAuth);
 		SearchRequestDto searchRequestDto = SearchRequestDto.builder()
 				.column("")
 				.value("")
@@ -147,7 +154,7 @@ class FollowerCTest {
 	
 	@Test
 	void postGetFolowersOk() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(matiasUserAuth);
 		SearchRequestDto searchRequestDto = SearchRequestDto.builder()
 				.column("userId")
 				.value("2")
@@ -170,7 +177,7 @@ class FollowerCTest {
 	
 	@Test
 	void postGetFollowersNoContent() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(matiasUserAuth);
 		SearchRequestDto searchRequestDto = SearchRequestDto.builder()
 				.column("userId")
 				.value("5")
@@ -193,7 +200,7 @@ class FollowerCTest {
 	
 	@Test
 	void putUpdateFollowStatusOK() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(matiasUserAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follower/followStatus")
 				.header("Authorization", "Bearer " + token)
@@ -209,13 +216,42 @@ class FollowerCTest {
 	
 	@Test
 	void putUpdateFollowStatusBadRequest() throws Exception {
-		String token = jwtService.generateToken(userAuth);
+		String token = jwtService.generateToken(matiasUserAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follower/followStatus")
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.field", is("followStatus")));
+	}
+	
+	@Test
+	void deleteDeleteByIdOk() throws Exception {
+		String token = jwtService.generateToken(rociUserAuth);
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follower/{id}",1)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.record-delete"))));
+	}
+	
+	@Test
+	void deleteDeleteByIdNoExistBadRequest() throws Exception {
+		String token = jwtService.generateToken(rociUserAuth);
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follower/{id}",2)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("exception.follower-id-not-found"))));
+	}
+	
+	
+	
+	@Test
+	void deleteDeleteByIdNotSameFollowerRequest() throws Exception {
+		String token = jwtService.generateToken(matiasUserAuth);
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follower/{id}",1)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("exception.follower-is-not-same"))));
 	}
 	
 	@AfterEach

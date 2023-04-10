@@ -70,7 +70,7 @@ public class FollowerServiceImpl implements FollowerService{
 		User userFollowed;
 		Follower follower = findById(id);
 		userFollowed = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if(!follower.getUserFollowed().equals(userFollowed)) throw new IllegalArgumentException("exception.followed-is-not-same");
+		if(!follower.getUserFollowed().equals(userFollowed)) throw new IllegalArgumentException(messUtils.getMessage("exception.followed-is-not-same"));
 		follower.setFollowStatus(newStatus);
 		return followerDao.save(follower);
 	}
@@ -79,8 +79,17 @@ public class FollowerServiceImpl implements FollowerService{
 	@Transactional(readOnly = true)
 	public Follower findById(Long id) {
 		Optional<Follower> followerOpt = followerDao.findById(id);
-		if(followerOpt.isEmpty()) throw new IllegalArgumentException("exception.follower-id-not-found");
+		if(followerOpt.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.follower-id-not-found"));
 		return followerOpt.get();
+	}
+
+	@Override
+	@Transactional
+	public void deleteById(Long id) {
+		Follower foll = this.findById(id);
+		User userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		if(!foll.getUserFollower().equals(userFollower)) throw new IllegalArgumentException(messUtils.getMessage("exception.follower-is-not-same"));
+		followerDao.delete(foll);;
 	}
 
 

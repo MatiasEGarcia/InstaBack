@@ -44,6 +44,11 @@ public class ExceptionHandlerController {
 		return new ResponseEntity<Object>(e.getMessage(),HttpStatus.BAD_REQUEST);
 	}
 	
+	@ExceptionHandler(value= {IllegalArgumentException.class})
+	public ResponseEntity<ResMessage> IllegalArgumentExceptionHandler(IllegalArgumentException e){
+		return ResponseEntity.badRequest().body(new ResMessage(e.getMessage()));
+	}
+	
 	@ExceptionHandler(value= {MethodArgumentNotValidException.class})
 	public ResponseEntity<Map<String,String>> handleValidateException(MethodArgumentNotValidException e){
 		LOGGER.error("------------MethodArgumentNotValidException");

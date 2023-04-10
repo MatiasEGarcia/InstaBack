@@ -133,6 +133,4 @@ class FollowerServiceImplTest {
 		assertThrows(IllegalArgumentException.class,() -> followerService.updateFollowStatusById(1L, null));
 	}
 	
-	
-	
 }

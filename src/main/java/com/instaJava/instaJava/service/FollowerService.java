@@ -15,4 +15,6 @@ public interface FollowerService {
 	Follower updateFollowStatusById(Long id, FollowStatus newStatus);
 	
 	Follower findById(Long id);
+	
+	void deleteById(Long id);
 }
