@@ -79,7 +79,7 @@ CREATE TABLE followers(
 
 CREATE TABLE likes(
 	id int primary key not null auto_increment,
-    item varchar(45) not null,
+    itemType varchar(45) not null,
     item_id int not null, -- no fk
     decision boolean not null, -- false = dislike, true = like
     owner_like int not null,
