@@ -32,8 +32,8 @@ public class Like {
 	private Long likeId;
 	
 	@Enumerated(EnumType.STRING)
-	@Column(name = "itemType")
-	private TypeItemLikedEnum item;
+	@Column(name = "item_type")
+	private TypeItemLikedEnum itemType;
 	
 	@Column(name = "item_id")
 	private Long itemId;
