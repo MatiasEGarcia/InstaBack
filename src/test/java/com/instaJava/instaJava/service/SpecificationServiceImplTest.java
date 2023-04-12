@@ -12,7 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.instaJava.instaJava.dto.SearchRequestDto;
+import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.entity.Follower;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.enums.OperationEnum;
@@ -26,32 +26,32 @@ class SpecificationServiceImplTest {
 	
 	@Test
 	void getSpecificationSearchRequestDtoNullThrow() {
-		List<SearchRequestDto> searchRequestDtoList = null;
+		List<ReqSearch> searchRequestDtoList = null;
 		assertThrows(IllegalArgumentException.class,() -> specificationService.getSpecification(searchRequestDtoList, GlobalOperationEnum.AND));
 	}
 
 	@Test
 	void getSpecificationSearchRequestDtoEmptyThrow() {
-		List<SearchRequestDto> searchRequestDtoList = Collections.emptyList();
+		List<ReqSearch> searchRequestDtoList = Collections.emptyList();
 		assertThrows(IllegalArgumentException.class, () -> specificationService.getSpecification(searchRequestDtoList, GlobalOperationEnum.AND));
 	}
 	
 	@Test
 	void getSpecificationGlobalOperationEnumNullThrow() {
-		SearchRequestDto searchRequestDto = new SearchRequestDto();
-		List<SearchRequestDto> searchRequestDtoList = List.of(searchRequestDto);
+		ReqSearch searchRequestDto = new ReqSearch();
+		List<ReqSearch> searchRequestDtoList = List.of(searchRequestDto);
 		assertThrows(IllegalArgumentException.class,() -> specificationService.getSpecification(searchRequestDtoList, null));
 	}
 	
 	@Test
 	void getSpecification() {
-		SearchRequestDto searchRequestDto = SearchRequestDto.builder()
+		ReqSearch searchRequestDto = ReqSearch.builder()
 				.column("followerId")
 				.value("1")
 				.dateValue(false)
 				.operation(OperationEnum.EQUAL)
 				.build();
-		List<SearchRequestDto> searchRequestDtoList = List.of(searchRequestDto);
+		List<ReqSearch> searchRequestDtoList = List.of(searchRequestDto);
 		assertNotNull(specificationService.getSpecification(searchRequestDtoList, GlobalOperationEnum.AND));
 		
 	}

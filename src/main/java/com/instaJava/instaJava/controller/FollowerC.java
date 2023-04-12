@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.instaJava.instaJava.dto.request.ReqSearch;
+import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResFollowStatus;
 import com.instaJava.instaJava.dto.response.ResFollower;
 import com.instaJava.instaJava.dto.response.ResMessage;
@@ -49,7 +49,7 @@ public class FollowerC {
 	
 	@PostMapping("/findAllBy")
 	public ResponseEntity<ResPaginationG<ResFollower>> getFollowers(
-			@Valid @RequestBody ReqSearch reqSearch,
+			@Valid @RequestBody ReqSearchList reqSearchList,
 			@RequestParam(name ="page", defaultValue = "1") String page,
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue="FollowerId") String sortField,
@@ -57,7 +57,7 @@ public class FollowerC {
 		Map<String,String> map;
 		HttpHeaders headers;
 		Page<Follower> followersPage = follService.search(Integer.parseInt(page),
-				Integer.parseInt(pageSize), sortField, sortDir, reqSearch);
+				Integer.parseInt(pageSize), sortField, sortDir, reqSearchList);
 		
 		if(!followersPage.isEmpty()) {
 			map = new HashMap<>();

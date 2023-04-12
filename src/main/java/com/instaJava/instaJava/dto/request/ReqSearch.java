@@ -1,12 +1,10 @@
 package com.instaJava.instaJava.dto.request;
 
 import java.io.Serializable;
-import java.util.List;
 
-import com.instaJava.instaJava.dto.SearchRequestDto;
-import com.instaJava.instaJava.enums.GlobalOperationEnum;
+import com.instaJava.instaJava.enums.OperationEnum;
 
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,9 +18,15 @@ import lombok.NoArgsConstructor;
 public class ReqSearch implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
-
-	@NotNull(message="{vali.searchRequestDtos-list-not-null}")
-	private List<@Valid SearchRequestDto> searchRequestDtos;
-	@NotNull(message = "{vali.globalOperator-not-null}")
-	private GlobalOperationEnum globalOperator;
+	
+	@NotBlank(message = "{vali.ReqSearch.column-not-blank}")
+	private String column;
+	@NotBlank(message = "{vali.ReqSearch.value-not-blank}")
+	private String value;
+	@NotNull(message = "{vali.ReqSearch.dateValue-not-null}")
+	private Boolean dateValue; //if is a date type I need to handle differently
+	private String joinTable;
+	@NotNull(message = "{vali.ReqSearch.operation-not-null}")
+	private OperationEnum operation;
+	
 }

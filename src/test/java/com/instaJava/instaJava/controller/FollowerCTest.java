@@ -26,8 +26,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.instaJava.instaJava.dto.SearchRequestDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
+import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
@@ -132,45 +132,45 @@ class FollowerCTest {
 	@Test
 	void postGetFollowersBadRequestReqSearchSearchRequestDtoWithBlankOrNullValues() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
-		SearchRequestDto searchRequestDto = SearchRequestDto.builder()
+		ReqSearch reqSearch = ReqSearch.builder()
 				.column("")
 				.value("")
 				.build();
-		ReqSearch reqSearch = ReqSearch.builder()
-				.searchRequestDtos(List.of(searchRequestDto))
+		ReqSearchList reqSearchList = ReqSearchList.builder()
+				.reqSearchs(List.of(reqSearch)) 
 				.globalOperator(GlobalOperationEnum.AND)
 				.build();
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/findAllBy")
 				.header("Authorization", "Bearer " + token)
 				.contentType(APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(reqSearch)))
+				.content(objectMapper.writeValueAsString(reqSearchList)))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.['searchRequestDtos[0].column']",is(messUtils.getMessage("vali.SearchRequestDto.column-not-blank"))))
-				.andExpect(jsonPath("$.['searchRequestDtos[0].value']",is(messUtils.getMessage("vali.SearchRequestDto.value-not-blank"))))
-				.andExpect(jsonPath("$.['searchRequestDtos[0].dateValue']",is(messUtils.getMessage("vali.SearchRequestDto.dateValue-not-null"))))
-				.andExpect(jsonPath("$.['searchRequestDtos[0].operation']",is(messUtils.getMessage("vali.SearchRequestDto.operation-not-null"))));
+				.andExpect(jsonPath("$.['reqSearchs[0].column']",is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
+				.andExpect(jsonPath("$.['reqSearchs[0].value']",is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
+				.andExpect(jsonPath("$.['reqSearchs[0].dateValue']",is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
+				.andExpect(jsonPath("$.['reqSearchs[0].operation']",is(messUtils.getMessage("vali.ReqSearch.operation-not-null"))));
 	}
 	
 	@Test
 	void postGetFolowersOk() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
-		SearchRequestDto searchRequestDto = SearchRequestDto.builder()
+		ReqSearch reqSearch = ReqSearch.builder()
 				.column("userId")
 				.value("2")
 				.dateValue(false)
 				.joinTable("userFollower")
 				.operation(OperationEnum.EQUAL)
 				.build();
-		ReqSearch reqSearch = ReqSearch.builder()
-				.searchRequestDtos(List.of(searchRequestDto))
+		ReqSearchList reqSearchList = ReqSearchList.builder()
+				.reqSearchs(List.of(reqSearch))
 				.globalOperator(GlobalOperationEnum.AND)
 				.build();
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/findAllBy")
 				.header("Authorization", "Bearer " + token)
 				.contentType(APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(reqSearch)))
+				.content(objectMapper.writeValueAsString(reqSearchList)))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.list", hasSize(1))); 
 	}
@@ -178,22 +178,22 @@ class FollowerCTest {
 	@Test
 	void postGetFollowersNoContent() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
-		SearchRequestDto searchRequestDto = SearchRequestDto.builder()
+		ReqSearch reqSearch = ReqSearch.builder()
 				.column("userId")
 				.value("5")
 				.dateValue(false)
 				.joinTable("userFollower")
 				.operation(OperationEnum.EQUAL)
 				.build();
-		ReqSearch reqSearch = ReqSearch.builder()
-				.searchRequestDtos(List.of(searchRequestDto))
+		ReqSearchList reqSearchList = ReqSearchList.builder()
+				.reqSearchs(List.of(reqSearch))
 				.globalOperator(GlobalOperationEnum.AND)
 				.build();
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/findAllBy")
 				.header("Authorization", "Bearer " + token)
 				.contentType(APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(reqSearch)))
+				.content(objectMapper.writeValueAsString(reqSearchList)))
 				.andExpect(status().isNoContent())
 				.andExpect(header().string("Info-header", messUtils.getMessage("mess.not-followers")));
 	}

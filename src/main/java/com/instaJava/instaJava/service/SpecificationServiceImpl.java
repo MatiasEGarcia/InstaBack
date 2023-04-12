@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import com.instaJava.instaJava.dto.SearchRequestDto;
+import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.util.MessagesUtils;
 
@@ -24,54 +24,54 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 	
 	private final MessagesUtils messUtils;
 	
-	private List<Predicate> getPredicates(List<SearchRequestDto> searchRequestDto,
+	private List<Predicate> getPredicates(List<ReqSearch> reqSearchList,
 			Root<T> root, CriteriaBuilder criteriaBuilder) {
 		List<Predicate> predicates = new ArrayList<>();
 
-		for (SearchRequestDto requestDto : searchRequestDto) {
+		for (ReqSearch reqSearch : reqSearchList) {
 
-			switch (requestDto.getOperation()) {
+			switch (reqSearch.getOperation()) {
 			case EQUAL:
-				if(requestDto.getDateValue().booleanValue()) {
-					predicates.add(criteriaBuilder.equal(root.get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
+				if(reqSearch.getDateValue().booleanValue()) {
+					predicates.add(criteriaBuilder.equal(root.get(reqSearch.getColumn()), ZonedDateTime.parse(reqSearch.getValue())));
 				}
-				predicates.add(criteriaBuilder.equal(root.get(requestDto.getColumn()), requestDto.getValue()));
+				predicates.add(criteriaBuilder.equal(root.get(reqSearch.getColumn()), reqSearch.getValue()));
 				break;
 			case LIKE:
-				predicates.add(criteriaBuilder.like(root.get(requestDto.getColumn()), "%" + requestDto.getValue() + "%")); 
+				predicates.add(criteriaBuilder.like(root.get(reqSearch.getColumn()), "%" + reqSearch.getValue() + "%")); 
 				break;
 			case IN:
-				String[] splitIn = requestDto.getValue().split(",");
-				if(requestDto.getDateValue().booleanValue()) {
+				String[] splitIn = reqSearch.getValue().split(",");
+				if(reqSearch.getDateValue().booleanValue()) {
 					List<ZonedDateTime> values = new ArrayList<>();
 					for(String value : splitIn) {
 						values.add(ZonedDateTime.parse(value));
 					}
-					predicates.add(root.get(requestDto.getColumn()).in(values));
+					predicates.add(root.get(reqSearch.getColumn()).in(values));
 				}
-				predicates.add(root.get(requestDto.getColumn()).in(Arrays.asList(splitIn)));
+				predicates.add(root.get(reqSearch.getColumn()).in(Arrays.asList(splitIn)));
 				break;
 			case GREATER_THAN:
-				if(requestDto.getDateValue().booleanValue()) {
-					predicates.add(criteriaBuilder.greaterThan(root.get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
+				if(reqSearch.getDateValue().booleanValue()) {
+					predicates.add(criteriaBuilder.greaterThan(root.get(reqSearch.getColumn()), ZonedDateTime.parse(reqSearch.getValue())));
 				}
-				predicates.add(criteriaBuilder.greaterThan(root.get(requestDto.getColumn()),
-						Long.parseLong(requestDto.getValue())));
+				predicates.add(criteriaBuilder.greaterThan(root.get(reqSearch.getColumn()),
+						Long.parseLong(reqSearch.getValue())));
 				break;
 			case LESS_THAN:
-				if(requestDto.getDateValue().booleanValue()) {
-					predicates.add(criteriaBuilder.lessThan(root.get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
+				if(reqSearch.getDateValue().booleanValue()) {
+					predicates.add(criteriaBuilder.lessThan(root.get(reqSearch.getColumn()), ZonedDateTime.parse(reqSearch.getValue())));
 				}
-				predicates.add(criteriaBuilder.lessThan(root.get(requestDto.getColumn()),
-						Long.parseLong(requestDto.getValue())));
+				predicates.add(criteriaBuilder.lessThan(root.get(reqSearch.getColumn()),
+						Long.parseLong(reqSearch.getValue())));
 				break;
 			case BETWEEN:
-				String[] splitBetween = requestDto.getValue().split(",");
-				if(requestDto.getDateValue().booleanValue()) {
-					predicates.add(criteriaBuilder.between(root.get(requestDto.getColumn()), ZonedDateTime.parse(splitBetween[0]),ZonedDateTime.parse(splitBetween[1])));
+				String[] splitBetween = reqSearch.getValue().split(",");
+				if(reqSearch.getDateValue().booleanValue()) {
+					predicates.add(criteriaBuilder.between(root.get(reqSearch.getColumn()), ZonedDateTime.parse(splitBetween[0]),ZonedDateTime.parse(splitBetween[1])));
 				}
 				
-				predicates.add(criteriaBuilder.between(root.get(requestDto.getColumn()), Long.parseLong(splitBetween[0]),
+				predicates.add(criteriaBuilder.between(root.get(reqSearch.getColumn()), Long.parseLong(splitBetween[0]),
 						Long.parseLong(splitBetween[1])));
 				break;
 			default:
@@ -82,55 +82,55 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 		return predicates;
 	}
 
-	private List<Predicate> getPredicatesJoin(List<SearchRequestDto> searchRequestDto,
+	private List<Predicate> getPredicatesJoin(List<ReqSearch> reqSearchList,
 			Root<T> root, CriteriaBuilder criteriaBuilder) {
 		List<Predicate> predicates = new ArrayList<>();
 		
-		for (SearchRequestDto requestDto : searchRequestDto) {
+		for (ReqSearch reqSearch : reqSearchList) {
 			
-			switch (requestDto.getOperation()) {
+			switch (reqSearch.getOperation()) {
 			case EQUAL:
-				if(requestDto.getDateValue().booleanValue()) {
-					predicates.add(criteriaBuilder.equal(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
+				if(reqSearch.getDateValue().booleanValue()) {
+					predicates.add(criteriaBuilder.equal(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()), ZonedDateTime.parse(reqSearch.getValue())));
 				}
-				predicates.add(criteriaBuilder.equal(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), requestDto.getValue()));
+				predicates.add(criteriaBuilder.equal(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()), reqSearch.getValue()));
 				break;
 			case LIKE:
 				predicates.add(
-						criteriaBuilder.like(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), "%" + requestDto.getValue() + "%"));
+						criteriaBuilder.like(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()), "%" + reqSearch.getValue() + "%"));
 				break;
 			case IN:
-				String[] splitIn = requestDto.getValue().split(",");
-				if(requestDto.getDateValue().booleanValue()) {
+				String[] splitIn = reqSearch.getValue().split(",");
+				if(reqSearch.getDateValue().booleanValue()) {
 					List<ZonedDateTime> values = new ArrayList<>();
 					for(String value : splitIn) {
 						values.add(ZonedDateTime.parse(value));
 					}
-					predicates.add(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()).in(values));
+					predicates.add(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()).in(values));
 				}
-				predicates.add(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()).in(Arrays.asList(splitIn)));
+				predicates.add(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()).in(Arrays.asList(splitIn)));
 				break;
 			case GREATER_THAN:
-				if(requestDto.getDateValue().booleanValue()) {
-					predicates.add(criteriaBuilder.greaterThan(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
+				if(reqSearch.getDateValue().booleanValue()) {
+					predicates.add(criteriaBuilder.greaterThan(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()), ZonedDateTime.parse(reqSearch.getValue())));
 				}
-				predicates.add(criteriaBuilder.greaterThan(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()),
-						Long.parseLong(requestDto.getValue())));
+				predicates.add(criteriaBuilder.greaterThan(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()),
+						Long.parseLong(reqSearch.getValue())));
 				break;
 			case LESS_THAN:
-				if(requestDto.getDateValue().booleanValue()) {
-					predicates.add(criteriaBuilder.lessThan(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), ZonedDateTime.parse(requestDto.getValue())));
+				if(reqSearch.getDateValue().booleanValue()) {
+					predicates.add(criteriaBuilder.lessThan(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()), ZonedDateTime.parse(reqSearch.getValue())));
 				}
-				predicates.add(criteriaBuilder.lessThan(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()),
-						Long.parseLong(requestDto.getValue())));
+				predicates.add(criteriaBuilder.lessThan(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()),
+						Long.parseLong(reqSearch.getValue())));
 				break;
 			case BETWEEN:
-				String[] splitBetween = requestDto.getValue().split(",");
-				if(requestDto.getDateValue().booleanValue()) {
-					predicates.add(criteriaBuilder.between(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), ZonedDateTime.parse(splitBetween[0]),
+				String[] splitBetween = reqSearch.getValue().split(",");
+				if(reqSearch.getDateValue().booleanValue()) {
+					predicates.add(criteriaBuilder.between(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()), ZonedDateTime.parse(splitBetween[0]),
 							ZonedDateTime.parse(splitBetween[1])));
 				}
-				predicates.add(criteriaBuilder.between(root.join(requestDto.getJoinTable()).get(requestDto.getColumn()), Long.parseLong(splitBetween[0]),
+				predicates.add(criteriaBuilder.between(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()), Long.parseLong(splitBetween[0]),
 						Long.parseLong(splitBetween[1])));
 				break;
 			default:
@@ -142,15 +142,15 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 	}
 
 	@Override
-	public Specification<T> getSpecification(List<SearchRequestDto> searchRequestDto,
+	public Specification<T> getSpecification(List<ReqSearch> reqSearchList,
 			GlobalOperationEnum globalOperator) {
-		if(searchRequestDto == null || searchRequestDto.isEmpty() || globalOperator == null ) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
+		if(reqSearchList == null || reqSearchList.isEmpty() || globalOperator == null ) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
 		return (root, query, criteriaBuilder) -> {
-			List<jakarta.persistence.criteria.Predicate> allPredicates = new ArrayList<>();
-			List<jakarta.persistence.criteria.Predicate> predicates;
-			List<jakarta.persistence.criteria.Predicate> predicatesJoin;
-			java.util.function.Predicate<SearchRequestDto> partition = dto-> dto.getJoinTable() == null || dto.getJoinTable().isBlank();
-			var map = searchRequestDto.stream().collect(Collectors.partitioningBy(partition));
+			List<Predicate> allPredicates = new ArrayList<>();
+			List<Predicate> predicates;
+			List<Predicate> predicatesJoin;
+			java.util.function.Predicate<ReqSearch> partition = dto-> dto.getJoinTable() == null || dto.getJoinTable().isBlank();
+			var map = reqSearchList.stream().collect(Collectors.partitioningBy(partition));
 			predicates = this.getPredicates(map.get(true), root, criteriaBuilder);
 			predicatesJoin = this.getPredicatesJoin(map.get(false), root, criteriaBuilder);
 			allPredicates.addAll(predicates);
