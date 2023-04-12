@@ -75,7 +75,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 						Long.parseLong(splitBetween[1])));
 				break;
 			default:
-				throw new IllegalStateException("there was some error");
+				throw new IllegalStateException(messUtils.getMessage("exception.operationEnum-no-exist"));
 			}
 		}
 
@@ -134,7 +134,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 						Long.parseLong(splitBetween[1])));
 				break;
 			default:
-				throw new IllegalStateException("there was some error");
+				throw new IllegalStateException(messUtils.getMessage("exception.operationEnum-no-exist"));
 			}
 		}
 		
@@ -163,5 +163,33 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 			
 		};
 	}
+
+	@Override
+	public Specification<T> getSpecification(ReqSearch reqSearch) {
+		if(reqSearch == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		return (root ,query , criteriaBuilder) -> {
+			//the two methods with I get predicates recibe a list and return a list, I can create them for 1 object but is not necessary  
+			List<Predicate> predicates;
+			if(reqSearch.getJoinTable() == null | reqSearch.getJoinTable().isBlank()) {
+				predicates = getPredicates(List.of(reqSearch), root, criteriaBuilder);
+			}else {
+				predicates = getPredicatesJoin(List.of(reqSearch), root, criteriaBuilder);
+			}
+			return predicates.get(0); //I get the only predicate that predicates have
+		};
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 }

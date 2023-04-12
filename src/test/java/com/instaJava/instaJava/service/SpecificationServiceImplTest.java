@@ -45,15 +45,30 @@ class SpecificationServiceImplTest {
 	
 	@Test
 	void getSpecification() {
-		ReqSearch searchRequestDto = ReqSearch.builder()
+		ReqSearch reqSearch = ReqSearch.builder()
 				.column("followerId")
 				.value("1")
 				.dateValue(false)
 				.operation(OperationEnum.EQUAL)
 				.build();
-		List<ReqSearch> searchRequestDtoList = List.of(searchRequestDto);
-		assertNotNull(specificationService.getSpecification(searchRequestDtoList, GlobalOperationEnum.AND));
+		List<ReqSearch> reqSearchList = List.of(reqSearch);
+		assertNotNull(specificationService.getSpecification(reqSearchList, GlobalOperationEnum.AND));
 		
 	}
 	
+	@Test
+	void getSpecificationOnlyOneReqSearchNullArgThrow() {
+		assertThrows(IllegalArgumentException.class, () -> specificationService.getSpecification(null));
+	}
+	
+	@Test
+	void getSpecificationOnlyOneReqSearchReturnNotNull() {
+		ReqSearch reqSearch = ReqSearch.builder()
+				.column("followerId")
+				.value("1")
+				.dateValue(false)
+				.operation(OperationEnum.EQUAL)
+				.build();
+		assertNotNull(specificationService.getSpecification(reqSearch));
+	}
 }

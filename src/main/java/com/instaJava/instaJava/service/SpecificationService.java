@@ -11,4 +11,6 @@ public interface SpecificationService<T> {
 	
 	public Specification<T> getSpecification (List<ReqSearch> reqSearchList,
 			GlobalOperationEnum globalOperator);
+	
+	public Specification<T> getSpecification (ReqSearch reqSearch);
 }
