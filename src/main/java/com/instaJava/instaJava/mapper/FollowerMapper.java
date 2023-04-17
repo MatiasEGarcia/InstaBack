@@ -7,6 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
 
+import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.response.ResFollowStatus;
 import com.instaJava.instaJava.dto.response.ResFollower;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
@@ -23,13 +24,10 @@ public interface FollowerMapper {
 	List<ResFollower> followerListToResFollowerList(List<Follower> follower); 
 	
 	@Mapping(target ="list" , source = "page.content")
-	@Mapping(target ="totalPages" , source = "page.totalPages")
-	@Mapping(target ="totalElements" , source = "page.totalElements")
-	@Mapping(target ="actualPage" , source = "map.actualPage")
-	@Mapping(target ="pageSize" , source = "map.pageSize")
-	@Mapping(target ="sortField" , source = "map.sortField")
-	@Mapping(target ="sortDir" , source = "map.sortDir")
-	ResPaginationG<ResFollower> pageAndMapToResPaginationG(Page<Follower> page, Map<String,String> map);
+	@Mapping(target ="pageInfoDto", source = "pageInfoDto") 
+	@Mapping(target ="pageInfoDto.totalPages" , source = "page.totalPages")
+	@Mapping(target ="pageInfoDto.totalElements" , source = "page.totalElements")
+	ResPaginationG<ResFollower> pageAndPageInfoDtoToResPaginationG(Page<Follower> page, PageInfoDto pageInfoDto);
 	
 	
 }

@@ -4,6 +4,10 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,7 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dao.PersonalDetailsDao;
 import com.instaJava.instaJava.dao.UserDao;
+import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
+import com.instaJava.instaJava.dto.request.ReqSearch;
+import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
@@ -31,7 +38,15 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	private final PersonalDetailsDao personalDetailsDao;
 	private final MessagesUtils messUtils;
 	private final PersonalDetailsMapper personalDetailsMapper;
+	private final SpecificationService<User> specService;
 
+	@Override
+	@Transactional
+	public User save(User user) {
+		if(user == null) throw new IllegalArgumentException("exepcion.argument-not-null");
+		return userDao.save(user);
+	}
+	
 	@Override
 	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -63,14 +78,14 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return user.getImage();
 	}
 
-
+	//I have to test with postman this
 	@Override
 	@Transactional(readOnly = true)
-	public PersonalDetails getPersonalDetailsByUser() {
+	public Optional<PersonalDetails> getPersonalDetailsByUser() {
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		PersonalDetails perDet = personalDetailsDao.findByUser(user);
-		if(perDet == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.perDet-not-found"));
-		return perDet;
+		PersonalDetails perDet = user.getPersonalDetails();
+		if(perDet == null) return Optional.empty();
+		return Optional.of(perDet);
 	}
 
 
@@ -86,26 +101,6 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return perDet;
 	}
 
-
-	@Override
-	@Transactional(readOnly = true)
-	public List<User> findByUsernameLike(String username, int limit) {
-		List<User> users = userDao.findByUsernameLike(username, limit);
-		if(users.isEmpty()) {
-			return null;
-		}
-		return users;
-	}
-
-
-	@Override
-	@Transactional(readOnly= true)
-	public boolean existsByUsername(String username) {
-		if(username == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
-		return userDao.existsByUsername(username);
-	}
-
-
 	@Override
 	@Transactional
 	public User changeVisible() {
@@ -114,34 +109,105 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.save(user);
 	}
 
-	//no ta testeado
 	@Override
 	@Transactional(readOnly= true)
-	public User findById(Long id) {
-		Optional<User> user = userDao.findById(id);
-		if(user.isEmpty()) throw new IllegalArgumentException();
-		return user.get();
+	public Optional<User> getById(Long id) {
+		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		return userDao.findById(id);
+	}
+	
+	@Override
+	@Transactional(readOnly= true)
+	public Optional<User> getByUsername(String username) {
+		if(username == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+		User user = userDao.findByUsername(username);
+		if(user == null) return Optional.empty();
+		return Optional.of(user);
+	}
+	
+	@Override
+	@Transactional(readOnly= true)
+	public Optional<User> getOneUserOneCondition(ReqSearch reqSearch) {
+		if(reqSearch == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+		this.passNotAvailableForSearch(reqSearch);
+		return userDao.findOne(specService.getSpecification(reqSearch));
 	}
 
+	@Override
+	@Transactional(readOnly= true)
+	public Optional<User> getOneUserManyConditions(ReqSearchList reqSearchList) {
+		if(reqSearchList == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+		this.passNotAvailableForSearch(reqSearchList.getReqSearchs());
+		return userDao.findOne(specService.getSpecification(reqSearchList.getReqSearchs(),
+				reqSearchList.getGlobalOperator()));
+	}
+
+	@Override
+	@Transactional(readOnly= true)
+	public Page<User> getManyUsersOneCondition(PageInfoDto pageInfoDto,
+			ReqSearch reqSearch) {
+		if(reqSearch == null || pageInfoDto == null ||
+				pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null )throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
+		this.passNotAvailableForSearch(reqSearch);
+		Sort sort = pageInfoDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? 
+				Sort.by(pageInfoDto.getSortField()).ascending() : Sort.by(pageInfoDto.getSortField()).descending(); 
+		//first page for the most people is 1 , but for us is 0
+		Pageable pag = PageRequest.of(pageInfoDto.getPageNo() == 0 ? pageInfoDto.getPageNo() : pageInfoDto.getPageNo() - 1, pageInfoDto.getPageSize(),sort);
+		return userDao.findAll(specService.getSpecification(reqSearch), pag);
+	}
+
+	@Override
+	@Transactional(readOnly= true)
+	public Page<User> getManyUsersManyConditions(PageInfoDto pageInfoDto,
+			ReqSearchList reqSearchList) {
+		if(reqSearchList == null || pageInfoDto == null ||
+				pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null )throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
+		this.passNotAvailableForSearch(reqSearchList.getReqSearchs());
+		Sort sort = pageInfoDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ?
+				Sort.by(pageInfoDto.getSortField()).ascending() : Sort.by(pageInfoDto.getSortField()).descending();
+		//first page for the most people is 1 , but for us is 0
+		Pageable pag = PageRequest.of(pageInfoDto.getPageNo() == 0 ? pageInfoDto.getPageNo() : pageInfoDto.getPageNo() - 1, pageInfoDto.getPageSize(),sort);
+		return userDao.findAll(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()),pag);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public boolean existsByUsername(String username) {
+		if(username == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+		return userDao.existsByUsername(username);
+	}
 	
+	@Override
+	@Transactional(readOnly = true)
+	public boolean existsOneCondition(ReqSearch reqSearch) {
+		if(reqSearch == null) throw new IllegalArgumentException();
+		this.passNotAvailableForSearch(reqSearch);
+		return userDao.exists(specService.getSpecification(reqSearch));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public boolean existsManyConditions(ReqSearchList reqSearchList) {
+		if(reqSearchList == null) throw new IllegalArgumentException();
+		this.passNotAvailableForSearch(reqSearchList.getReqSearchs());
+		return userDao.exists(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()));
+	}
+
+	//Methods to don't allow search by password in specifications searches
+	private void passNotAvailableForSearch(ReqSearch reqSearch) {
+		if(reqSearch.getColumn() == null) {
+			return;
+		}else if(reqSearch.getColumn().equalsIgnoreCase("password")) throw new IllegalArgumentException(messUtils.getMessage("exception.password-not-searchable"));
+	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	private void passNotAvailableForSearch(List<ReqSearch> searchs) {
+		boolean isTherePassowrdColumn = searchs.stream()
+				.filter(s -> s.getColumn() != null)
+				.anyMatch(s -> s.getColumn().equalsIgnoreCase("password"));
+		if(isTherePassowrdColumn) throw new IllegalArgumentException(messUtils.getMessage("exception.password-not-searchable"));
+	}
+
+
+
+
 }

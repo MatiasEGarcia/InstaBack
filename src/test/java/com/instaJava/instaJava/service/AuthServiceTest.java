@@ -6,6 +6,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,7 +19,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.instaJava.instaJava.dao.UserDao;
 import com.instaJava.instaJava.dto.request.ReqLogin;
 import com.instaJava.instaJava.dto.request.ReqRefreshToken;
 import com.instaJava.instaJava.dto.request.ReqUserRegistration;
@@ -30,7 +31,7 @@ import com.instaJava.instaJava.util.MessagesUtils;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-	@Mock private UserDao userDao;
+	@Mock private UserService userService;
 	@Mock private PasswordEncoder passwordEncoder;
 	@Mock private JwtService jwtService;
 	@Mock private AuthenticationManager authenticationManager;
@@ -51,7 +52,7 @@ class AuthServiceTest {
 				.username("random")
 				.password("random")
 				.build();
-		when(userDao.existsByUsername(reqUserR.getUsername())).thenReturn(true);
+		when(userService.existsByUsername(reqUserR.getUsername())).thenReturn(true);
 		assertThrows(AlreadyExistsException.class,() -> authService.register(reqUserR));
 	}
 	
@@ -68,13 +69,13 @@ class AuthServiceTest {
 				.password("randomEnconde")
 				.role(RolesEnum.ROLE_USER)
 				.build();
-		when(userDao.existsByUsername(reqUserR.getUsername())).thenReturn(false);
+		when(userService.existsByUsername(reqUserR.getUsername())).thenReturn(false);
 		when(passwordEncoder.encode(reqUserR.getPassword())).thenReturn("randomEnconde");
-		when(userDao.save(user)).thenReturn(user);
+		when(userService.save(user)).thenReturn(user);
 		when(jwtService.generateToken(user)).thenReturn(token);
 		when(jwtService.generateRefreshToken(user)).thenReturn(refreshToken);
 		assertNotNull(authService.register(reqUserR));
-		verify(userDao).save(user);
+		verify(userService).save(user);
 		verify(jwtService).generateToken(user);
 		verify(jwtService).generateRefreshToken(user);
 	}
@@ -101,7 +102,7 @@ class AuthServiceTest {
 				.build();
 		when(jwtService.generateToken(user)).thenReturn(token);
 		when(jwtService.generateRefreshToken(user)).thenReturn(refreshToken);
-		when(userDao.findByUsername(reqLogin.getUsername())).thenReturn(user);
+		when(userService.getByUsername(reqLogin.getUsername())).thenReturn(Optional.of(user));
 		
 		assertNotNull(authService.authenticate(reqLogin));
 		
@@ -117,6 +118,7 @@ class AuthServiceTest {
 				.username("random")
 				.password("random")
 				.build();
+		when(userService.getByUsername(reqLogin.getUsername())).thenReturn(Optional.empty());
 		assertThrows(UsernameNotFoundException.class,() -> authService.authenticate(reqLogin));
 		verify(authenticationManager,never()).authenticate(
 				new UsernamePasswordAuthenticationToken(reqLogin.getUsername(),reqLogin.getPassword()));

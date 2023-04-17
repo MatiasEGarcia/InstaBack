@@ -42,7 +42,7 @@ class FollowerServiceImplTest {
 	@Test
 	void saveFollowedNoExistThrow() {
 		Long followedId= 1L;
-		when(userService.findById(followedId)).thenThrow(IllegalArgumentException.class);
+		when(userService.getById(followedId)).thenReturn(Optional.empty());
 		assertThrows(IllegalArgumentException.class,
 				() -> followerService.save(followedId));
 	}
@@ -65,8 +65,8 @@ class FollowerServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 				.thenReturn(userFollower);
-		when(userService.findById(userFollowed.getUserId())).thenReturn(userFollowed);
-		when(userService.findById(userFollower.getUserId())).thenReturn(userFollower);
+		when(userService.getById(userFollowed.getUserId())).thenReturn(Optional.of(userFollowed));
+		when(userService.getById(userFollower.getUserId())).thenReturn(Optional.of(userFollower));
 		when(followerDao.save(follower)).thenReturn(follower);
 		assertNotNull(followerService.save(userFollowed.getUserId()));
 		verify(followerDao).save(follower);

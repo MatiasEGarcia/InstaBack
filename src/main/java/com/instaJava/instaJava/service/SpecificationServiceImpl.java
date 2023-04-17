@@ -170,7 +170,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 		return (root ,query , criteriaBuilder) -> {
 			//the two methods with I get predicates recibe a list and return a list, I can create them for 1 object but is not necessary  
 			List<Predicate> predicates;
-			if(reqSearch.getJoinTable() == null | reqSearch.getJoinTable().isBlank()) {
+			if(reqSearch.getJoinTable() == null || reqSearch.getJoinTable().isBlank()) {
 				predicates = getPredicates(List.of(reqSearch), root, criteriaBuilder);
 			}else {
 				predicates = getPredicatesJoin(List.of(reqSearch), root, criteriaBuilder);

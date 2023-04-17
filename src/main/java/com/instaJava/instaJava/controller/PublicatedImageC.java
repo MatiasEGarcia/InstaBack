@@ -62,6 +62,7 @@ public class PublicatedImageC {
 				.body(ResMessage.builder().message(messUtils.getMessage("mess.publi-image-deleted")).build());
 	}
 	
+	/*
 	@GetMapping("/byUser")
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getByUser(
 			@RequestParam(name ="page", defaultValue = "1") String page,
@@ -109,7 +110,7 @@ public class PublicatedImageC {
 		headers.add("Info-header", messUtils.getMessage("mess.not-publi-image"));
 		return new ResponseEntity<> (headers, HttpStatus.NO_CONTENT);
 	}
-	
+	*/
 	
 	
 	

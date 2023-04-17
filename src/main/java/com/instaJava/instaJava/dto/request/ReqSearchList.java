@@ -22,7 +22,8 @@ public class ReqSearchList implements Serializable{
 	private static final long serialVersionUID = 1L;
 
 	@NotNull(message="{vali.reqSearchs-not-null}")
-	private List<@Valid ReqSearch> reqSearchs;
+	@Valid
+	private List< ReqSearch> reqSearchs;
 	@NotNull(message = "{vali.globalOperator-not-null}")
 	private GlobalOperationEnum globalOperator;
 }

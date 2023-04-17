@@ -29,7 +29,7 @@ public interface PublicatedImageMapper {
 	ResPublicatedImage publicatedImageToResPublicatedImage(PublicatedImage publicatedImage);
 	
 	List<ResPublicatedImage> listPublicatedImageToListResPublicatedImage(List<PublicatedImage> publicatedImages);
-	
+	/*
 	@Mapping(target ="list" , source = "page.content")
 	@Mapping(target ="totalPages" , source = "page.totalPages")
 	@Mapping(target ="totalElements" , source = "page.totalElements")
@@ -39,5 +39,5 @@ public interface PublicatedImageMapper {
 	@Mapping(target ="sortDir" , source = "map.sortDir")
 	ResPaginationG<ResPublicatedImage> pageAndMapToResPaginationG(Page<PublicatedImage> page, Map<String,String> map);
 	
-	
+	*/
 }

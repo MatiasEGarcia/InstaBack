@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.instaJava.instaJava.dao.FollowerDao;
+import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.entity.Follower;
 import com.instaJava.instaJava.entity.User;
@@ -29,6 +30,7 @@ public class FollowerServiceImpl implements FollowerService{
 	private final MessagesUtils messUtils;
 	private final SpecificationService<Follower> specService;
 	
+	//retest
 	@Override
 	@Transactional
 	public Follower save(Long FollowedId) {
@@ -36,11 +38,12 @@ public class FollowerServiceImpl implements FollowerService{
 			throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
 		}
 		Follower follower = Follower.builder().build();
-		User userFollowed = userService.findById(FollowedId); //if not exist throw exception
+		Optional<User> optUserFollowed = userService.getById(FollowedId);
+		if(optUserFollowed.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.followed-no-exist"));
 		User userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		follower.setUserFollowed(userFollowed);
-		follower.setUserFollower((userService.findById(userFollower.getUserId())));//persistence context?If I don't do this user is detached
-		if(userFollowed.isVisible()) {
+		follower.setUserFollowed(optUserFollowed.get());
+		follower.setUserFollower((userService.getById(userFollower.getUserId()).get()));//persistence context?If I don't do this user is detached
+		if(optUserFollowed.get().isVisible()) {
 			follower.setFollowStatus(FollowStatus.ACCEPTED);
 		}else {
 			follower.setFollowStatus(FollowStatus.IN_PROCESS);
@@ -50,13 +53,14 @@ public class FollowerServiceImpl implements FollowerService{
 
 	@Override
 	@Transactional(readOnly = true)
-	public Page<Follower> search(int pageNo, int pageSize, String sortField, String sortDir, ReqSearchList reqSearchList) {
-		if(sortField == null || sortField.isBlank() 
-				|| sortDir == null || sortDir.isBlank() || reqSearchList == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
+	public Page<Follower> search(PageInfoDto pageInfoDto, ReqSearchList reqSearchList) {
+		if(pageInfoDto == null || reqSearchList == null || 
+				pageInfoDto.getSortField() == null || pageInfoDto.getSortDir() == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
 		//as sortfield I can pass attributes from another entity that is related - > user_username
-		Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+		Sort sort = pageInfoDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? 
+				Sort.by(pageInfoDto.getSortField()).ascending() : Sort.by(pageInfoDto.getSortField()).descending();
 		//first page for the most people is 1 , but for us is 0
-		Pageable pag = PageRequest.of(pageNo-1, pageSize,sort);
+		Pageable pag = PageRequest.of(pageInfoDto.getPageNo()-1, pageInfoDto.getPageSize(),sort);
 		Specification<Follower> spec = specService.getSpecification(reqSearchList.getReqSearchs()
 				, reqSearchList.getGlobalOperator());
 		return followerDao.findAll(spec, pag);

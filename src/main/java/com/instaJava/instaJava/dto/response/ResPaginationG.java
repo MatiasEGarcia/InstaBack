@@ -3,6 +3,8 @@ package com.instaJava.instaJava.dto.response;
 import java.io.Serializable;
 import java.util.List;
 
+import com.instaJava.instaJava.dto.PageInfoDto;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,11 +18,6 @@ public class ResPaginationG<T> implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	private List<T> list;
-	private int actualPage;
-	private int pageSize;
-	private int totalPages;
-	private int totalElements;
-	private String sortField;
-	private String sortDir;
+	private PageInfoDto pageInfoDto;
 
 }

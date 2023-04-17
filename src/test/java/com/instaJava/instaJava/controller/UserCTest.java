@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,8 +37,12 @@ import com.instaJava.instaJava.dao.PersonalDetailsDao;
 import com.instaJava.instaJava.dao.UserDao;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
+import com.instaJava.instaJava.dto.request.ReqSearch;
+import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.GlobalOperationEnum;
+import com.instaJava.instaJava.enums.OperationEnum;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.service.JwtService;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -81,7 +86,7 @@ class UserCTest {
 	
 	private static final MediaType APPLICATION_JSON_UTF8 = MediaType.APPLICATION_JSON;
 	//this user is in the bdd , because we save it with sqlAddUser1
-	private User USER_AUTH = User.builder()
+	private User matiAuth = User.builder()
 			.userId(1L)
 			.username("matias")
 			.password("123456")
@@ -101,13 +106,13 @@ class UserCTest {
 	}
 
 	@Test
-	void postUploadImageStatusOk() throws Exception {
+	void postUploadImageOk() throws Exception {
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
 				 MediaType.IMAGE_JPEG_VALUE, 
 		        "Hello, World!".getBytes()
 		      );
 		String imgBase64 = Base64.getEncoder().encodeToString(img.getBytes());
-		String token = jwtService.generateToken(USER_AUTH);
+		String token = jwtService.generateToken(matiAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/users/image")
 				.file(img)
@@ -119,13 +124,13 @@ class UserCTest {
 	
 
 	@Test
-	void postUploadImageStatusBadRequst() throws Exception {
+	void postUploadImageWrongArchiveBadRequst() throws Exception {
 		//THe type of the archive is wrong
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
 				"text/plain", 
 		        "Hello, World!".getBytes()
 		      );
-		String token = jwtService.generateToken(USER_AUTH);
+		String token = jwtService.generateToken(matiAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/users/image")
 				.file(img)
@@ -136,15 +141,15 @@ class UserCTest {
 	}
 	
 	@Test
-	void getDownloadImageStatusOk() throws Exception {
+	void getDownloadImageOk() throws Exception {
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
 				 MediaType.IMAGE_JPEG_VALUE, 
 		        "Hello, World!".getBytes()
 		      );
 		String imgBase64 = Base64.getEncoder().encodeToString(img.getBytes());
-		String token = jwtService.generateToken(USER_AUTH);
-		USER_AUTH.setImage(imgBase64);
-		userDao.save(USER_AUTH);
+		String token = jwtService.generateToken(matiAuth);
+		matiAuth.setImage(imgBase64);
+		userDao.save(matiAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/image")
 				.header("Authorization","Bearer " + token))
@@ -154,8 +159,8 @@ class UserCTest {
 	}
 	
 	@Test
-	void postLogoutStatusOk() throws Exception {
-		String token = jwtService.generateToken(USER_AUTH);
+	void postLogoutOk() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
 		ReqLogout reqLogout=ReqLogout.builder()
 			.token("SomeStringToken")
 			.refreshToken("SomeRefreshToken")
@@ -173,8 +178,8 @@ class UserCTest {
 	}
 	
 	@Test
-	void postLogoutStatusBadRequest() throws Exception {
-		String token = jwtService.generateToken(USER_AUTH);
+	void postLogoutWithoutTokensBadRequest() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
 		ReqLogout reqLogout=ReqLogout.builder().build();
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/logout")
@@ -187,8 +192,8 @@ class UserCTest {
 	}
 	
 	@Test
-	void postSavePersonalDetailsStatusOk() throws Exception {
-		String token = jwtService.generateToken(USER_AUTH);
+	void postSavePersonalDetailsOk() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
 		Byte age = 23;
 		PersonalDetailsDto perDetDto = PersonalDetailsDto.builder()
 				.name("Mati")
@@ -208,18 +213,18 @@ class UserCTest {
 				.andExpect(jsonPath("$.age",is(23)))
 				.andExpect(jsonPath("$.email",is(perDetDto.getEmail())));
 		
-		assertNotNull(personalDetailsDao.findByUser(USER_AUTH));
+		assertNotNull(personalDetailsDao.findByUser(matiAuth));
 	}
 	
 	@Test
-	void postSavePersonalDetailsStatusBadRequest() throws Exception {
-		String token = jwtService.generateToken(USER_AUTH);
+	void postSavePersonalDetailsBodyAtributesBlankBadRequest() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
 		PersonalDetailsDto perDetDto = PersonalDetailsDto.builder().build();
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/personalDetails")
 				.header("Authorization", "Bearer " + token)
 				.contentType(APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsBytes(perDetDto)))
+				.content(objectMapper.writeValueAsString(perDetDto)))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.name",is(messUtils.getMessage("vali.name-not-blank"))))
@@ -227,19 +232,38 @@ class UserCTest {
 				.andExpect(jsonPath("$.age",is(messUtils.getMessage("vali.age-range"))))
 				.andExpect(jsonPath("$.email",is(messUtils.getMessage("vali.email-not-blank"))));
 	
-		assertNull(personalDetailsDao.findByUser(USER_AUTH));
+		assertNull(personalDetailsDao.findByUser(matiAuth));
 	}
 	
 	@Test
-	void getGetPersonalDetailsStatusOk() throws Exception {
-		String token = jwtService.generateToken(USER_AUTH);
+	void putVisibleOk() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/users/visible")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.visible", is(false))); //before user was visible = true
+	}
+	
+	@Test
+	void getPersonalDetailsNoExistNoContent() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/personalDetails")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.perDet-not-found"))));
+	}
+	
+	@Test
+	void getPersonalDetailsExistReturnPersonDetOk() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
 		Byte age = 23;
 		PersonalDetails perDet = PersonalDetails.builder()
 				.name(token)
 				.lastname(token)
 				.age(age)
 				.email("matig@gmail.com")
-				.user(USER_AUTH)
+				.user(matiAuth)
 				.build();
 		personalDetailsDao.save(perDet);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/personalDetails")
@@ -252,47 +276,246 @@ class UserCTest {
 				.andExpect(jsonPath("$.email",is(perDet.getEmail())));
 	}
 	
-	@Test
-	void getGetUserForUsernameLikeStatusOk() throws Exception {
-		String token = jwtService.generateToken(USER_AUTH);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/like")
-				.header("Authorization", "Bearer " + token)
-				.param("username", "mat")
-				.param("limit", "5"))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$",hasSize(1)));
-	}
 	
 	@Test
-	void getGetUserForUsernameLikeStatusNoContent() throws Exception {
-		String token = jwtService.generateToken(USER_AUTH);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/like")
+	void postSearchUserWithOneConditionNoMatchesNoContent() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().column("username").value("random")
+				.dateValue(false).operation(OperationEnum.EQUAL).build();
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchOne/oneCondition")
 				.header("Authorization", "Bearer " + token)
-				.param("username", "Jul")
-				.param("limit", "5"))
+				.content(objectMapper.writeValueAsString(reqSearch))
+				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo",messUtils.getMessage("mess.there-no-users")));
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.there-no-users"))));
+		
 	}
-	
 	@Test
-	void getGetUserForUsernameLikeStatusBadRequest() throws Exception {
-		String token = jwtService.generateToken(USER_AUTH);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/like")
-				.header("Authorization", "Bearer " + token))
+	void postSearchUserWithOneConditionReqSearchNullBlankValuesBlankBadRequest() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().build();
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchOne/oneCondition")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqSearch))
+				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
-				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.field", is("username")));
+				.andExpect(jsonPath("$.column", is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
+				.andExpect(jsonPath("$.value", is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
+				.andExpect(jsonPath("$.dateValue", is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
+				.andExpect(jsonPath("$.operation", is(messUtils.getMessage("vali.ReqSearch.operation-not-null"))));
 	}
-	
 	@Test
-	void putVisibleStatusOk() throws Exception {
-		String token = jwtService.generateToken(USER_AUTH);
-		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/users/visible")
-				.header("Authorization", "Bearer " + token))
+	void postSearchUserWithOneConditionMatchesOk() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().column("username").value(matiAuth.getUsername())
+				.dateValue(false).operation(OperationEnum.EQUAL).build();
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchOne/oneCondition")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqSearch))
+				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.visible", is(false))); //before user was visible = true
+				.andExpect(jsonPath("$.username" , is(matiAuth.getUsername())))
+				.andExpect(jsonPath("$.image" , is(matiAuth.getImage())))
+				.andExpect(jsonPath("$.visible" , is(true)));
+		//this user data we save it as sqlAddUser1 in dbSetUp method
+	}
+	
+	
+	@Test
+	void postSearchUserWithManyConditionsNoMatchesNoContent() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().column("username").value("random")
+				.dateValue(false).operation(OperationEnum.EQUAL).build();
+		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch))
+				.globalOperator(GlobalOperationEnum.AND).build();
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchOne/manyConditions")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqSearchList))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.there-no-users"))));
+		
+	}
+	@Test
+	void postSearchUserWithManyConditionsMatchesOk() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().column("username").value(matiAuth.getUsername())
+				.dateValue(false).operation(OperationEnum.EQUAL).build();
+		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch))
+				.globalOperator(GlobalOperationEnum.AND).build();
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchOne/manyConditions")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqSearchList))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.username" , is(matiAuth.getUsername())))
+				.andExpect(jsonPath("$.image" , is(matiAuth.getImage())))
+				.andExpect(jsonPath("$.visible" , is(true)));
+		//this user data we save it as sqlAddUser1 in dbSetUp method
+	}
+	@Test
+	void postSearchUserWithManyConditionsReqSearchListNullValuesBadRequest() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearchList reqSearchList = ReqSearchList.builder().build();
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchOne/manyConditions")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqSearchList))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.reqSearchs", is(messUtils.getMessage("vali.reqSearchs-not-null"))))
+				.andExpect(jsonPath("$.globalOperator", is(messUtils.getMessage("vali.globalOperator-not-null"))));
+	}
+	
+	
+	@Test
+	void postSearchUsersWithOneConditionNoParamsMatchesOk() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().column("username").value(matiAuth.getUsername())
+				.dateValue(false).operation(OperationEnum.EQUAL).build();
+		
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/oneCondition")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqSearch))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.list" , hasSize(1)))
+				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("userId"))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("asc"))); //default value if the user don't pass any param
+		//we only save 1 user with that username, we save in dbbSetUp method
+	}
+	@Test
+	void postSearchUsersWithOneConditionWithParamsMatchesOk() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().column("username").value(matiAuth.getUsername())
+				.dateValue(false).operation(OperationEnum.EQUAL).build();
+		
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/oneCondition")
+				.header("Authorization", "Bearer " + token)
+				.param("sortField", "username")
+				.param("sortDir", "desc")
+				.content(objectMapper.writeValueAsString(reqSearch))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.list" , hasSize(1)))
+				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("username")))
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("desc")));
+		//we only save 1 user with that username, we save in dbbSetUp method
+	}
+	@Test
+	void postSearchUsersWithOneConditionNoMatchesNoContent() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().column("username").value("random")
+				.dateValue(false).operation(OperationEnum.EQUAL).build();
+		
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/oneCondition")
+				.header("Authorization", "Bearer " + token)
+				.param("sortField", "username")
+				.param("sortDir", "desc")
+				.content(objectMapper.writeValueAsString(reqSearch))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.there-no-users"))));
+	}
+	@Test
+	void postSearchUsersWithOneConditionreqSearchNullBlankValuesBadRequest() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().build();
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/oneCondition")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqSearch))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.column", is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
+				.andExpect(jsonPath("$.value", is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
+				.andExpect(jsonPath("$.dateValue", is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
+				.andExpect(jsonPath("$.operation", is(messUtils.getMessage("vali.ReqSearch.operation-not-null"))));
+	}
+	
+	
+	@Test
+	void postSearchUsersWithManyConditionsNoParamsOk() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().column("username").value(matiAuth.getUsername())
+				.dateValue(false).operation(OperationEnum.EQUAL).build();
+		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch))
+				.globalOperator(GlobalOperationEnum.AND).build();
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/manyConditions")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqSearchList))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.list", hasSize(1)))
+				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("userId"))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("asc"))); //default value if the user don't pass any param;
+		//this user data we save it as sqlAddUser1 in dbSetUp method
+	}
+	@Test
+	void postSearchUsersWithManyConditionsWithParamsOk() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().column("username").value(matiAuth.getUsername())
+				.dateValue(false).operation(OperationEnum.EQUAL).build();
+		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch))
+				.globalOperator(GlobalOperationEnum.AND).build();
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/manyConditions")
+				.header("Authorization", "Bearer " + token)
+				.param("sortField", "username")
+				.param("sortDir", "desc")
+				.content(objectMapper.writeValueAsString(reqSearchList))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.list", hasSize(1)))
+				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("username")))
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("desc")));
+		//this user data we save it as sqlAddUser1 in dbSetUp method
+	}
+	@Test
+	void postSearchUsersWithManyConditionsNoMatchesNoContent() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearch reqSearch = ReqSearch.builder().column("username").value("random")
+				.dateValue(false).operation(OperationEnum.EQUAL).build();
+		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch))
+				.globalOperator(GlobalOperationEnum.AND).build();
+		
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/manyConditions")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqSearchList))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.there-no-users"))));
+	}
+	@Test
+	void postSearchUsersWithManyConditionsReqSearchListNullValuesBadRequest() throws Exception {
+		String token = jwtService.generateToken(matiAuth);
+		ReqSearchList reqSearchList = ReqSearchList.builder().build();
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/manyConditions")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqSearchList))
+				.contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.reqSearchs", is(messUtils.getMessage("vali.reqSearchs-not-null"))))
+				.andExpect(jsonPath("$.globalOperator", is(messUtils.getMessage("vali.globalOperator-not-null"))));
 	}
 	
 	@AfterEach

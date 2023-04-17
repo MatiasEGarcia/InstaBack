@@ -1,8 +1,5 @@
 package com.instaJava.instaJava.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResFollowStatus;
 import com.instaJava.instaJava.dto.response.ResFollower;
@@ -50,23 +48,18 @@ public class FollowerC {
 	@PostMapping("/findAllBy")
 	public ResponseEntity<ResPaginationG<ResFollower>> getFollowers(
 			@Valid @RequestBody ReqSearchList reqSearchList,
-			@RequestParam(name ="page", defaultValue = "1") String page,
+			@RequestParam(name ="page", defaultValue = "1") String pageNo,
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue="FollowerId") String sortField,
 			@RequestParam(name = "sortDir" , defaultValue = "asc")@IsEnum(enumSource = Direction.class) String sortDir){
-		Map<String,String> map;
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
+				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
 		HttpHeaders headers;
-		Page<Follower> followersPage = follService.search(Integer.parseInt(page),
-				Integer.parseInt(pageSize), sortField, sortDir, reqSearchList);
+		Page<Follower> followersPage = follService.search(pageInfoDto,reqSearchList);
 		
 		if(!followersPage.isEmpty()) {
-			map = new HashMap<>();
-			map.put("actualPage", page);
-			map.put("pageSize", pageSize);
-			map.put("sortField", sortField);
-			map.put("sortDir", sortDir);
 			return ResponseEntity.ok().body(follMapper
-					.pageAndMapToResPaginationG(followersPage, map));
+					.pageAndPageInfoDtoToResPaginationG(followersPage, pageInfoDto));
 		}
 		headers = new HttpHeaders();
 		headers.add("Info-header", messUtils.getMessage("mess.not-followers"));		
