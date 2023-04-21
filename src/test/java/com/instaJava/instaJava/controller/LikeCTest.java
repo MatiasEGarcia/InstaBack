@@ -1,13 +1,10 @@
 package com.instaJava.instaJava.controller;
 
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.instanceOf;
-
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,7 +21,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
@@ -44,8 +40,6 @@ class LikeCTest {
 	private JwtService jwtService;
 	@Autowired
 	private MessagesUtils messUtils;
-	@Autowired
-	private ObjectMapper objectMapper;
 	@Autowired
 	private JdbcTemplate jdbc;
 	
@@ -90,6 +84,8 @@ class LikeCTest {
 		jdbc.update(sqlAddUser1);
 		jdbc.update(sqlAddUser2);
 	}
+	
+	
 	@Test
 	void testSaveBadRequestParamsNotPassed() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
@@ -99,10 +95,9 @@ class LikeCTest {
 		        .andExpect(jsonPath("$.field",is("type")));
 		//this is for the first param that the client didn't pass, if this is passed, but not the next param, then the error will be with field == param name
 	}
-	
 	@Test
 	void testSaveOk() throws Exception {
-		jdbc.execute(sqlAddPublicatedImage); //if the record does not exist in the db, the save request will throw an exception
+		jdbc.execute(sqlAddPublicatedImage); //if the record does not exist in the db, the save request will return other status
 		String token = jwtService.generateToken(matiasUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/like")
 				.header("Authorization", "Bearer "+ token)
@@ -117,7 +112,20 @@ class LikeCTest {
 				.andExpect(jsonPath("$.decision", is(true)))
 				.andExpect(jsonPath("$.ownerLike.username", is("matias")));
 	}
-
+	@Test
+	void testSaveItemIdNoExistNoContent() throws Exception {
+		jdbc.execute(sqlAddPublicatedImage); //if the record does not exist in the db, the save request will return other status
+		String token = jwtService.generateToken(matiasUserAuth);
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/like")
+				.header("Authorization", "Bearer "+ token)
+				.param("type", TypeItemLikedEnum.PULICATED_IMAGE.toString())
+				.param("itemId", "100") //publicated image with this id no exist
+				.param("decision", "true"))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.like-didnt-saved")));
+	}
+	
+	
 	@AfterEach
 	void setUpAfterTransaction() {
 		jdbc.execute(sqlRefIntegrityFalse);

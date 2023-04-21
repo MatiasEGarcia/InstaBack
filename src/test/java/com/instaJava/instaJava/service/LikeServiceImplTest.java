@@ -1,7 +1,7 @@
 package com.instaJava.instaJava.service;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -9,6 +9,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,18 +48,21 @@ class LikeServiceImplTest {
 	void saveTypeNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> likeService.save(null, 1L, false));
 	}
-	/*
 	@Test
-	void saveIdPulblicatedImageItemNoExistThrow() {
-		when(publiImaService.findById(1L)).thenThrow(IllegalArgumentException.class);
-		assertThrows(IllegalArgumentException.class, () -> likeService.save(TypeItemLikedEnum.PULICATED_IMAGE, 1L, true));
-		verify(publiImaService).findById(1L);
+	void saveItemIdNullThrow() {
+		assertThrows(IllegalArgumentException.class, 
+				() -> likeService.save(TypeItemLikedEnum.PULICATED_IMAGE, null, false));
 	}
-	*/
-	
-	/*
 	@Test
-	void saveReturnNotNull() {
+	void saveIdPulblicatedImageItemNoExistReturnOptionalEmpty() {
+		when(publiImaService.getById(1L)).thenReturn(Optional.empty());
+		Optional<Like> optL = likeService.save(TypeItemLikedEnum.PULICATED_IMAGE, 1L, true);
+		if(optL.isPresent()) fail("if the publicated image no exist, then should return empty like instead save the like");
+		verify(publiImaService).getById(1L);
+	}
+	
+	@Test
+	void saveReturnOptionalPresent() {
 		Long id = 1L;
 		boolean decision = true;
 		//set clock for test
@@ -79,12 +83,13 @@ class LikeServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 				.thenReturn(user);
 		
-		when(publiImaService.findById(1L)).thenReturn(new PublicatedImage());
+		when(publiImaService.getById(1L)).thenReturn(Optional.of(PublicatedImage.builder().build()));
 		when(likeDao.save(like)).thenReturn(like);
-		assertNotNull(likeService.save(TypeItemLikedEnum.PULICATED_IMAGE, id, decision));
-		verify(publiImaService).findById(1L);
+		Optional<Like> optL =  likeService.save(TypeItemLikedEnum.PULICATED_IMAGE, id, decision);
+		if(optL.isEmpty()) fail("if the publicated image exist, should return present like");
+		verify(publiImaService).getById(id);
 		verify(likeDao).save(like);
 		
-	}*/
+	}
 
 }
