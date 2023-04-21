@@ -1,5 +1,6 @@
 package com.instaJava.instaJava.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -8,15 +9,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.instaJava.instaJava.dao.FollowerDao;
 import com.instaJava.instaJava.dto.PageInfoDto;
+import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.entity.Follower;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
+import com.instaJava.instaJava.enums.GlobalOperationEnum;
+import com.instaJava.instaJava.enums.OperationEnum;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -95,6 +100,37 @@ public class FollowerServiceImpl implements FollowerService{
 		if(!foll.getUserFollower().equals(userFollower)) throw new IllegalArgumentException(messUtils.getMessage("exception.follower-is-not-same"));
 		followerDao.delete(foll);;
 	}
+
+	//tengo que testear
+	
+	/* if the followed user no exist throw exception
+	 * if the user is visible/public the return FollowStatus.ACCEPTED
+	 * if the user is not visible/public and there is not a follow record then return FollowStatus.NOT_ASKED
+	 * if none of the above conditions is met return the current FollowStatus
+	 * */
+	@Override
+	@Transactional(readOnly = true)
+	public FollowStatus getFollowStatusByFollowedId(Long id) {
+		if(id == null) throw new IllegalArgumentException();
+		Optional<User> userFollowed;
+		Optional<Follower> optFollower;
+		User userFollower;
+		ReqSearch followedSearchEqual;
+		ReqSearch followerSearchEqual;
+		userFollowed = userService.getById(id);
+		if(userFollowed.isEmpty()) throw new UsernameNotFoundException(null);
+		if(userFollowed.get().isVisible()) return FollowStatus.ACCEPTED; // if the user is public/visible, then we return accepted
+		userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		followedSearchEqual = ReqSearch.builder().column("userId").value(id.toString())
+				.joinTable("userFollowed").dateValue(false).operation(OperationEnum.EQUAL).build();
+		followerSearchEqual = ReqSearch.builder().column("userId").value(userFollower.getUserId().toString())
+				.joinTable("userFollower").dateValue(false).operation(OperationEnum.EQUAL).build();
+		optFollower = followerDao.findOne(specService.getSpecification(List.of(followedSearchEqual,followerSearchEqual), GlobalOperationEnum.AND));
+		if(optFollower.isEmpty()) return FollowStatus.NOT_ASKED;
+		return optFollower.get().getFollowStatus();
+	}
+
+	
 
 
 	

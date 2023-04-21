@@ -1,12 +1,12 @@
 package com.instaJava.instaJava.mapper;
 
 import java.util.List;
-import java.util.Map;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
 
+import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.dto.response.ResPublicatedImage;
 import com.instaJava.instaJava.entity.PublicatedImage;
@@ -29,15 +29,13 @@ public interface PublicatedImageMapper {
 	ResPublicatedImage publicatedImageToResPublicatedImage(PublicatedImage publicatedImage);
 	
 	List<ResPublicatedImage> listPublicatedImageToListResPublicatedImage(List<PublicatedImage> publicatedImages);
-	/*
+
 	@Mapping(target ="list" , source = "page.content")
-	@Mapping(target ="totalPages" , source = "page.totalPages")
-	@Mapping(target ="totalElements" , source = "page.totalElements")
-	@Mapping(target ="actualPage" , source = "map.actualPage")
-	@Mapping(target ="pageSize" , source = "map.pageSize")
-	@Mapping(target ="sortField" , source = "map.sortField")
-	@Mapping(target ="sortDir" , source = "map.sortDir")
-	ResPaginationG<ResPublicatedImage> pageAndMapToResPaginationG(Page<PublicatedImage> page, Map<String,String> map);
-	
-	*/
+	@Mapping(target ="pageInfoDto.pageNo", source = "pageInfoDto.pageNo")
+	@Mapping(target ="pageInfoDto.pageSize", source = "pageInfoDto.pageSize") 
+	@Mapping(target ="pageInfoDto.sortField", source = "pageInfoDto.sortField") 
+	@Mapping(target ="pageInfoDto.sortDir", source = "pageInfoDto.sortDir") 
+	@Mapping(target ="pageInfoDto.totalPages" , source = "page.totalPages")
+	@Mapping(target ="pageInfoDto.totalElements" , source = "page.totalElements")
+	ResPaginationG<ResPublicatedImage> pageAndPageInfoDtoToResPaginationG(Page<PublicatedImage> page,PageInfoDto pageInfoDto);
 }

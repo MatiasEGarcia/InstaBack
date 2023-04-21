@@ -74,6 +74,11 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 				predicates.add(criteriaBuilder.between(root.get(reqSearch.getColumn()), Long.parseLong(splitBetween[0]),
 						Long.parseLong(splitBetween[1])));
 				break;
+			case IS_TRUE:
+				predicates.add(criteriaBuilder.isTrue(root.get(reqSearch.getColumn()).as(Boolean.class))); //this works??'
+				break;
+			case IS_FALSE:
+				predicates.add(criteriaBuilder.isFalse(root.get(reqSearch.getColumn()).as(Boolean.class)));//this works??'
 			default:
 				throw new IllegalStateException(messUtils.getMessage("exception.operationEnum-no-exist"));
 			}
@@ -133,6 +138,11 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 				predicates.add(criteriaBuilder.between(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()), Long.parseLong(splitBetween[0]),
 						Long.parseLong(splitBetween[1])));
 				break;
+			case IS_TRUE:
+				predicates.add(criteriaBuilder.isTrue(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()).as(Boolean.class))); //this works??'
+				break;
+			case IS_FALSE:
+				predicates.add(criteriaBuilder.isFalse(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()).as(Boolean.class)));//this works??'
 			default:
 				throw new IllegalStateException(messUtils.getMessage("exception.operationEnum-no-exist"));
 			}

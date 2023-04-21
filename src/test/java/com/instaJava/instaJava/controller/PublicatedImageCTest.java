@@ -31,9 +31,13 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import com.instaJava.instaJava.dao.FollowerDao;
 import com.instaJava.instaJava.dao.PublicatedImagesDao;
+import com.instaJava.instaJava.dao.UserDao;
+import com.instaJava.instaJava.entity.Follower;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.service.JwtService;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -46,6 +50,8 @@ class PublicatedImageCTest {
 
 	@Autowired private MockMvc mockMvc;
 	@Autowired private PublicatedImagesDao publicatedImagesDao;
+	@Autowired private FollowerDao followerDao;
+	@Autowired private UserDao userDao;
 	@Autowired private MessagesUtils messUtils;
 	@Autowired private JdbcTemplate jdbc;
 	@Autowired private JwtService jwtService;
@@ -56,10 +62,14 @@ class PublicatedImageCTest {
 	private String sqlAddUser2;
 	@Value("${sql.script.create.publicatedImage}")
 	private String sqlAddPublicatedImage;
+	@Value("${sql.script.create.follower}")
+	private String sqlAddFollower;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
 	@Value("${sql.script.truncate.publicatedImages}")
 	private String sqlTruncatePublicatedImages;
+	@Value("${sql.script.truncate.followers}")
+	private String sqlTruncateFollowers;
 	@Value("${sql.script.ref.integrity.false}")
 	private String sqlRefIntegrityFalse;
 	@Value("${sql.script.ref.integrity.true}")
@@ -71,14 +81,16 @@ class PublicatedImageCTest {
 	private User userAuthMati = User.builder()
 			.userId(1L)
 			.username("matias")
-			.password("123456")
+			.password("$2a$10$Z/mAWx8fyvjzn2V.xDDge.SnMkyVyFfAcLlEJUHQ0DqXfqrao8wke")
+			.visible(true)
 			.role(RolesEnum.ROLE_USER)
 			.build();
 	//same user that sqlAddUser2
 	private User userAuthRoci = User.builder()
 			.userId(2L)
 			.username("rocio")
-			.password("123456")
+			.password("$2a$10$Z/mAWx8fyvjzn2V.xDDge.SnMkyVyFfAcLlEJUHQ0DqXfqrao8wke")
+			.visible(false)
 			.role(RolesEnum.ROLE_USER)
 			.build();
 	
@@ -89,10 +101,11 @@ class PublicatedImageCTest {
 	}
 	
 	@BeforeEach
-	void bddSetUp() {
-		jdbc.execute(sqlAddUser1);
-		jdbc.execute(sqlAddUser2);
-		jdbc.execute(sqlAddPublicatedImage); //this has as user -> sqlAddUser1
+	void bddSetUp() { 
+		jdbc.execute(sqlAddUser1); //userAuthMati
+		jdbc.execute(sqlAddUser2); //userAuthRoci
+		jdbc.execute(sqlAddPublicatedImage); //this has as ownerUser -> sqlAddUser1
+		jdbc.execute(sqlAddFollower); //sqlAddUser1 is the follower and sqlAddUser2 is the followed
 		
 	}
 	
@@ -117,7 +130,6 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.userOwner",is(userAuthMati.getUsername())));
 		assertNotNull(publicatedImagesDao.findById(1L));
 	}
-
 	@Test
 	void postSaveStatusBadRequestImageTypeInvalid() throws Exception {
 		String token = jwtService.generateToken(userAuthMati);
@@ -134,7 +146,6 @@ class PublicatedImageCTest {
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.file",is(messUtils.getMessage("vali.image"))));
 	}
-	
 	@Test
 	void postSaveStatusBadRequestImgNotGiven() throws Exception {
 		String token = jwtService.generateToken(userAuthMati);
@@ -147,6 +158,7 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.field",is("img")))
 				.andExpect(jsonPath("$.errorMessage",is(messUtils.getMessage("vali.part.not.present"))));
 	}
+
 	
 	@Test
 	void deleteDeleteByIdStatusOk() throws Exception {
@@ -172,97 +184,154 @@ class PublicatedImageCTest {
 		if(PublicatedImage.isPresent()) fail();
 	}
 	
-	///
 	
 	@Test
-	void getGetByUserWithoutArgStatusOk() throws Exception {
-		String token = jwtService.generateToken(userAuthMati);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUser")
-				.header("authorization", "Bearer "+token))
+	void getSearchByUserWithoutParamsOk() throws Exception {
+		String token = jwtService.generateToken(userAuthMati); //this user has publicated images
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.list",hasSize(1)));
+				.andExpect(jsonPath("$.list", hasSize(1)))
+				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("pubImaId")))  //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("asc")));   //default value if the user don't pass any param
 	}
-	
 	@Test
-	void getGetByUserWithArgStatusOk() throws Exception {
-		String token = jwtService.generateToken(userAuthMati);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUser")
-				.header("authorization", "Bearer "+token)
-				.param("page", "1")
-				.param("pageSize", "2")
-				.param("sortField", "createdAt")
-				.param("sortDir", "asc"))
+	void getSearchByUserWithParamsOk() throws Exception {
+		String token = jwtService.generateToken(userAuthMati); //this user has publicated images
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages")
+				.header("Authorization", "Bearer " + token)
+				.param("sortField", "userOwner_username")
+				.param("sortDir", "desc"))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.list",hasSize(1)));
+				.andExpect(jsonPath("$.list", hasSize(1)))
+				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("userOwner_username")))  
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("desc")));  
 	}
-	
 	@Test
-	void getGetByUserWithArgSortFieldAndSortDirNoExistBadRequest() throws Exception {
-		String token = jwtService.generateToken(userAuthMati);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUser")
-				.header("authorization", "Bearer "+token)
-				.param("page", "1")
-				.param("pageSize", "2")
-				.param("sortField", "created") //this field no exist
-				.param("sortDir", "ascssss")) //this not exist
-				.andExpect(status().isBadRequest())
-				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.sortField",is(messUtils.getMessage("vali.wrong-field-name"))))
-				.andExpect(jsonPath("$.sortDir",is(messUtils.getMessage("vali.string-no-valid"))));
-	}
-	
-	@Test
-	void getGetByUserWithoutArgStatusNoContent() throws Exception {
-		String token = jwtService.generateToken(userAuthRoci);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUser")
-				.header("authorization", "Bearer "+token))
+	void getSearchByUserWithoutParamsNoContent() throws Exception {
+		String token = jwtService.generateToken(userAuthRoci); //this user hasn't publicated images
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages")
+				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("Info-header",messUtils.getMessage("mess.not-publi-image")));
+				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.not-publi-image")));
 	}
 	
-	@Test
-	void getGetByVisibleUserhArgSortFieldAndSortDirNoExistStatusBadRequest() throws Exception {
-		String token = jwtService.generateToken(userAuthMati);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisibleUser")
-				.header("authorization", "Bearer "+token)
-				.param("page", "1")
-				.param("pageSize", "2")
-				.param("sortField", "created") //this field no exist
-				.param("sortDir", "ascssss")) //this not exist
-				.andExpect(status().isBadRequest())
-				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.sortField",is(messUtils.getMessage("vali.wrong-field-name"))))
-				.andExpect(jsonPath("$.sortDir",is(messUtils.getMessage("vali.string-no-valid"))));
-	}
 	
 	@Test
-	void getGetByVisibleUserStatusIsOk() throws Exception {
-		String token = jwtService.generateToken(userAuthMati);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisibleUser")
-				.header("authorization", "Bearer "+token)
-				.param("page", "1")
-				.param("pageSize", "2")
-				.param("sortField", "createdAt") 
-				.param("sortDir", "asc"))
+	void getGetAllByOwnerVisibleWithoutParamsOk() throws Exception {
+		String token = jwtService.generateToken(userAuthMati); //this user is public and has publicated images
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisiblesOwners")
+				.header("Authorization", "Bearer " + token))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.list", hasSize(1)));
+				.andExpect(jsonPath("$.list", hasSize(1)))
+				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("pubImaId")))  //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("asc")));   //default value if the user don't pass any param
+	}
+	@Test
+	void getGetAllByOwnerVisibleWithParamsOk() throws Exception {
+		String token = jwtService.generateToken(userAuthMati); //this user is public and has publicated images
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisiblesOwners")
+				.header("Authorization", "Bearer " + token)
+				.param("sortField", "userOwner_username")
+				.param("sortDir", "desc"))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.list", hasSize(1)))
+				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("userOwner_username")))  
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("desc"))); 
+	}
+	@Test
+	void getGetAllByOwnerVisibleWithoutParamsNoContent() throws Exception {
+		publicatedImagesDao.deleteById(1L); //we delete the only publicated image belong to the only visible/public user
+		String token = jwtService.generateToken(userAuthRoci); //this user hasn't publicated images
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisiblesOwners")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.not-publi-image")));
 	}
 	
+	
+	
 	@Test
-	void getGetByVisibleUserStatusIsNoContent() throws Exception {
-		publicatedImagesDao.deleteById(1L); //I delete the only publicated image in the db
-		String token = jwtService.generateToken(userAuthMati);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisibleUser")
-				.header("authorization", "Bearer "+token)
-				.param("page", "1")
-				.param("pageSize", "2")
-				.param("sortField", "createdAt") 
-				.param("sortDir", "asc"))
+	void getAllByOwnerIdFollowStatusNotAskedNoContent() throws Exception {
+		String token = jwtService.generateToken(userAuthMati); 
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",2) //the sqlAddUser2 id
+				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("Info-header",messUtils.getMessage("mess.not-publi-image")));
+				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.followStatus-not-asked")));
+	}
+	@Test
+	void getAllByOwnerIdUserNotVisibleFollowStatusInProcessNoContent() throws Exception {
+		userAuthMati.setVisible(false);
+		userDao.save(userAuthMati); //now the user is private/no visible
+		String token = jwtService.generateToken(userAuthRoci); 
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.followStatus-in-process")));
+	}
+	@Test
+	void getAllByOwnerIdNotVisibleFollowStatusRejectedNoContent() throws Exception {
+		userAuthMati.setVisible(false);
+		userDao.save(userAuthMati);
+		followerDao.save(Follower.builder().followerId(1L).userFollower(userAuthRoci)
+				.userFollowed(userAuthMati).followStatus(FollowStatus.REJECTED).build());  // we edit this record : sqlAddFollower
+		String token = jwtService.generateToken(userAuthRoci);  
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.followStatus-rejected")));
+	}
+	@Test
+	void getAllByOwnerIdNotVisibleFollowStatusAcceptedNoContent() throws Exception {
+		userAuthMati.setVisible(false);
+		userDao.save(userAuthMati);
+		followerDao.save(Follower.builder().followerId(1L).userFollower(userAuthRoci)
+				.userFollowed(userAuthMati).followStatus(FollowStatus.ACCEPTED).build());  // we edit this record : sqlAddFollower
+		publicatedImagesDao.deleteById(1L); //it delete the only sqlAddUser1's publicatedImage 
+		String token = jwtService.generateToken(userAuthRoci);  
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
+				.header("Authorization", "Bearer " + token))
+		        .andExpect(status().isNoContent())
+		        .andExpect(header().string("moreInfo", messUtils.getMessage("mess.not-publi-image")));
+	}
+	@Test
+	void getAllByOwnerIdFollowStatusAcceptedOk() throws Exception {
+		userAuthMati.setVisible(false);
+		userDao.save(userAuthMati);
+		followerDao.save(Follower.builder().followerId(1L).userFollower(userAuthRoci)
+				.userFollowed(userAuthMati).followStatus(FollowStatus.ACCEPTED).build());  // we edit this record : sqlAddFollower
+		String token = jwtService.generateToken(userAuthRoci);  
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
+				.header("Authorization", "Bearer " + token))
+		        .andExpect(content().contentType(APPLICATION_JSON_UTF8))
+		        .andExpect(status().isOk())
+		        .andExpect(jsonPath("$.list", hasSize(1)))
+		        .andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
+		        .andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
+		        .andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
+		        .andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
+		        .andExpect(jsonPath("$.pageInfoDto.sortField", is("pubImaId")))  //default value if the user don't pass any param
+		        .andExpect(jsonPath("$.pageInfoDto.sortDir", is("asc")));   //default value if the user don't pass any param
 	}
 	
 	@AfterEach
@@ -270,7 +339,7 @@ class PublicatedImageCTest {
 		jdbc.execute(sqlRefIntegrityFalse);
 		jdbc.execute(sqlTruncateUsers);
 		jdbc.execute(sqlTruncatePublicatedImages);
+		jdbc.execute(sqlTruncateFollowers);
 		jdbc.execute(sqlRefIntegrityTrue);
 	}
-	
 }

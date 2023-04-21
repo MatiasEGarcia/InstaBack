@@ -18,4 +18,6 @@ public interface FollowerService {
 	Follower findById(Long id);
 	
 	void deleteById(Long id);
+	
+	FollowStatus getFollowStatusByFollowedId(Long followedId);
 }

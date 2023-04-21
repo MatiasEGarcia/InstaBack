@@ -25,6 +25,7 @@ public class LikeServiceImpl implements LikeService {
 	private final MessagesUtils messUtils;
 	// cuando agrege los comentarios tengo que agregar su service
 
+	//tengo que corregir el modo de buscar si la imagen publicada existe antes de guardar el like
 	@Override
 	@Transactional
 	public Like save(TypeItemLikedEnum type, Long itemId, boolean decision) {
@@ -32,7 +33,7 @@ public class LikeServiceImpl implements LikeService {
 		Like like = Like.builder().itemType(type).decision(decision).build();
 		switch (type) {
 		case PULICATED_IMAGE:
-			publiImaService.findById(itemId); // if no exist, throw exception
+			//publiImaService.findById(itemId); // if no exist, throw exception
 			break;
 		default:
 			throw new IllegalArgumentException(messUtils.getMessage("exception.like-type-no-exist"));

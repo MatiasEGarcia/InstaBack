@@ -1,18 +1,11 @@
 package com.instaJava.instaJava.dao;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import com.instaJava.instaJava.entity.PublicatedImage;
-import com.instaJava.instaJava.entity.User;
 
-public interface PublicatedImagesDao extends JpaRepository<PublicatedImage, Long> {
+public interface PublicatedImagesDao extends JpaRepository<PublicatedImage, Long> , JpaSpecificationExecutor<PublicatedImage>{
 	
-	@Query(value="SELECT p FROM PublicatedImage p WHERE p.userOwner = ?1")
-	Page<PublicatedImage> findPublicatedImagesByOwner(User user, Pageable pag);
-	
-	@Query(value="Select p FROM PublicatedImage p WHERE p.userOwner IN (Select u FROM User u WHERE u.visible = true)")
-	Page<PublicatedImage> findPublicatedImagesByOwnerVisibleTrue(Pageable pag);
+
 }
