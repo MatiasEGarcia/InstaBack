@@ -118,7 +118,7 @@ public class FollowerServiceImpl implements FollowerService{
 		ReqSearch followedSearchEqual;
 		ReqSearch followerSearchEqual;
 		userFollowed = userService.getById(id);
-		if(userFollowed.isEmpty()) throw new UsernameNotFoundException(null);
+		if(userFollowed.isEmpty()) throw new IllegalArgumentException();
 		if(userFollowed.get().isVisible()) return FollowStatus.ACCEPTED; // if the user is public/visible, then we return accepted
 		userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		followedSearchEqual = ReqSearch.builder().column("userId").value(id.toString())
