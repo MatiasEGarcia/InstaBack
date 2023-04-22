@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -387,7 +388,7 @@ class UserCTest {
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.sortField", is("userId"))) //default value if the user don't pass any param
-				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("asc"))); //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString()))); //default value if the user don't pass any param
 		//we only save 1 user with that username, we save in dbbSetUp method
 	}
 	@Test
@@ -399,7 +400,7 @@ class UserCTest {
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/oneCondition")
 				.header("Authorization", "Bearer " + token)
 				.param("sortField", "username")
-				.param("sortDir", "desc")
+				.param("sortDir", Direction.DESC.toString())
 				.content(objectMapper.writeValueAsString(reqSearch))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
@@ -410,7 +411,7 @@ class UserCTest {
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.sortField", is("username")))
-				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("desc")));
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.DESC.toString())));
 		//we only save 1 user with that username, we save in dbbSetUp method
 	}
 	@Test
@@ -422,7 +423,7 @@ class UserCTest {
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/oneCondition")
 				.header("Authorization", "Bearer " + token)
 				.param("sortField", "username")
-				.param("sortDir", "desc")
+				.param("sortDir", Direction.DESC.toString())
 				.content(objectMapper.writeValueAsString(reqSearch))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isNoContent())
@@ -463,7 +464,7 @@ class UserCTest {
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.sortField", is("userId"))) //default value if the user don't pass any param
-				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("asc"))); //default value if the user don't pass any param;
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString()))); //default value if the user don't pass any param;
 		//this user data we save it as sqlAddUser1 in dbSetUp method
 	}
 	@Test
@@ -476,7 +477,7 @@ class UserCTest {
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users/searchAll/manyConditions")
 				.header("Authorization", "Bearer " + token)
 				.param("sortField", "username")
-				.param("sortDir", "desc")
+				.param("sortDir", Direction.DESC.toString())
 				.content(objectMapper.writeValueAsString(reqSearchList))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
@@ -487,7 +488,7 @@ class UserCTest {
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.sortField", is("username")))
-				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("desc")));
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.DESC.toString())));
 		//this user data we save it as sqlAddUser1 in dbSetUp method
 	}
 	@Test

@@ -35,7 +35,6 @@ import com.instaJava.instaJava.service.InvTokenService;
 import com.instaJava.instaJava.service.UserService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
-import com.instaJava.instaJava.validator.IsEnum;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -125,7 +124,7 @@ public class UserC {
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "userId") String sortField,
-			@RequestParam(name = "sortDir", defaultValue = "asc") @IsEnum(enumSource = Direction.class) String sortDir) {
+			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
 		Page<User> pageUsers = userService.getManyUsersOneCondition(pageInfoDto, reqSearch);
@@ -141,7 +140,7 @@ public class UserC {
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "userId") String sortField,
-			@RequestParam(name = "sortDir", defaultValue = "asc") @IsEnum(enumSource = Direction.class) String sortDir) {
+			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
 		Page<User> pageUsers = userService.getManyUsersManyConditions(pageInfoDto, reqSearchList);

@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
@@ -337,7 +338,7 @@ class UserServiceImplTest {
 		PageInfoDto pageInfoDto = PageInfoDto.builder()
 				.pageNo(0)
 				.pageSize(10)
-				.sortDir("asc")
+				.sortDir(Direction.ASC)
 				.build();
 		assertThrows(IllegalArgumentException.class , () -> userService.getManyUsersOneCondition(pageInfoDto, new ReqSearch()));
 	}
@@ -347,7 +348,7 @@ class UserServiceImplTest {
 		PageInfoDto pageInfoDto = PageInfoDto.builder()
 				.pageNo(0)
 				.pageSize(10)
-				.sortDir("asc")
+				.sortDir(Direction.ASC)
 				.sortField("username")
 				.build();
 		ReqSearch reqSearch = ReqSearch.builder().build();
@@ -384,7 +385,7 @@ class UserServiceImplTest {
 		PageInfoDto pageInfoDto = PageInfoDto.builder()
 				.pageNo(0)
 				.pageSize(10)
-				.sortDir("asc")
+				.sortDir(Direction.ASC)
 				.build();
 		assertThrows(IllegalArgumentException.class , () -> userService.getManyUsersManyConditions(pageInfoDto, new ReqSearchList()));
 	}
@@ -394,7 +395,7 @@ class UserServiceImplTest {
 		PageInfoDto pageInfoDto = PageInfoDto.builder()
 				.pageNo(0)
 				.pageSize(10)
-				.sortDir("asc")
+				.sortDir(Direction.ASC)
 				.sortField("username")
 				.build();
 		ReqSearch reqSearch = ReqSearch.builder().build();

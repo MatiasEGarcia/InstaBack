@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import com.instaJava.instaJava.dto.response.ResMessage;
@@ -102,5 +103,10 @@ public class ExceptionHandlerController {
 		return ResponseEntity.badRequest().body(ResMessage.builder().message(e.getMessage()).build());
 	}
 
-	
+	//this exception occurs when the client send an type value that cannot be converted to the correct type value
+	@ExceptionHandler(value = {MethodArgumentTypeMismatchException.class})
+	public ResponseEntity<RespValidError> hanlderMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e){
+		return ResponseEntity.badRequest().body(RespValidError.builder()
+				.field(e.getName()).errorMessage(messUtils.getMessage("exception.type-incorrect")).build());
+	}
 }

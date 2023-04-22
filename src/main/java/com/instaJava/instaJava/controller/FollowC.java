@@ -25,7 +25,6 @@ import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.mapper.FollowMapper;
 import com.instaJava.instaJava.service.FollowService;
 import com.instaJava.instaJava.util.MessagesUtils;
-import com.instaJava.instaJava.validator.IsEnum;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +53,7 @@ public class FollowC {
 			@RequestParam(name ="page", defaultValue = "1") String pageNo,
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue="followId") String sortField,
-			@RequestParam(name = "sortDir" , defaultValue = "asc")@IsEnum(enumSource = Direction.class) String sortDir){
+			@RequestParam(name = "sortDir" , defaultValue = "ASC")Direction sortDir){
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
 		HttpHeaders headers;

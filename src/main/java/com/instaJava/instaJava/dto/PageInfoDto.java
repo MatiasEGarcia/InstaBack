@@ -2,6 +2,8 @@ package com.instaJava.instaJava.dto;
 
 import java.io.Serializable;
 
+import org.springframework.data.domain.Sort.Direction;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +27,6 @@ public class PageInfoDto implements Serializable {
 	
 	private String sortField;
 	
-	private String sortDir;
+	private Direction sortDir;
 }
 

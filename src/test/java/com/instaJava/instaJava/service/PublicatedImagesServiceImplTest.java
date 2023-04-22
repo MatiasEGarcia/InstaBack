@@ -24,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -177,12 +178,12 @@ class PublicatedImagesServiceImplTest {
 	}
 	@Test
 	void getAllByUserPageInfoDtoSortFieldNullThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir("randomSortDir").build();
+		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir(Direction.ASC).build();
 		assertThrows(IllegalArgumentException.class,() -> publicatedImagesService.getAllByUser(pageInfoDto));
 	}
 	@Test
 	void getAllByUserReturnNotNull() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir("asc")
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir(Direction.ASC)
 				.sortField("pubImaId").build();
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -209,12 +210,12 @@ class PublicatedImagesServiceImplTest {
 	}
 	@Test
 	void getAllByOwnersVisiblesPageInfoDtoSortFieldNullThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir("randomSortDir").build();
+		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir(Direction.ASC).build();
 		assertThrows(IllegalArgumentException.class,() -> publicatedImagesService.getAllByOwnersVisibles(pageInfoDto));
 	}
 	@Test
 	void getAllByOwnersVisiblesReturnNotNull() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir("asc")
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir(Direction.ASC)
 				.sortField("pubImaId").build();
 		//spec for example only, does not match reqSearch
 		Specification<PublicatedImage> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("random"), "someRandom");
@@ -232,7 +233,7 @@ class PublicatedImagesServiceImplTest {
 	}
 	@Test
 	void getAllByOwnerIdOwnerIdNullThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir("asc")
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir(Direction.ASC)
 				.sortField("pubImaId").build();
 		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getAllByOwnerId(pageInfoDto,null));
 	}
@@ -243,12 +244,12 @@ class PublicatedImagesServiceImplTest {
 	}
 	@Test
 	void getAllByOwnerIdPageInfoDtoSortFieldNullThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir("randomSortDir").build();
+		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir(Direction.ASC).build();
 		assertThrows(IllegalArgumentException.class,() -> publicatedImagesService.getAllByOwnerId(pageInfoDto,user.getUserId()));
 	}
 	@Test
 	void getAllByOwnerIdReturnNotNull() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir("asc")
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir(Direction.ASC)
 				.sortField("pubImaId").build();
 		//spec for example only, does not match reqSearch
 		Specification<PublicatedImage> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("random"), "someRandom");

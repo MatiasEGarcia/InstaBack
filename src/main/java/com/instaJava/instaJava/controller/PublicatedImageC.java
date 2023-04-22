@@ -26,7 +26,6 @@ import com.instaJava.instaJava.service.FollowService;
 import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
-import com.instaJava.instaJava.validator.IsEnum;
 
 import lombok.RequiredArgsConstructor;
 
@@ -63,7 +62,7 @@ public class PublicatedImageC {
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "pubImaId") String sortField,
-			@RequestParam(name = "sortDir", defaultValue = "asc") @IsEnum(enumSource = Direction.class) String sortDir) {
+			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
 		Page<PublicatedImage> pagePubliImages = publicatedImageService.getAllByUser(pageInfoDto);
@@ -84,7 +83,7 @@ public class PublicatedImageC {
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "pubImaId") String sortField,
-			@RequestParam(name = "sortDir", defaultValue = "asc") @IsEnum(enumSource = Direction.class) String sortDir) {
+			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
 		Page<PublicatedImage> pagePubliImages = publicatedImageService.getAllByOwnersVisibles(pageInfoDto);
@@ -109,7 +108,7 @@ public class PublicatedImageC {
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "pubImaId") String sortField,
-			@RequestParam(name = "sortDir", defaultValue = "asc") @IsEnum(enumSource = Direction.class) String sortDir) {
+			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		FollowStatus followStatus = followService.getFollowStatusByFollowedId(ownerId);
 		switch (followStatus) {
 		case NOT_ASKED:

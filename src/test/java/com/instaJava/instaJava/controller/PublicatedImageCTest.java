@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -198,7 +199,7 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.sortField", is("pubImaId")))  //default value if the user don't pass any param
-				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("asc")));   //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));   //default value if the user don't pass any param
 	}
 	@Test
 	void getSearchByUserWithParamsOk() throws Exception {
@@ -206,7 +207,7 @@ class PublicatedImageCTest {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages")
 				.header("Authorization", "Bearer " + token)
 				.param("sortField", "userOwner_username")
-				.param("sortDir", "desc"))
+				.param("sortDir", Direction.DESC.toString()))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.list", hasSize(1)))
@@ -215,7 +216,7 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.sortField", is("userOwner_username")))  
-				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("desc")));  
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.DESC.toString())));  
 	}
 	@Test
 	void getSearchByUserWithoutParamsNoContent() throws Exception {
@@ -240,7 +241,7 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.sortField", is("pubImaId")))  //default value if the user don't pass any param
-				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("asc")));   //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));   //default value if the user don't pass any param
 	}
 	@Test
 	void getGetAllByOwnerVisibleWithParamsOk() throws Exception {
@@ -248,7 +249,7 @@ class PublicatedImageCTest {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisiblesOwners")
 				.header("Authorization", "Bearer " + token)
 				.param("sortField", "userOwner_username")
-				.param("sortDir", "desc"))
+				.param("sortDir", Direction.DESC.toString()))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.list", hasSize(1)))
@@ -257,7 +258,7 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.sortField", is("userOwner_username")))  
-				.andExpect(jsonPath("$.pageInfoDto.sortDir", is("desc"))); 
+				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.DESC.toString()))); 
 	}
 	@Test
 	void getGetAllByOwnerVisibleWithoutParamsNoContent() throws Exception {
@@ -331,7 +332,7 @@ class PublicatedImageCTest {
 		        .andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 		        .andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
 		        .andExpect(jsonPath("$.pageInfoDto.sortField", is("pubImaId")))  //default value if the user don't pass any param
-		        .andExpect(jsonPath("$.pageInfoDto.sortDir", is("asc")));   //default value if the user don't pass any param
+		        .andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));   //default value if the user don't pass any param
 	}
 	
 	@AfterEach

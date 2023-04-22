@@ -117,7 +117,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 
 	
 	private Pageable getPageable(PageInfoDto pageInfoDto) {
-		Sort sort = pageInfoDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name())
+		Sort sort = pageInfoDto.getSortDir().equals(Sort.Direction.ASC)
 				? Sort.by(pageInfoDto.getSortField()).ascending()
 				: Sort.by(pageInfoDto.getSortField()).descending();
 		// first page for the most people is 1 , but for us is 0
