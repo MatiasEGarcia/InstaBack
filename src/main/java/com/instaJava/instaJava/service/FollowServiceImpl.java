@@ -38,7 +38,7 @@ public class FollowServiceImpl implements FollowService{
 	@Transactional
 	public Follow save(Long FollowedId) {
 		if(FollowedId == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		}
 		Follow follower = Follow.builder().build();
 		Optional<User> optUserFollowed = userService.getById(FollowedId);
@@ -73,7 +73,7 @@ public class FollowServiceImpl implements FollowService{
 	@Override
 	@Transactional
 	public Follow updateFollowStatusById(Long id, FollowStatus newStatus){
-		if(newStatus == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		if(newStatus == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		User userFollowed;
 		Follow follower = findById(id);
 		userFollowed = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -132,7 +132,7 @@ public class FollowServiceImpl implements FollowService{
 	@Override
 	@Transactional(readOnly = true)
 	public Long countFollowedByUserId(Long id) {
-		if(id == null)  throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		if(id == null)  throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		ReqSearch searchFollowByFollowerIdEqual = ReqSearch.builder().column("userId").value(id.toString()).dateValue(false)
 				.joinTable("follower").operation(OperationEnum.EQUAL).build();
 		return followDao.count(specService.getSpecification(searchFollowByFollowerIdEqual));
@@ -144,7 +144,7 @@ public class FollowServiceImpl implements FollowService{
 	@Override
 	@Transactional(readOnly = true)
 	public Long countFollowerByUserId(Long id) {
-		if(id == null)  throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		if(id == null)  throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		ReqSearch searchFollowByFollowerIdEqual = ReqSearch.builder().column("userId").value(id.toString()).dateValue(false)
 				.joinTable("followed").operation(OperationEnum.EQUAL).build();
 		return followDao.count(specService.getSpecification(searchFollowByFollowerIdEqual));

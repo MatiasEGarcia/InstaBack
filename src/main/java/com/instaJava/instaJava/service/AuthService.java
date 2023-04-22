@@ -38,8 +38,8 @@ public class AuthService {
  	
 	@Transactional
 	public ResAuthToken register(ReqUserRegistration reqUserRegistration) {
-		if(reqUserRegistration == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
-		if(userService.existsByUsername(reqUserRegistration.getUsername())) throw new AlreadyExistsException(messUtils.getMessage("exepcion.username-already-exists"));
+		if(reqUserRegistration == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		if(userService.existsByUsername(reqUserRegistration.getUsername())) throw new AlreadyExistsException(messUtils.getMessage("excepcion.username-already-exists"));
 		User user = User.builder()
 				.username(reqUserRegistration.getUsername())
 				.password(passwordEncoder.encode(reqUserRegistration.getPassword()))
@@ -53,9 +53,9 @@ public class AuthService {
 
 	@Transactional(readOnly = true)
 	public ResAuthToken authenticate(ReqLogin reqLogin) {
-		if(reqLogin == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		if(reqLogin == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		Optional<User> user = userService.getByUsername(reqLogin.getUsername());
-		if(user.isEmpty()) throw new UsernameNotFoundException(messUtils.getMessage("exepcion.username-not-found"));
+		if(user.isEmpty()) throw new UsernameNotFoundException(messUtils.getMessage("excepcion.username-not-found"));
 		authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(
 						reqLogin.getUsername(), 
@@ -68,7 +68,7 @@ public class AuthService {
 
 	@Transactional(readOnly = true)
 	public ResAuthToken refreshToken(ReqRefreshToken reqRefreshToken) {
-		if(reqRefreshToken == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		if(reqRefreshToken == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		UserDetails userDetails = userDetailsService.loadUserByUsername(jwtService.extractUsername(reqRefreshToken.getRefreshToken()));
 		if(jwtService.isTokenValid(reqRefreshToken.getRefreshToken(), userDetails)
 				&& !invTokenService.existByToken(reqRefreshToken.getRefreshToken())) {
@@ -77,7 +77,7 @@ public class AuthService {
 					.refreshToken(reqRefreshToken.getRefreshToken()) //we return the same refreshToken
 					.build();
 		}else {
-			throw new InvalidException(messUtils.getMessage("exepcion.refreshToken-invalid"));
+			throw new InvalidException(messUtils.getMessage("exception.refreshToken-invalid"));
 		}
 	}
 	

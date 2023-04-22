@@ -154,7 +154,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 	@Override
 	public Specification<T> getSpecification(List<ReqSearch> reqSearchList,
 			GlobalOperationEnum globalOperator) {
-		if(reqSearchList == null || reqSearchList.isEmpty() || globalOperator == null ) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
+		if(reqSearchList == null || reqSearchList.isEmpty() || globalOperator == null ) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
 		return (root, query, criteriaBuilder) -> {
 			List<Predicate> allPredicates = new ArrayList<>();
 			List<Predicate> predicates;
@@ -176,7 +176,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 
 	@Override
 	public Specification<T> getSpecification(ReqSearch reqSearch) {
-		if(reqSearch == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		if(reqSearch == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		return (root ,query , criteriaBuilder) -> {
 			//the two methods with I get predicates recibe a list and return a list, I can create them for 1 object but is not necessary  
 			List<Predicate> predicates;

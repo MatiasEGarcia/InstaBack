@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	@Override
 	@Transactional
 	public User save(User user) {
-		if(user == null) throw new IllegalArgumentException("exepcion.argument-not-null");
+		if(user == null) throw new IllegalArgumentException("exception.argument-not-null");
 		return userDao.save(user);
 	}
 	
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		User user = userDao.findByUsername(username);
 		if(user == null) {
-			throw new UsernameNotFoundException(messUtils.getMessage("exepcion.username-not-found"));
+			throw new UsernameNotFoundException(messUtils.getMessage("excepcion.username-not-found"));
 		}
 		return user;
 	}
@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	@Override
 	@Transactional
 	public PersonalDetails savePersonalDetails(PersonalDetailsDto personalDetailsDto) {
-		if(personalDetailsDto == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		if(personalDetailsDto == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		PersonalDetails perDet = personalDetailsDao.save(
 				personalDetailsMapper
@@ -112,14 +112,14 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	@Override
 	@Transactional(readOnly= true)
 	public Optional<User> getById(Long id) {
-		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		return userDao.findById(id);
 	}
 	
 	@Override
 	@Transactional(readOnly= true)
 	public Optional<User> getByUsername(String username) {
-		if(username == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+		if(username == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		User user = userDao.findByUsername(username);
 		if(user == null) return Optional.empty();
 		return Optional.of(user);
@@ -128,7 +128,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	@Override
 	@Transactional(readOnly= true)
 	public Optional<User> getOneUserOneCondition(ReqSearch reqSearch) {
-		if(reqSearch == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+		if(reqSearch == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		this.passNotAvailableForSearch(reqSearch);
 		return userDao.findOne(specService.getSpecification(reqSearch));
 	}
@@ -136,7 +136,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	@Override
 	@Transactional(readOnly= true)
 	public Optional<User> getOneUserManyConditions(ReqSearchList reqSearchList) {
-		if(reqSearchList == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+		if(reqSearchList == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		this.passNotAvailableForSearch(reqSearchList.getReqSearchs());
 		return userDao.findOne(specService.getSpecification(reqSearchList.getReqSearchs(),
 				reqSearchList.getGlobalOperator()));
@@ -147,7 +147,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	public Page<User> getManyUsersOneCondition(PageInfoDto pageInfoDto,
 			ReqSearch reqSearch) {
 		if(reqSearch == null || pageInfoDto == null ||
-				pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null )throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
+				pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null )throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
 		this.passNotAvailableForSearch(reqSearch);
 		Sort sort = pageInfoDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? 
 				Sort.by(pageInfoDto.getSortField()).ascending() : Sort.by(pageInfoDto.getSortField()).descending(); 
@@ -161,7 +161,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	public Page<User> getManyUsersManyConditions(PageInfoDto pageInfoDto,
 			ReqSearchList reqSearchList) {
 		if(reqSearchList == null || pageInfoDto == null ||
-				pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null )throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
+				pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null )throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
 		this.passNotAvailableForSearch(reqSearchList.getReqSearchs());
 		Sort sort = pageInfoDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ?
 				Sort.by(pageInfoDto.getSortField()).ascending() : Sort.by(pageInfoDto.getSortField()).descending();
@@ -173,14 +173,14 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	@Override
 	@Transactional(readOnly = true)
 	public boolean existsByUsername(String username) {
-		if(username == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+		if(username == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		return userDao.existsByUsername(username);
 	}
 	
 	@Override
 	@Transactional(readOnly = true)
 	public boolean existsOneCondition(ReqSearch reqSearch) {
-		if(reqSearch == null) throw new IllegalArgumentException();
+		if(reqSearch == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		this.passNotAvailableForSearch(reqSearch);
 		return userDao.exists(specService.getSpecification(reqSearch));
 	}
@@ -188,7 +188,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	@Override
 	@Transactional(readOnly = true)
 	public boolean existsManyConditions(ReqSearchList reqSearchList) {
-		if(reqSearchList == null) throw new IllegalArgumentException();
+		if(reqSearchList == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		this.passNotAvailableForSearch(reqSearchList.getReqSearchs());
 		return userDao.exists(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()));
 	}

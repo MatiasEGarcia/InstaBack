@@ -39,7 +39,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional
 	public PublicatedImage save(String description, MultipartFile file) {
 		if (file == null || file.isEmpty())
-			throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
 		PublicatedImage publicatedImage;
 		try {
 			publicatedImage = PublicatedImage.builder().description(description)
@@ -58,7 +58,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional
 	public void deleteById(Long id) {
 		if (id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		User authUser;
 		Optional<PublicatedImage> optPublImage = publicatedImagesDao.findById(id);
 		if (optPublImage.isEmpty())
@@ -73,7 +73,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional(readOnly = true)
 	public Optional<PublicatedImage> getById(Long id) {
 		if (id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		return publicatedImagesDao.findById(id);
 	}
 	
@@ -84,7 +84,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional(readOnly = true)
 	public Page<PublicatedImage> getAllByUser(PageInfoDto pageInfoDto){
 		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		}
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		ReqSearch reqSearchPubliImaByOwnerEqual = ReqSearch.builder().column("userId")
@@ -97,7 +97,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional(readOnly = true)
 	public Page<PublicatedImage> getAllByOwnersVisibles(PageInfoDto pageInfoDto) {
 		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		}
 		ReqSearch reqSearchuserOwnersVisibleTrue = ReqSearch.builder().column("visible")
 				.value("true").joinTable("userOwner").operation(OperationEnum.IS_TRUE).build();
@@ -108,7 +108,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional(readOnly = true)
 	public Page<PublicatedImage> getAllByOwnerId(PageInfoDto pageInfoDto, Long ownerId) {
 		if (pageInfoDto == null || ownerId == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		}
 		ReqSearch reqSearchuserOwnerIdEqual = ReqSearch.builder().column("userId").dateValue(false)
 				.value(ownerId.toString()).joinTable("userOwner").operation(OperationEnum.EQUAL).build();

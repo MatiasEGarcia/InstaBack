@@ -34,7 +34,7 @@ public class LikeServiceImpl implements LikeService {
 	@Override
 	@Transactional
 	public Optional<Like> save(TypeItemLikedEnum type, Long itemId, boolean decision) {
-		if(type == null || itemId == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
+		if(type == null || itemId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		Like like; 
 		switch (type) {
 		case PULICATED_IMAGE:
