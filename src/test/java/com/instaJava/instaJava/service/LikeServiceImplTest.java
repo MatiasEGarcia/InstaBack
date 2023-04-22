@@ -1,7 +1,7 @@
 package com.instaJava.instaJava.service;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,15 +54,14 @@ class LikeServiceImplTest {
 				() -> likeService.save(TypeItemLikedEnum.PULICATED_IMAGE, null, false));
 	}
 	@Test
-	void saveIdPulblicatedImageItemNoExistReturnOptionalEmpty() {
+	void saveIdPulblicatedImageItemNoExistThrow() {
 		when(publiImaService.getById(1L)).thenReturn(Optional.empty());
-		Optional<Like> optL = likeService.save(TypeItemLikedEnum.PULICATED_IMAGE, 1L, true);
-		if(optL.isPresent()) fail("if the publicated image no exist, then should return empty like instead save the like");
+		assertThrows(IllegalArgumentException.class, () -> likeService.save(TypeItemLikedEnum.PULICATED_IMAGE, 1L, true));
 		verify(publiImaService).getById(1L);
 	}
 	
 	@Test
-	void saveReturnOptionalPresent() {
+	void saveReturnNotNull() {
 		Long id = 1L;
 		boolean decision = true;
 		//set clock for test
@@ -85,8 +84,7 @@ class LikeServiceImplTest {
 		
 		when(publiImaService.getById(1L)).thenReturn(Optional.of(PublicatedImage.builder().build()));
 		when(likeDao.save(like)).thenReturn(like);
-		Optional<Like> optL =  likeService.save(TypeItemLikedEnum.PULICATED_IMAGE, id, decision);
-		if(optL.isEmpty()) fail("if the publicated image exist, should return present like");
+		assertNotNull(likeService.save(TypeItemLikedEnum.PULICATED_IMAGE, id, decision));
 		verify(publiImaService).getById(id);
 		verify(likeDao).save(like);
 		

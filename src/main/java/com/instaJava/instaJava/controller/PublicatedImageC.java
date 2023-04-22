@@ -57,8 +57,6 @@ public class PublicatedImageC {
 		return ResponseEntity.ok()
 				.body(ResMessage.builder().message(messUtils.getMessage("mess.publi-image-deleted")).build());
 	}
-
-	//test all below
 	
 	@GetMapping
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> searchByUser(

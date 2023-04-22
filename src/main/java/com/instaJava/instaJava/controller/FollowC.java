@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
-import com.instaJava.instaJava.dto.response.ResFollowStatus;
 import com.instaJava.instaJava.dto.response.ResFollow;
+import com.instaJava.instaJava.dto.response.ResFollowStatus;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Follow;
@@ -39,9 +39,12 @@ public class FollowC {
 	private final FollowMapper follMapper;
 	private final MessagesUtils messUtils;
 
+	/*
+	 * if the resource is saved then return ResFollowStatus with status CREATED
+	 * */
 	@PostMapping
-	public ResponseEntity<ResFollowStatus> save(@RequestParam(name = "followed") String followed){
-		Follow fol = follService.save(Long.parseLong(followed)); 
+	public ResponseEntity<ResFollowStatus> save(@RequestParam(name = "followed") Long followed){
+		Follow fol = follService.save(followed);
 		return ResponseEntity.ok().body(follMapper.followToResFollowStatus(fol));
 	}
 	

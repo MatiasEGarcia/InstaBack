@@ -37,9 +37,7 @@ public class FollowServiceImpl implements FollowService{
 	@Override
 	@Transactional
 	public Follow save(Long FollowedId) {
-		if(FollowedId == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
-		}
+		if(FollowedId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		Follow follower = Follow.builder().build();
 		Optional<User> optUserFollowed = userService.getById(FollowedId);
 		if(optUserFollowed.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.followed-no-exist"));

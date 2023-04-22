@@ -2,7 +2,6 @@ package com.instaJava.instaJava.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -25,7 +24,6 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
 import com.instaJava.instaJava.service.JwtService;
-import com.instaJava.instaJava.util.MessagesUtils;
 
 @TestPropertySource("/application-test.properties")
 @AutoConfigureMockMvc
@@ -38,8 +36,6 @@ class LikeCTest {
 	private MockMvc mockMvc;
 	@Autowired
 	private JwtService jwtService;
-	@Autowired
-	private MessagesUtils messUtils;
 	@Autowired
 	private JdbcTemplate jdbc;
 	
@@ -111,18 +107,6 @@ class LikeCTest {
 				.andExpect(jsonPath("$.itemId", is(1)))
 				.andExpect(jsonPath("$.decision", is(true)))
 				.andExpect(jsonPath("$.ownerLike.username", is("matias")));
-	}
-	@Test
-	void testSaveItemIdNoExistNoContent() throws Exception {
-		jdbc.execute(sqlAddPublicatedImage); //if the record does not exist in the db, the save request will return other status
-		String token = jwtService.generateToken(matiasUserAuth);
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/like")
-				.header("Authorization", "Bearer "+ token)
-				.param("type", TypeItemLikedEnum.PULICATED_IMAGE.toString())
-				.param("itemId", "100") //publicated image with this id no exist
-				.param("decision", "true"))
-				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.like-didnt-saved")));
 	}
 	
 	

@@ -2,7 +2,6 @@ package com.instaJava.instaJava.service;
 
 import java.time.Clock;
 import java.time.ZonedDateTime;
-import java.util.Optional;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -27,18 +26,18 @@ public class LikeServiceImpl implements LikeService {
 	// cuando agrege los comentarios tengo que agregar su service
 
 	/*
-	 * if the item liked no exist, return Optional.Empty()
+	 * if the item liked no exist, throw Exc
 	 * If the item liked has a type that no exist throw Exc
-	 * if the like is saved return the record saved as optional
+	 * if the like is saved return the record saved
 	 * */
 	@Override
 	@Transactional
-	public Optional<Like> save(TypeItemLikedEnum type, Long itemId, boolean decision) {
+	public Like save(TypeItemLikedEnum type, Long itemId, boolean decision) {
 		if(type == null || itemId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		Like like; 
 		switch (type) {
 		case PULICATED_IMAGE:
-			if(publiImaService.getById(itemId).isEmpty()) return Optional.empty();
+			if(publiImaService.getById(itemId).isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 			break;
 		default:
 			throw new IllegalArgumentException(messUtils.getMessage("exception.like-type-no-exist"));
@@ -47,7 +46,7 @@ public class LikeServiceImpl implements LikeService {
 		like.setItemId(itemId);
 		like.setLikedAt(ZonedDateTime.now(clock));
 		like.setOwnerLike((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-		return Optional.of(likeDao.save(like));
+		return likeDao.save(like);
 	}
 
 }
