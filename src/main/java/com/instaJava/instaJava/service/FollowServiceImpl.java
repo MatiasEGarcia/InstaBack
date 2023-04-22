@@ -9,15 +9,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.instaJava.instaJava.dao.FollowerDao;
+import com.instaJava.instaJava.dao.FollowDao;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
-import com.instaJava.instaJava.entity.Follower;
+import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
@@ -28,37 +27,36 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class FollowerServiceImpl implements FollowerService{
+public class FollowServiceImpl implements FollowService{
 	
 	private final UserService userService;
-	private final FollowerDao followerDao;
+	private final FollowDao followDao;
 	private final MessagesUtils messUtils;
-	private final SpecificationService<Follower> specService;
+	private final SpecificationService<Follow> specService;
 	
-	//retest
 	@Override
 	@Transactional
-	public Follower save(Long FollowedId) {
+	public Follow save(Long FollowedId) {
 		if(FollowedId == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument.not.null"));
 		}
-		Follower follower = Follower.builder().build();
+		Follow follower = Follow.builder().build();
 		Optional<User> optUserFollowed = userService.getById(FollowedId);
 		if(optUserFollowed.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.followed-no-exist"));
 		User userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		follower.setUserFollowed(optUserFollowed.get());
-		follower.setUserFollower((userService.getById(userFollower.getUserId()).get()));//persistence context?If I don't do this user is detached
+		follower.setFollowed(optUserFollowed.get());
+		follower.setFollower((userService.getById(userFollower.getUserId()).get()));//persistence context?If I don't do this user is detached
 		if(optUserFollowed.get().isVisible()) {
 			follower.setFollowStatus(FollowStatus.ACCEPTED);
 		}else {
 			follower.setFollowStatus(FollowStatus.IN_PROCESS);
 		}
-		return followerDao.save(follower);
+		return followDao.save(follower);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public Page<Follower> search(PageInfoDto pageInfoDto, ReqSearchList reqSearchList) {
+	public Page<Follow> search(PageInfoDto pageInfoDto, ReqSearchList reqSearchList) {
 		if(pageInfoDto == null || reqSearchList == null || 
 				pageInfoDto.getSortField() == null || pageInfoDto.getSortDir() == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
 		//as sortfield I can pass attributes from another entity that is related - > user_username
@@ -66,42 +64,40 @@ public class FollowerServiceImpl implements FollowerService{
 				Sort.by(pageInfoDto.getSortField()).ascending() : Sort.by(pageInfoDto.getSortField()).descending();
 		//first page for the most people is 1 , but for us is 0
 		Pageable pag = PageRequest.of(pageInfoDto.getPageNo()-1, pageInfoDto.getPageSize(),sort);
-		Specification<Follower> spec = specService.getSpecification(reqSearchList.getReqSearchs()
+		Specification<Follow> spec = specService.getSpecification(reqSearchList.getReqSearchs()
 				, reqSearchList.getGlobalOperator());
-		return followerDao.findAll(spec, pag);
+		return followDao.findAll(spec, pag);
 	}
 
 	//the only one that can change the follow status is the user followed, 
 	@Override
 	@Transactional
-	public Follower updateFollowStatusById(Long id, FollowStatus newStatus){
+	public Follow updateFollowStatusById(Long id, FollowStatus newStatus){
 		if(newStatus == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
 		User userFollowed;
-		Follower follower = findById(id);
+		Follow follower = findById(id);
 		userFollowed = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if(!follower.getUserFollowed().equals(userFollowed)) throw new IllegalArgumentException(messUtils.getMessage("exception.followed-is-not-same"));
+		if(!follower.getFollowed().equals(userFollowed)) throw new IllegalArgumentException(messUtils.getMessage("exception.followed-is-not-same"));
 		follower.setFollowStatus(newStatus);
-		return followerDao.save(follower);
+		return followDao.save(follower);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public Follower findById(Long id) {
-		Optional<Follower> followerOpt = followerDao.findById(id);
-		if(followerOpt.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.follower-id-not-found"));
+	public Follow findById(Long id) {
+		Optional<Follow> followerOpt = followDao.findById(id);
+		if(followerOpt.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.follow-id-not-found"));
 		return followerOpt.get();
 	}
 
 	@Override
 	@Transactional
 	public void deleteById(Long id) {
-		Follower foll = this.findById(id);
+		Follow foll = this.findById(id);
 		User userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if(!foll.getUserFollower().equals(userFollower)) throw new IllegalArgumentException(messUtils.getMessage("exception.follower-is-not-same"));
-		followerDao.delete(foll);;
+		if(!foll.getFollower().equals(userFollower)) throw new IllegalArgumentException(messUtils.getMessage("exception.follower-is-not-same"));
+		followDao.delete(foll);;
 	}
-
-	//tengo que testear
 	
 	/* if the followed user no exist throw exception
 	 * if the user is visible/public the return FollowStatus.ACCEPTED
@@ -113,7 +109,7 @@ public class FollowerServiceImpl implements FollowerService{
 	public FollowStatus getFollowStatusByFollowedId(Long id) {
 		if(id == null) throw new IllegalArgumentException();
 		Optional<User> userFollowed;
-		Optional<Follower> optFollower;
+		Optional<Follow> optFollow;
 		User userFollower;
 		ReqSearch followedSearchEqual;
 		ReqSearch followerSearchEqual;
@@ -122,12 +118,12 @@ public class FollowerServiceImpl implements FollowerService{
 		if(userFollowed.get().isVisible()) return FollowStatus.ACCEPTED; // if the user is public/visible, then we return accepted
 		userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		followedSearchEqual = ReqSearch.builder().column("userId").value(id.toString())
-				.joinTable("userFollowed").dateValue(false).operation(OperationEnum.EQUAL).build();
+				.joinTable("followed").dateValue(false).operation(OperationEnum.EQUAL).build();
 		followerSearchEqual = ReqSearch.builder().column("userId").value(userFollower.getUserId().toString())
-				.joinTable("userFollower").dateValue(false).operation(OperationEnum.EQUAL).build();
-		optFollower = followerDao.findOne(specService.getSpecification(List.of(followedSearchEqual,followerSearchEqual), GlobalOperationEnum.AND));
-		if(optFollower.isEmpty()) return FollowStatus.NOT_ASKED;
-		return optFollower.get().getFollowStatus();
+				.joinTable("follower").dateValue(false).operation(OperationEnum.EQUAL).build();
+		optFollow = followDao.findOne(specService.getSpecification(List.of(followedSearchEqual,followerSearchEqual), GlobalOperationEnum.AND));
+		if(optFollow.isEmpty()) return FollowStatus.NOT_ASKED;
+		return optFollow.get().getFollowStatus();
 	}
 
 	

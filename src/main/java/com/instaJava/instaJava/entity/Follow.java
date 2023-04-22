@@ -22,21 +22,21 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "followers")
-public class Follower {
+@Table(name = "follow")
+public class Follow {
 
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	@Column(name= "id")
-	private Long followerId;
+	private Long followId;
 	
 	@ManyToOne
 	@JoinColumn(name = "followed")
-	private User userFollowed; 
+	private User followed; 
 	
 	@ManyToOne
 	@JoinColumn(name = "follower")
-	private User userFollower;
+	private User follower;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")

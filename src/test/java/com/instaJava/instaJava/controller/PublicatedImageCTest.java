@@ -31,10 +31,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.instaJava.instaJava.dao.FollowerDao;
+import com.instaJava.instaJava.dao.FollowDao;
 import com.instaJava.instaJava.dao.PublicatedImagesDao;
 import com.instaJava.instaJava.dao.UserDao;
-import com.instaJava.instaJava.entity.Follower;
+import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
@@ -50,7 +50,7 @@ class PublicatedImageCTest {
 
 	@Autowired private MockMvc mockMvc;
 	@Autowired private PublicatedImagesDao publicatedImagesDao;
-	@Autowired private FollowerDao followerDao;
+	@Autowired private FollowDao followDao;
 	@Autowired private UserDao userDao;
 	@Autowired private MessagesUtils messUtils;
 	@Autowired private JdbcTemplate jdbc;
@@ -62,14 +62,14 @@ class PublicatedImageCTest {
 	private String sqlAddUser2;
 	@Value("${sql.script.create.publicatedImage}")
 	private String sqlAddPublicatedImage;
-	@Value("${sql.script.create.follower}")
-	private String sqlAddFollower;
+	@Value("${sql.script.create.follow}")
+	private String sqlAddFollow;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
 	@Value("${sql.script.truncate.publicatedImages}")
 	private String sqlTruncatePublicatedImages;
-	@Value("${sql.script.truncate.followers}")
-	private String sqlTruncateFollowers;
+	@Value("${sql.script.truncate.follow}")
+	private String sqlTruncateFollow;
 	@Value("${sql.script.ref.integrity.false}")
 	private String sqlRefIntegrityFalse;
 	@Value("${sql.script.ref.integrity.true}")
@@ -105,7 +105,7 @@ class PublicatedImageCTest {
 		jdbc.execute(sqlAddUser1); //userAuthMati
 		jdbc.execute(sqlAddUser2); //userAuthRoci
 		jdbc.execute(sqlAddPublicatedImage); //this has as ownerUser -> sqlAddUser1
-		jdbc.execute(sqlAddFollower); //sqlAddUser1 is the follower and sqlAddUser2 is the followed
+		jdbc.execute(sqlAddFollow); //sqlAddUser1 is the follower and sqlAddUser2 is the followed
 		
 	}
 	
@@ -293,8 +293,8 @@ class PublicatedImageCTest {
 	void getAllByOwnerIdNotVisibleFollowStatusRejectedNoContent() throws Exception {
 		userAuthMati.setVisible(false);
 		userDao.save(userAuthMati);
-		followerDao.save(Follower.builder().followerId(1L).userFollower(userAuthRoci)
-				.userFollowed(userAuthMati).followStatus(FollowStatus.REJECTED).build());  // we edit this record : sqlAddFollower
+		followDao.save(Follow.builder().followId(1L).follower(userAuthRoci)
+				.followed(userAuthMati).followStatus(FollowStatus.REJECTED).build());  // we edit this record : sqlAddFollow
 		String token = jwtService.generateToken(userAuthRoci);  
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
 				.header("Authorization", "Bearer " + token))
@@ -305,8 +305,8 @@ class PublicatedImageCTest {
 	void getAllByOwnerIdNotVisibleFollowStatusAcceptedNoContent() throws Exception {
 		userAuthMati.setVisible(false);
 		userDao.save(userAuthMati);
-		followerDao.save(Follower.builder().followerId(1L).userFollower(userAuthRoci)
-				.userFollowed(userAuthMati).followStatus(FollowStatus.ACCEPTED).build());  // we edit this record : sqlAddFollower
+		followDao.save(Follow.builder().followId(1L).follower(userAuthRoci)
+				.followed(userAuthMati).followStatus(FollowStatus.ACCEPTED).build());  // we edit this record : sqlAddFollow
 		publicatedImagesDao.deleteById(1L); //it delete the only sqlAddUser1's publicatedImage 
 		String token = jwtService.generateToken(userAuthRoci);  
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
@@ -318,8 +318,8 @@ class PublicatedImageCTest {
 	void getAllByOwnerIdFollowStatusAcceptedOk() throws Exception {
 		userAuthMati.setVisible(false);
 		userDao.save(userAuthMati);
-		followerDao.save(Follower.builder().followerId(1L).userFollower(userAuthRoci)
-				.userFollowed(userAuthMati).followStatus(FollowStatus.ACCEPTED).build());  // we edit this record : sqlAddFollower
+		followDao.save(Follow.builder().followId(1L).follower(userAuthRoci)
+				.followed(userAuthMati).followStatus(FollowStatus.ACCEPTED).build());  // we edit this record : sqlAddFollow
 		String token = jwtService.generateToken(userAuthRoci);  
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
 				.header("Authorization", "Bearer " + token))
@@ -339,7 +339,7 @@ class PublicatedImageCTest {
 		jdbc.execute(sqlRefIntegrityFalse);
 		jdbc.execute(sqlTruncateUsers);
 		jdbc.execute(sqlTruncatePublicatedImages);
-		jdbc.execute(sqlTruncateFollowers);
+		jdbc.execute(sqlTruncateFollow);
 		jdbc.execute(sqlRefIntegrityTrue);
 	}
 }

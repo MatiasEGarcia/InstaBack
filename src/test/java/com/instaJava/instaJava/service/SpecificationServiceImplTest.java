@@ -13,7 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.instaJava.instaJava.dto.request.ReqSearch;
-import com.instaJava.instaJava.entity.Follower;
+import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.enums.OperationEnum;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -22,7 +22,7 @@ import com.instaJava.instaJava.util.MessagesUtils;
 class SpecificationServiceImplTest {
 
 	@Mock private MessagesUtils messUtils;
-	@InjectMocks private SpecificationServiceImpl<Follower> specificationService;
+	@InjectMocks private SpecificationServiceImpl<Follow> specificationService;
 	
 	@Test
 	void getSpecificationSearchRequestDtoNullThrow() {

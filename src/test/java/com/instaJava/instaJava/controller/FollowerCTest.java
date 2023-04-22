@@ -58,12 +58,12 @@ class FollowerCTest {
 	private String sqlAddUser1;
 	@Value("${sql.script.create.user.2}")
 	private String sqlAddUser2;
-	@Value("${sql.script.create.follower}")
-	private String sqlAddFollower;
+	@Value("${sql.script.create.follow}")
+	private String sqlAddFollow;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
-	@Value("${sql.script.truncate.followers}")
-	private String sqlTruncateFollowers;
+	@Value("${sql.script.truncate.follow}")
+	private String sqlTruncateFollow;
 	@Value("${sql.script.ref.integrity.false}")
 	private String sqlRefIntegrityFalse;
 	@Value("${sql.script.ref.integrity.true}")
@@ -94,43 +94,41 @@ class FollowerCTest {
 	void dbbSetUp() {
 		jdbc.update(sqlAddUser1);
 		jdbc.update(sqlAddUser2);
-		jdbc.update(sqlAddFollower);
+		jdbc.update(sqlAddFollow);
 	}
 	
 	@Test
 	void postSaveStatusBadRequest() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/save")
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow")
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.field", is("followed")));
 		
 	}
-	
 	@Test
 	void postSave() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/save")
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow")
 				.header("Authorization", "Bearer " + token)
 				.param("followed", "2"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.followStatus", is(FollowStatus.ACCEPTED.toString()))); //is accepted because user 2 is visible = true
+				.andExpect(jsonPath("$.followStatus", is(FollowStatus.IN_PROCESS.toString()))); //is accepted because user 2 is visible = false
 	}
 	
 	
 	@Test
-	void postGetFollowersBadRequestReqSearchDidntPassed() throws Exception {
+	void postGetAllFollowByBadRequestReqSearchDidntPassed() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/findAllBy")
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow/findAllBy")
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.message",instanceOf(String.class)));
 	}
-	
 	@Test
-	void postGetFollowersBadRequestReqSearchSearchRequestDtoWithBlankOrNullValues() throws Exception {
+	void postGetAllFollowByBadRequestReqSearchSearchRequestDtoWithBlankOrNullValues() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		ReqSearch reqSearch = ReqSearch.builder()
 				.column("")
@@ -141,7 +139,7 @@ class FollowerCTest {
 				.globalOperator(GlobalOperationEnum.AND)
 				.build();
 		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/findAllBy")
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow/findAllBy")
 				.header("Authorization", "Bearer " + token)
 				.contentType(APPLICATION_JSON_UTF8)
 				.content(objectMapper.writeValueAsString(reqSearchList)))
@@ -151,15 +149,14 @@ class FollowerCTest {
 				.andExpect(jsonPath("$.['reqSearchs[0].dateValue']",is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
 				.andExpect(jsonPath("$.['reqSearchs[0].operation']",is(messUtils.getMessage("vali.ReqSearch.operation-not-null"))));
 	}
-	
 	@Test
-	void postGetFolowersOk() throws Exception {
+	void postGetAllFollowByOk() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		ReqSearch reqSearch = ReqSearch.builder()
 				.column("userId")
 				.value("2")
 				.dateValue(false)
-				.joinTable("userFollower")
+				.joinTable("follower")
 				.operation(OperationEnum.EQUAL)
 				.build();
 		ReqSearchList reqSearchList = ReqSearchList.builder()
@@ -167,22 +164,21 @@ class FollowerCTest {
 				.globalOperator(GlobalOperationEnum.AND)
 				.build();
 		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/findAllBy")
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow/findAllBy")
 				.header("Authorization", "Bearer " + token)
 				.contentType(APPLICATION_JSON_UTF8)
 				.content(objectMapper.writeValueAsString(reqSearchList)))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.list", hasSize(1))); 
 	}
-	
 	@Test
-	void postGetFollowersNoContent() throws Exception {
+	void postGetAllFollowByNoContent() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		ReqSearch reqSearch = ReqSearch.builder()
 				.column("userId")
 				.value("5")
 				.dateValue(false)
-				.joinTable("userFollower")
+				.joinTable("follower")
 				.operation(OperationEnum.EQUAL)
 				.build();
 		ReqSearchList reqSearchList = ReqSearchList.builder()
@@ -190,25 +186,26 @@ class FollowerCTest {
 				.globalOperator(GlobalOperationEnum.AND)
 				.build();
 		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follower/findAllBy")
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow/findAllBy")
 				.header("Authorization", "Bearer " + token)
 				.contentType(APPLICATION_JSON_UTF8)
 				.content(objectMapper.writeValueAsString(reqSearchList)))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("Info-header", messUtils.getMessage("mess.not-followers")));
+				.andExpect(header().string("Info-header", messUtils.getMessage("mess.not-follow")));
 	}
 	
+	
 	@Test
-	void putUpdateFollowStatusOK() throws Exception {
+	void putUpdateFollowStatusOk() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
-		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follower/followStatus")
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/followStatus")
 				.header("Authorization", "Bearer " + token)
 				.param("followStatus", FollowStatus.ACCEPTED.toString())
-				.param("followerId", "1"))
+				.param("followId", "1"))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.followerId", is(1)))
+				.andExpect(jsonPath("$.followId", is(1)))
 				.andExpect(jsonPath("$.followStatus", is(FollowStatus.ACCEPTED.toString())));
 		
 		
@@ -218,37 +215,34 @@ class FollowerCTest {
 	void putUpdateFollowStatusBadRequest() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
-		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follower/followStatus")
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/followStatus")
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.field", is("followStatus")));
 	}
 	
+	
 	@Test
 	void deleteDeleteByIdOk() throws Exception {
 		String token = jwtService.generateToken(rociUserAuth);
-		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follower/{id}",1)
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/{id}",1)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.record-delete"))));
 	}
-	
 	@Test
 	void deleteDeleteByIdNoExistBadRequest() throws Exception {
 		String token = jwtService.generateToken(rociUserAuth);
-		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follower/{id}",2)
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/{id}",2)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("exception.follower-id-not-found"))));
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("exception.follow-id-not-found"))));
 	}
-	
-	
-	
 	@Test
 	void deleteDeleteByIdNotSameFollowerRequest() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
-		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follower/{id}",1)
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/{id}",1)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.message",is(messUtils.getMessage("exception.follower-is-not-same"))));
@@ -258,7 +252,7 @@ class FollowerCTest {
 	void setUpAfterTransaction() {
 		jdbc.execute(sqlRefIntegrityFalse);
 		jdbc.execute(sqlTruncateUsers);
-		jdbc.execute(sqlTruncateFollowers);
+		jdbc.execute(sqlTruncateFollow);
 		jdbc.execute(sqlRefIntegrityTrue);
 	}
 	

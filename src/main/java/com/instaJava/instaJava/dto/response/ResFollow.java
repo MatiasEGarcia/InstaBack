@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class ResFollower implements Serializable{
+public class ResFollow implements Serializable{
 	private static final long serialVersionUID = 1L;
-	private Long followerId;
+	private Long followId;
 	private FollowStatus followStatus;
-	private ResUser userFollowed;
-	private ResUser userFollower;
+	private ResUser followed;
+	private ResUser follower;
 }

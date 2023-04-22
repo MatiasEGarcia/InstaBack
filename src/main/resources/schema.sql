@@ -68,7 +68,7 @@ CREATE TABLE chats_admins(
 	foreign key (chat) references chats(id) on delete cascade
 );
 
-CREATE TABLE followers(
+CREATE TABLE follow(
 	id int not null primary key auto_increment,
     followed int not null,
     follower int not null,

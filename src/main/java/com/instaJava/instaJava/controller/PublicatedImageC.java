@@ -22,7 +22,7 @@ import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.mapper.PublicatedImageMapper;
-import com.instaJava.instaJava.service.FollowerService;
+import com.instaJava.instaJava.service.FollowService;
 import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class PublicatedImageC {
 
-	private final FollowerService followerService;
+	private final FollowService followService;
 	private final PublicatedImageMapper publicImaMapper;
 	private final PublicatedImageService publicatedImageService;
 	private final MessagesUtils messUtils;
@@ -112,7 +112,7 @@ public class PublicatedImageC {
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "pubImaId") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "asc") @IsEnum(enumSource = Direction.class) String sortDir) {
-		FollowStatus followStatus = followerService.getFollowStatusByFollowedId(ownerId);
+		FollowStatus followStatus = followService.getFollowStatusByFollowedId(ownerId);
 		switch (followStatus) {
 		case NOT_ASKED:
 			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.followStatus-not-asked"))
