@@ -20,4 +20,9 @@ public interface FollowService {
 	void deleteById(Long id);
 	
 	FollowStatus getFollowStatusByFollowedId(Long followedId);
+	
+	Long countFollowedByUserId(Long id);
+	
+	Long countFollowerByUserId(Long id);
+	
 }

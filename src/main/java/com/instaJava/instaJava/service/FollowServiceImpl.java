@@ -63,7 +63,7 @@ public class FollowServiceImpl implements FollowService{
 		Sort sort = pageInfoDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? 
 				Sort.by(pageInfoDto.getSortField()).ascending() : Sort.by(pageInfoDto.getSortField()).descending();
 		//first page for the most people is 1 , but for us is 0
-		Pageable pag = PageRequest.of(pageInfoDto.getPageNo()-1, pageInfoDto.getPageSize(),sort);
+		Pageable pag = PageRequest.of(pageInfoDto.getPageNo() == 0 ? pageInfoDto.getPageNo() : pageInfoDto.getPageNo() - 1, pageInfoDto.getPageSize(),sort);
 		Specification<Follow> spec = specService.getSpecification(reqSearchList.getReqSearchs()
 				, reqSearchList.getGlobalOperator());
 		return followDao.findAll(spec, pag);
@@ -124,6 +124,30 @@ public class FollowServiceImpl implements FollowService{
 		optFollow = followDao.findOne(specService.getSpecification(List.of(followedSearchEqual,followerSearchEqual), GlobalOperationEnum.AND));
 		if(optFollow.isEmpty()) return FollowStatus.NOT_ASKED;
 		return optFollow.get().getFollowStatus();
+	}
+
+	/*
+	 * return how many users a user follow
+	 * */
+	@Override
+	@Transactional(readOnly = true)
+	public Long countFollowedByUserId(Long id) {
+		if(id == null)  throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		ReqSearch searchFollowByFollowerIdEqual = ReqSearch.builder().column("userId").value(id.toString()).dateValue(false)
+				.joinTable("follower").operation(OperationEnum.EQUAL).build();
+		return followDao.count(specService.getSpecification(searchFollowByFollowerIdEqual));
+	}
+
+	/*
+	 * return how many followers have a user
+	 * */
+	@Override
+	@Transactional(readOnly = true)
+	public Long countFollowerByUserId(Long id) {
+		if(id == null)  throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null"));
+		ReqSearch searchFollowByFollowerIdEqual = ReqSearch.builder().column("userId").value(id.toString()).dateValue(false)
+				.joinTable("followed").operation(OperationEnum.EQUAL).build();
+		return followDao.count(specService.getSpecification(searchFollowByFollowerIdEqual));
 	}
 
 	

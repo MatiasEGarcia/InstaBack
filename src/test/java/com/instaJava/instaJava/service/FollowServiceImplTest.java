@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.instaJava.instaJava.dao.FollowDao;
+import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
@@ -161,8 +162,7 @@ class FollowServiceImplTest {
 	void getFollowStatusByFollowedIdUserNoVisibleFollowedRecordNoExistReturnNotAsked() {
 		User userWhoAuth= User.builder().userId(2L).visible(false).build();
 		//spec not match, is noly for example
-		Specification<Follow> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("followerId"), 1L);
-		
+		Specification<Follow> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("followId"), 1L);
 		
 		when(userService.getById(1L)).thenReturn(Optional.of(userWhoAuth));
 		when(securityContext.getAuthentication()).thenReturn(auth);
@@ -179,7 +179,7 @@ class FollowServiceImplTest {
 		User userWhoAuth= User.builder().userId(2L).visible(false).build();
 		Follow follower = Follow.builder().followStatus(FollowStatus.IN_PROCESS).build();
 		//spec not match, is noly for example
-		Specification<Follow> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("followerId"), 1L);
+		Specification<Follow> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("followId"), 1L);
 		when(userService.getById(1L)).thenReturn(Optional.of(userWhoAuth));
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -191,9 +191,32 @@ class FollowServiceImplTest {
 	}
 	
 	
+	@Test
+	void countFollowedByUserIdArgNull() {
+		assertThrows(IllegalArgumentException.class,
+				()-> followService.countFollowedByUserId(null));
+	}
+	@Test
+	void countFollowedByUserIdReturnNotNull() {
+		Specification<Follow> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("follower"), 1L);
+		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
+		when(followDao.count(spec)).thenReturn(1L);
+		assertNotNull(followService.countFollowedByUserId(1L));
+	}
 	
 	
-	
+	@Test
+	void countFollowerByUserIdArgNull() {
+		assertThrows(IllegalArgumentException.class,
+				()-> followService.countFollowerByUserId(null));
+	}
+	@Test
+	void countFollowerByUserIdReturnNotNull() {
+		Specification<Follow> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("followed"), 1L);
+		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
+		when(followDao.count(spec)).thenReturn(1L);
+		assertNotNull(followService.countFollowerByUserId(1L));
+	}
 	
 	
 	
