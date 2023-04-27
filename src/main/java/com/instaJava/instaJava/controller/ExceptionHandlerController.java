@@ -23,6 +23,7 @@ import com.instaJava.instaJava.dto.response.RespValidError;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
+import jakarta.servlet.ServletException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
@@ -32,7 +33,7 @@ public class ExceptionHandlerController {
 	
 	@Autowired MessagesUtils messUtils;
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlerController.class);
-
+	
 	@ExceptionHandler(value = { Exception.class })
     public ResponseEntity<Object> ExceptionHandler(Exception e) {
         LOGGER.error("There was some error: ",e.getMessage());
@@ -97,10 +98,18 @@ public class ExceptionHandlerController {
 				.build());
 	}
 	
-	//for example : This error happens when I post an object that needs an enum, but the string value is not the same any enum values
+	/*
+	 *This exception ocurrs when :
+	 *when I post an object that needs an enum, but the string value is not the same any enum values.
+	 *when the client don't pass the object that have the requestBody
+	 * 
+	 * */
 	@ExceptionHandler(value= {HttpMessageNotReadableException.class})
 	public ResponseEntity<ResMessage> hanlderHttpMessageNotReadableException(HttpMessageNotReadableException e){
-		return ResponseEntity.badRequest().body(ResMessage.builder().message(e.getMessage()).build());
+		LOGGER.error("There was some error: ",e.getMessage());
+		return ResponseEntity.badRequest().body(ResMessage.builder()
+				.message(messUtils.getMessage("exception.request-incorrect"))
+				.build());
 	}
 
 	//this exception occurs when the client send an type value that cannot be converted to the correct type value
@@ -108,5 +117,5 @@ public class ExceptionHandlerController {
 	public ResponseEntity<RespValidError> hanlderMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e){
 		return ResponseEntity.badRequest().body(RespValidError.builder()
 				.field(e.getName()).errorMessage(messUtils.getMessage("exception.type-incorrect")).build());
-	}
+	}	
 }
