@@ -1,31 +1,24 @@
 package com.instaJava.instaJava.enums;
 
 public enum OperationEnum {
-	EQUAL("com.instaJava.instaJava.specification.operation.OpEqual"),
-	LIKE("com.instaJava.instaJava.specification.operation.OpLike"), 
-	IN("com.instaJava.instaJava.specification.operation.OpIn"),
-	IN_DATES("com.instaJava.instaJava.specification.operation.OpInZonedDateTime"),
-	GREATER_THAN("com.instaJava.instaJava.specification.operation.OpGreaterThan"), 
-	LESS_THAN("com.instaJava.instaJava.specification.operation.OpLessThan"),
-	BETWEEN("com.instaJava.instaJava.specification.operation.OpBetween"),
-	IS_TRUE("com.instaJava.instaJava.specification.operation.IsTrue"),
-	IS_FALSE("com.instaJava.instaJava.specification.operation.IsFalse");
+	EQUAL("equal"),
+	LIKE("like"), 
+	IN("in"),
+	IN_DATES("inDates"),
+	GREATER_THAN("greaterThan"), 
+	LESS_THAN("lessThan"),
+	BETWEEN("between"),
+	IS_TRUE("isTrue"),
+	IS_FALSE("isFalse");
 	
 	
-	private String Direction;
+	private String operation;
 
-	private OperationEnum(String direction) {
-		Direction = direction;
+	private OperationEnum(String operation) {
+		this.operation = operation;
 	}
 
-	public String getDirection() {
-		return Direction;
+	public String getOperation() {
+		return operation;
 	}
-
-	public void setDirection(String direction) {
-		Direction = direction;
-	}
-	
-	
-	
 }

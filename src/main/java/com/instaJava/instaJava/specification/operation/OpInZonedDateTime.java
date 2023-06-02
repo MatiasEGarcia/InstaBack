@@ -13,22 +13,9 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
 public class OpInZonedDateTime implements OpI {
-	
-	private Root<?> root;
-	@SuppressWarnings("unused")
-	private CriteriaBuilder cb;//// in this case I don't need the criteria, but I have to put it anyway,
-								//// because I don't know when the client will use it
-	private ReqSearch reqSearch;
-
-	public OpInZonedDateTime(Root<?> root, CriteriaBuilder cb, ReqSearch reqSearch) {
-		super();
-		this.root = root;
-		this.cb = cb;
-		this.reqSearch = reqSearch;
-	}
 
 	@Override
-	public Predicate getPredicate() {
+	public Predicate getPredicate(Root<?> root, CriteriaBuilder cb,ReqSearch reqSearch) {
 		String[] splitIn = reqSearch.getValue().split(",");
 		List<ZonedDateTime> listZonedDateTime = Arrays.stream(splitIn).map(ZonedDateTime::parse).collect(toList());
 		

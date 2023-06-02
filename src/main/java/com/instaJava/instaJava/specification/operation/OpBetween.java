@@ -8,19 +8,8 @@ import jakarta.persistence.criteria.Root;
 
 public class OpBetween implements OpI{
 
-	private Root<?> root;
-	private CriteriaBuilder cb;
-	private ReqSearch reqSearch;
-	
-	public OpBetween(Root<?> root, CriteriaBuilder cb, ReqSearch reqSearch) {
-		super();
-		this.root = root;
-		this.cb = cb;
-		this.reqSearch = reqSearch;
-	}
-
 	@Override
-	public Predicate getPredicate(){
+	public Predicate getPredicate(Root<?> root, CriteriaBuilder cb,ReqSearch reqSearch){
 		String[] splitIn = reqSearch.getValue().split(",");
 		if(splitIn.length != 2)
 			return null;

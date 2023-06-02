@@ -1,7 +1,7 @@
 package com.instaJava.instaJava.service;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import static com.instaJava.instaJava.service.SpecificationService.OPERATIONS;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,9 +13,7 @@ import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.specification.operation.OpI;
 import com.instaJava.instaJava.util.MessagesUtils;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -36,24 +34,8 @@ public class SpecificationServiceImpl2<T> {// later I have to implement Specific
 			OpI opI = null;
 
 			for (ReqSearch reqSearch : reqSearchList) {
-				
-				try {
-					Class<?> concreteClass = Class.forName(reqSearch.getOperation().getDirection());
-					Constructor<?> contructor = concreteClass.getConstructor(Root.class, CriteriaBuilder.class,
-							ReqSearch.class);
-					opI = (OpI) contructor.newInstance(root, criteriaBuilder, reqSearch);
-				}
-				catch (ClassNotFoundException e) {
-					//this is throw when getDirection return wrong class
-					e.printStackTrace();
-				}catch (NoSuchMethodException | SecurityException e) {
-					// this is throw when the class don't have the method, in this case a constructor
-					e.printStackTrace();
-				}catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException e) {
-					e.printStackTrace();
-				}
-				predicates.add(opI.getPredicate());
+				opI = OPERATIONS.get(reqSearch.getOperation().getOperation());
+				predicates.add(opI.getPredicate(root,criteriaBuilder,reqSearch));
 			}
 
 			switch (globalOperator) {

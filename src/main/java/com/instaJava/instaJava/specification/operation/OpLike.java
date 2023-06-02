@@ -8,19 +8,8 @@ import jakarta.persistence.criteria.Root;
 
 public class OpLike implements OpI{
 
-	private Root<?> root;
-	private CriteriaBuilder cb;
-	private ReqSearch reqSearch;
-	
-	public OpLike(Root<?> root, CriteriaBuilder cb, ReqSearch reqSearch) {
-		super();
-		this.root = root;
-		this.cb = cb;
-		this.reqSearch = reqSearch;
-	}
-
 	@Override
-	public Predicate getPredicate() {
+	public Predicate getPredicate(Root<?> root, CriteriaBuilder cb,ReqSearch reqSearch) {
 		if(reqSearch.getJoinTable() != null) {
 			return cb.like(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()).as(String.class),
 					"%" + reqSearch.getValue() + "%");
