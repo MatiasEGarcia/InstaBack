@@ -10,8 +10,11 @@ public class OpIsTrue implements OpI {
 
 	@Override
 	public Predicate getPredicate(Root<?> root, CriteriaBuilder cb,ReqSearch reqSearch) {
-		// TODO Auto-generated method stub
-		return null;
+		if(reqSearch.getJoinTable() != null) {
+			return cb.isTrue(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()).as(Boolean.class));
+		}else {
+			return cb.isTrue(root.get(reqSearch.getColumn()).as(Boolean.class));
+		}
 	}
 
 }

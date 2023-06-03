@@ -10,8 +10,14 @@ public class OpLessThan implements OpI {
 
 	@Override
 	public Predicate getPredicate(Root<?> root, CriteriaBuilder cb,ReqSearch reqSearch) {
-		// TODO Auto-generated method stub
-		return null;
+		if(reqSearch.getJoinTable() != null) {
+			return cb.lessThan(root.join(reqSearch.getJoinTable()).get(reqSearch.getColumn()).as(String.class),
+					reqSearch.getValue());
+		}else {
+			return cb.lessThan(root.get(reqSearch.getColumn()).as(String.class),
+					reqSearch.getValue());
+		}
+		
 	}
 
 }

@@ -22,8 +22,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 
 import com.instaJava.instaJava.dao.PublicatedImagesDao;
+import com.instaJava.instaJava.dao.UserDao;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.entity.PublicatedImage;
+import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.enums.OperationEnum;
 
@@ -32,10 +34,11 @@ import com.instaJava.instaJava.enums.OperationEnum;
 @SpringBootTest
 class SpecificationServiceImpl2Test {
 
+	@Autowired private UserDao userDao;
 	@Autowired private JdbcTemplate jdbc;
 	@Autowired private PublicatedImagesDao publImagesDao;
-	@Autowired private SpecificationServiceImpl2<PublicatedImage> specService;
-	
+	@Autowired private SpecificationServiceImpl2<PublicatedImage> pubSpecService;
+	@Autowired private SpecificationServiceImpl2<User> userSpecService;
 	
 	private final ZonedDateTime zFirstPubliImage = ZonedDateTime.parse("2023-03-10T18:42:15.948338800Z");
 	private final ZonedDateTime zSecondPubliImage = ZonedDateTime.parse("2023-05-10T18:42:15.948338800Z");
@@ -66,18 +69,24 @@ class SpecificationServiceImpl2Test {
 	}
 	
 	@Test
+	void test() {
+		User user1 = userDao.findByUsername("matias");
+		System.out.println("EL ID ES : " +  user1.getUserId());
+	}
+	
+	@Test
 	void getSpecificationReqSearchListNullThrow() {
 		assertThrows(IllegalArgumentException.class,
-				() -> specService.getSpecification(null, GlobalOperationEnum.NONE));
+				() -> pubSpecService.getSpecification(null, GlobalOperationEnum.NONE));
 	}
 	@Test
 	void getSpecificationGlobalOperationEnumNullThrow() {
 		assertThrows(IllegalArgumentException.class,
-				() -> specService.getSpecification(List.of(), null));
+				() -> pubSpecService.getSpecification(List.of(), null));
 	}
 	@Test
 	void getSpecificationReqSearchListEmpty() {
-		assertNull(specService.getSpecification(Collections.emptyList(), GlobalOperationEnum.NONE));
+		assertNull(pubSpecService.getSpecification(Collections.emptyList(), GlobalOperationEnum.NONE));
 	}
 	
 	@Test
@@ -87,7 +96,7 @@ class SpecificationServiceImpl2Test {
 				.value("1")
 				.operation(OperationEnum.EQUAL)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isEmpty()) fail("shouldn't be empty");
 		assertTrue(optP.get().getPubImaId().equals(1L), "it's not the the record that we want");
 	}
@@ -100,7 +109,7 @@ class SpecificationServiceImpl2Test {
 				.value("1")
 				.operation(OperationEnum.GREATER_THAN)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isEmpty()) fail("shouldn't be empty");
 		if(optP.get().getPubImaId() < 1L ) fail("should return a record with id > 1");
 	}
@@ -111,7 +120,7 @@ class SpecificationServiceImpl2Test {
 				.value("2") //there is no records with id more greater
 				.operation(OperationEnum.GREATER_THAN)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isPresent()) fail("should be empty");
 	}
 	@Test
@@ -122,7 +131,7 @@ class SpecificationServiceImpl2Test {
 				.value(date.toString()) //there is only one record, it's have 2023-05-10
 				.operation(OperationEnum.GREATER_THAN)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isEmpty()) fail("shouldn't be empty");
 		if(optP.get().getPubImaId() != 2L) fail("Wrong record, the id should be 2");
 	}
@@ -136,7 +145,7 @@ class SpecificationServiceImpl2Test {
 				.value("1random") 
 				.operation(OperationEnum.LIKE)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isEmpty()) fail("shouldn't be empty");
 		if(optP.get().getPubImaId() != 1L) fail("Should return the publicated image with id == 1");
 	}
@@ -148,7 +157,7 @@ class SpecificationServiceImpl2Test {
 				.joinTable("userOwner")
 				.operation(OperationEnum.LIKE)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isEmpty()) fail("shouldn't be empty");
 		if(optP.get().getUserOwner().getUserId() != 1L) fail("Should return the publicated image with user owner id == 1");
 	}
@@ -160,7 +169,7 @@ class SpecificationServiceImpl2Test {
 				.value(localDate.toString())
 				.operation(OperationEnum.LIKE)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isEmpty()) fail("shouldn't be empty");
 		if(optP.get().getPubImaId() != 1L) fail("Should return the publicated image id == 1");
 	}
@@ -179,7 +188,7 @@ class SpecificationServiceImpl2Test {
 				.value(sb.toString())
 				.operation(OperationEnum.BETWEEN)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isEmpty()) fail("shouldn't be empty");
 		if(optP.get().getPubImaId() != 1L) fail("Should return the publicated image id == 1");
 	}
@@ -191,7 +200,7 @@ class SpecificationServiceImpl2Test {
 				.joinTable("userOwner")
 				.operation(OperationEnum.BETWEEN)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isEmpty()) fail("shouldn't be empty");
 		if(optP.get().getUserOwner().getUserId() != 2L) fail("Should return the publicated image owner user id == 2");
 	}
@@ -205,7 +214,7 @@ class SpecificationServiceImpl2Test {
 				.joinTable("userOwner")
 				.operation(OperationEnum.IN)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isEmpty()) fail("shouldn't be empty");
 		if(optP.get().getUserOwner().getUserId() != 1L) fail("Should return the publicated image owner user id == 1");
 	}
@@ -216,7 +225,7 @@ class SpecificationServiceImpl2Test {
 				.value("1randomDescription,3randomDescription") //there is one with  = 1randomDescription
 				.operation(OperationEnum.IN)
 				.build();
-		Optional<PublicatedImage> optP = publImagesDao.findOne(specService.getSpecification(reqSearch));
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
 		if(optP.isEmpty()) fail("shouldn't be empty");
 		if(optP.get().getPubImaId() != 1L) fail("Should return the publicated image owner user id == 1");
 	}
@@ -251,8 +260,91 @@ class SpecificationServiceImpl2Test {
 	}
 	*/
 	
+	@Test
+	void getSpecificationOnePredicatePublicImageIdLessThan() {
+		ReqSearch reqSearch = ReqSearch.builder()
+				.column("pubImaId")
+				.value("2")
+				.operation(OperationEnum.LESS_THAN)
+				.build();
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
+		if(optP.isEmpty()) fail("shouldn't be empty");
+		if(optP.get().getPubImaId() != 1) fail("Should return the publicated image with id == 1");
+	}
+	@Test
+	void getSpecificationOnePredicatePublicImageJoinTableUserOwnerIdLessThan() {
+		ReqSearch reqSearch = ReqSearch.builder()
+				.column("userId")
+				.value("2")
+				.joinTable("userOwner")
+				.operation(OperationEnum.LESS_THAN)
+				.build();
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
+		if(optP.isEmpty()) fail("shouldn't be empty");
+		if(optP.get().getUserOwner().getUserId() != 1) fail("Should return the publicated image with user owner id == 1");
+	}
+	@Test
+	void getSpecificationOnePredicatePublicImageCreatedAtLessThan() {
+		LocalDate date = zSecondPubliImage.toLocalDate().minusDays(1L);
+		ReqSearch reqSearch = ReqSearch.builder()
+				.column("createdAt")
+				.value(date.toString())
+				.operation(OperationEnum.LESS_THAN)
+				.build();
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
+		if(optP.isEmpty()) fail("shouldn't be empty");
+		if(optP.get().getPubImaId() != 1) fail("Should return the publicated image with id == 1");
+	}
 	
 	
+	@Test
+	void getSpecificationOnePredicateUserVisibleIsFalse() {
+		ReqSearch reqSearch = ReqSearch.builder()
+				.column("visible")
+				.value("false")
+				.operation(OperationEnum.IS_FALSE)
+				.build();
+		Optional<User> optU = userDao.findOne(userSpecService.getSpecification(reqSearch));
+		if(optU.isEmpty()) fail("shouldn't be empty");
+		if(optU.get().getUserId() != 2) fail("Should return the user with id == 2");
+	}
+	@Test 
+	void getSpecificationOnePredicatePublicImageOwnerUserVisibleIsFalse() {
+		ReqSearch reqSearch = ReqSearch.builder()
+				.column("visible")
+				.value("false")
+				.joinTable("userOwner")
+				.operation(OperationEnum.IS_FALSE)
+				.build();
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
+		if(optP.isEmpty()) fail("shouldn't be empty");
+		if(optP.get().getPubImaId() != 2) fail("Should return the publicated image with id == 2");
+	}
+	
+	
+	@Test
+	void getSpecificationOnePredicateUserVisibleIsTrue() {
+		ReqSearch reqSearch = ReqSearch.builder()
+				.column("visible")
+				.value("true")
+				.operation(OperationEnum.IS_TRUE)
+				.build();
+		Optional<User> optU = userDao.findOne(userSpecService.getSpecification(reqSearch));
+		if(optU.isEmpty()) fail("shouldn't be empty");
+		if(optU.get().getUserId() != 1) fail("Should return the user with id == 1");
+	}
+	@Test 
+	void getSpecificationOnePredicatePublicImageOwnerUserVisibleIsTrue() {
+		ReqSearch reqSearch = ReqSearch.builder()
+				.column("visible")
+				.value("true")
+				.joinTable("userOwner")
+				.operation(OperationEnum.IS_TRUE)
+				.build();
+		Optional<PublicatedImage> optP = publImagesDao.findOne(pubSpecService.getSpecification(reqSearch));
+		if(optP.isEmpty()) fail("shouldn't be empty");
+		if(optP.get().getPubImaId() != 1) fail("Should return the publicated image with id == 1");
+	}
 	
 	@AfterEach
 	void truncateMockData() {
