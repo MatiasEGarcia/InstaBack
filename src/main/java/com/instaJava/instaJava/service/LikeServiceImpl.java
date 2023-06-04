@@ -33,7 +33,7 @@ public class LikeServiceImpl implements LikeService {
 	private final LikeDao likeDao;
 	private final PublicatedImageService publiImaService;
 	private final MessagesUtils messUtils;
-	private final SpecificationService<Like> specService;
+	private final SpecificationServiceImpl2<Like> likeSpecService;
 	// cuando agrege los comentarios tengo que agregar su service
 
 	/*
@@ -73,12 +73,12 @@ public class LikeServiceImpl implements LikeService {
 		return 1;
 	}
 
-	// me falta testear de aca para abajo
+	// me falta testear de aca para abajo//CREO QUE ACA TENEMOS QUE VER
 	@Override
 	@Transactional(readOnly = true)
 	public boolean exist(TypeItemLikedEnum type, Long itemId, Long ownerLikeId) {
 		if (type == null || itemId == null || ownerLikeId == null)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 
 		ReqSearch typeEqual = ReqSearch.builder().column("itemType").value(type.toString()).dateValue(false)
 				.operation(OperationEnum.EQUAL).build();
@@ -87,9 +87,8 @@ public class LikeServiceImpl implements LikeService {
 		ReqSearch ownerEqual = ReqSearch.builder().joinTable("ownerLike").column("userId").value(ownerLikeId.toString())
 				.dateValue(false).operation(OperationEnum.EQUAL).build();
 		
-		Specification<Like> spec = specService.getSpecification(List.of(typeEqual, itemIdEqual, ownerEqual), GlobalOperationEnum.AND);
-		boolean bo = likeDao.exists(spec);
-		return bo;
+		Specification<Like> spec = likeSpecService.getSpecification(List.of(typeEqual,itemIdEqual,ownerEqual),GlobalOperationEnum.AND);
+		return likeDao.exists(spec);
 	}
 
 	@Override

@@ -111,8 +111,6 @@ class LikeCTest {
 				.andExpect(jsonPath("$.type", is(messUtils.getMessage("vali.type-not-null"))))
 				.andExpect(jsonPath("$.decision", is(messUtils.getMessage("vali.decision-not-null"))));
 	}
-	
-	//eeste me dara error hasta que no soluciones las especificaciones
 	@Test
 	void postSaveOkReturnLike() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
@@ -128,9 +126,9 @@ class LikeCTest {
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.likeId", is(1L)))
+				.andExpect(jsonPath("$.likeId", is(1)))
 				.andExpect(jsonPath("$.itemType", is(TypeItemLikedEnum.PULICATED_IMAGE.toString())))
-				.andExpect(jsonPath("$.itemId", is(1L)))
+				.andExpect(jsonPath("$.itemId", is(1)))
 				.andExpect(jsonPath("$.decision", is(true)))
 				.andExpect(jsonPath("$.ownerLike.username", is(matiasUserAuth.getUsername())))
 				.andExpect(jsonPath("$.likedAt", instanceOf(String.class)));
