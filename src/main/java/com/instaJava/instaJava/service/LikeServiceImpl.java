@@ -33,7 +33,7 @@ public class LikeServiceImpl implements LikeService {
 	private final LikeDao likeDao;
 	private final PublicatedImageService publiImaService;
 	private final MessagesUtils messUtils;
-	private final SpecificationServiceImpl2<Like> likeSpecService;
+	private final SpecificationService<Like> likeSpecService;
 	// cuando agrege los comentarios tengo que agregar su service
 
 	/*
