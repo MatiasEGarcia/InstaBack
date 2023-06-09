@@ -7,6 +7,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ * Dto to return image as String base 64 to the client.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

@@ -18,9 +18,9 @@ public class DeleteTokensSheduler {
 	private final Clock clock;
 	private final InvTokenDao invTokenDao;
 
-	/*
-	 * When a user logout, it's token is saved in bdd, the token still will be valid
-	 * for some time so each hour I will delete those tokens already expired
+	/**
+	 * When a user logout, it's token is saved in bdd, if anyone try to do a request with those tokens will get anything.
+	 * The token still will be valid for some time so each hour I will delete those tokens already expired.
 	 * 
 	 */
 	@Transactional

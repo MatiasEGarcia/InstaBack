@@ -35,7 +35,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final UserDetailsService userDetailsService;
 	private final InvTokenService invTokenService;
 
-	
+	/**
+	 * 
+	 * Check if in the request is there a header "Authorization", if there is get the jwt inside,
+	 * else continue to next filter.
+	 * Check if token exist in database as token invalidated in a logout or not. 
+	 * if is invalidated respond Forbidden.else get pertinent info from jwt.
+	 * If token is expired respond Forbidden.
+	 * 
+	 * @param request. request object sended by the client.
+	 * @param response . response object.
+	 * @param filterChain. chain of filters.
+	 */
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {

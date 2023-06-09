@@ -11,6 +11,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ * Dto used to create a condition to search records.
+ *
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

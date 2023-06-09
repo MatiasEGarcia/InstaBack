@@ -23,6 +23,14 @@ public class InvTokenServiceImpl implements InvTokenService{
 	private final InvTokenDao invTokenDao;
 	private final MessagesUtils messUtils;
 	
+	/**
+	 * 
+	 * Save tokens needed to be invalidated.
+	 * 
+	 * @param tokens. Collection of Tokens to invalidate.
+	 * @throws IllegalArgumentException if @param tokens is null or empty.
+	 * @return Collection of tokens invalidated.
+	 */
 	@Override
 	@Transactional
 	public List<InvToken> invalidateTokens(List<String> tokens) {
@@ -37,6 +45,10 @@ public class InvTokenServiceImpl implements InvTokenService{
 		return invTokenDao.saveAll(invTokens);
 	}
 
+	/**
+	 * @return true if Token record exists,else false
+	 * 
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public boolean existByToken(String token) {

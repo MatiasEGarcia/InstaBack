@@ -9,6 +9,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ * Dto for pagination information.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

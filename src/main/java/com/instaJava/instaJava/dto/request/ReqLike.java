@@ -11,6 +11,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ * Dto object to create a Like record.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

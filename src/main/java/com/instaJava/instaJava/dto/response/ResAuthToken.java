@@ -5,6 +5,12 @@ import java.io.Serializable;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * 
+ * @author matia
+ *	Dto to send token and refrehs token to client.
+ *
+ */
 @Data
 @Builder
 public class ResAuthToken implements Serializable {

@@ -9,6 +9,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
+/**
+ * 
+ * @author matia
+ * Dto to send Follow data to the client.
+ * With user information using Dto {@link com.instaJava.instaJava.dto.response.ResUser}.
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data

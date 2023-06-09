@@ -12,6 +12,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ * Dto to return {@link com.instaJava.instaJava.entity.Like} data to the client.
+ * With likedAt as string instead ZonedDateTIme
+ */
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

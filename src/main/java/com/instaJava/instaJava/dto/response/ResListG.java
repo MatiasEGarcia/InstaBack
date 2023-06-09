@@ -8,6 +8,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ * Dto to return a list of any type to the client.
+ *
+ * @param <T> object type of list.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

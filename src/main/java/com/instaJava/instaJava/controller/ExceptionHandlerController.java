@@ -98,12 +98,12 @@ public class ExceptionHandlerController {
 				.build());
 	}
 	
-	/*
-	 *This exception ocurrs when :
+	/**
+	 *This exception occurs :
 	 *when I post an object that needs an enum, but the string value is not the same any enum values.
 	 *when the client don't pass the object that have the requestBody
 	 * 
-	 * */
+	 */
 	@ExceptionHandler(value= {HttpMessageNotReadableException.class})
 	public ResponseEntity<ResMessage> hanlderHttpMessageNotReadableException(HttpMessageNotReadableException e){
 		LOGGER.error("There was some error: ",e.getMessage());

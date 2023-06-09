@@ -9,7 +9,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+/**
+ * 
+ * @author matia
+ *	Dto similiar to {@link com.instaJava.instaJava.dto.response.ResListG} but in this case with pagination.
+ *
+ * @param <T> object type of list.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder

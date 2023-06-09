@@ -8,6 +8,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ *When authentication token is expired, user use this Dto to refresh them.
+ *
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

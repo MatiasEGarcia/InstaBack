@@ -32,10 +32,11 @@ public class LikeC {
 	private final LikeMapper likeMapper;
 	private final MessagesUtils messUtils;
 
-	/*
-	 * return status noContent with a header with info if something happened and the
-	 * record didn't save return status ok with the record saved if the record was
-	 * saved successfully
+	/**
+	 * Save a Like record
+	 * 
+	 * @param reqLike. Data to save .
+	 * @return like saved.
 	 */
 	@PostMapping
 	public ResponseEntity<ResLike> save(@Valid @RequestBody ReqLike reqLike) {
@@ -46,6 +47,12 @@ public class LikeC {
 		return ResponseEntity.ok().body(likeMapper.likeToResLike(optLike.get()));
 	}
 
+	/**
+	 * Save a collection of Likes
+	 * 
+	 * @param reqLikeList. Object with a collection of Likes data to be saved
+	 * @return Like collection saved.
+	 */
 	
 	@PostMapping("/all")
 	public ResponseEntity<ResListG<ResLike>> saveAll(@Valid @RequestBody ReqLikeList reqLikeList) {

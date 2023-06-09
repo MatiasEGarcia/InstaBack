@@ -1,6 +1,5 @@
 package com.instaJava.instaJava.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,6 +51,12 @@ public class UserC {
 	private final PersonalDetailsMapper personalDetailsMapper;
 	private final UserMapper userMapper;
 
+	/**
+	 * Save an image.
+	 * 
+	 * @param file. image to save.
+	 * @return ResponseEntity with the image saved as base64.
+	 */
 	@PostMapping("/image")
 	public ResponseEntity<ResImageString> uploadImage(@RequestParam("img") @NotNull @Image MultipartFile file) {
 		userService.updateImage(file);
@@ -59,22 +64,35 @@ public class UserC {
 				.body(ResImageString.builder().image64(userService.getImage()).build());
 	}
 
+	/**
+	 * Get the User.image from the authenticated user that is saved in database.
+	 * 
+	 * @return ResponseEntity with the image as base64.
+	 */
 	@GetMapping("/image")
 	public ResponseEntity<ResImageString> downloadImage() {
 		return ResponseEntity.status(HttpStatus.OK)
 				.body(ResImageString.builder().image64(userService.getImage()).build());
 	}
 
-	// Why post? Because I'm creating invTokens and saving them in the db
+	
+	/**
+	 * Why post? Because I'm creating invTokens and saving them in the db.
+	 * @param reqLogout. Contain tokens to invalidate.
+	 * @return a message to indicate that the logout was successfully.
+	 */
 	@PostMapping("/logout")
 	public ResponseEntity<ResMessage> logout(@Valid @RequestBody ReqLogout reqLogout) {
-		List<String> invTokens = new ArrayList<>();
-		invTokens.add(reqLogout.getToken());
-		invTokens.add(reqLogout.getRefreshToken());
-		invTokenService.invalidateTokens(invTokens);
+		invTokenService.invalidateTokens(List.of(reqLogout.getToken(),reqLogout.getRefreshToken()));
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("mess.successfully-logout")));
 	}
 
+	/**
+	 * Save personal details by associating them with the authenticated user.
+	 * 
+	 * @param personalDetailsDto . Object with the info to create a PersonalDetail object and save it in database
+	 * @return personalDetails saved
+	 */
 	@PostMapping("/personalDetails")
 	public ResponseEntity<PersonalDetailsDto> savePersonalDetails(
 			@Valid @RequestBody PersonalDetailsDto personalDetailsDto) {
@@ -83,12 +101,21 @@ public class UserC {
 		return ResponseEntity.ok().body(personalDetailsDto);
 	}
 
+	/**
+	 * Update User.visible attribute.
+	 * 
+	 * @return user information updated.
+	 */
 	@PutMapping("/visible")
 	public ResponseEntity<ResUser> setVisible() {
 		return ResponseEntity.ok().body(userMapper.UserToResUser(userService.changeVisible()));
 	}
 
-	
+	/**
+	 * Get authenticated user personal details. 
+	 * 
+	 * @return personal details, else a message that nothing was found.
+	 */
 	@GetMapping("/personalDetails")
 	public ResponseEntity<PersonalDetailsDto> getPersonalDetails() {
 		Optional<PersonalDetails> optPersDetails = userService.getPersonalDetailsByUser();
@@ -101,15 +128,25 @@ public class UserC {
 	}
 
 	
-	// is POST, but the client will use it as a GET to get one user by one condition
+	/**
+	 * Is POST, but the client will use it as a GET to get one user by one condition.
+	 * 
+	 * @param reqSearch. object with conditions to user search.
+	 * @return user that was found,else a message that there wasn't any that meet the conditions.
+	 */
 	@PostMapping("/searchOne/oneCondition")
 	public ResponseEntity<ResUser> searchUserWithOneCondition(@Valid @RequestBody ReqSearch reqSearch) {
 		Optional<User> optUser = userService.getOneUserOneCondition(reqSearch);
 		if (optUser.isEmpty())return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.there-no-users")).build();
 		return ResponseEntity.ok().body(userMapper.UserToResUser(optUser.get()));
 	}
-
-	// is POST, but the client will use it as a GET to get one user by many conditions
+	
+	/**
+	 * is POST, but the client will use it as a GET to get one user by many conditions
+	 * 
+	 * @param reqSearchList. object with a collection of conditions to user search.
+	 * @return user that was found,else a message that there wasn't any that meet the conditions.
+	 */
 	@PostMapping("searchOne/manyConditions")
 	public ResponseEntity<ResUser> searchUserWithManyConditions(@Valid @RequestBody ReqSearchList reqSearchList) {
 		Optional<User> optUser = userService.getOneUserManyConditions(reqSearchList);
@@ -118,7 +155,16 @@ public class UserC {
 		return ResponseEntity.ok().body(userMapper.UserToResUser(optUser.get()));
 	}
 
-	// is POST, but the client will use it as a GET to get users by one condition
+	/**
+	 * Is POST, but the client will use it as a GET to get many users by one condition
+	 * 
+	 * @param reqSearch. object with conditions to user search.
+	 * @param pageNo. For pagination, number of the page.
+	 * @param pageSize. For pagination, size of the elements in the same page.
+	 * @param sortField. For pagination, sorted by..
+	 * @param sortDir. In what direction is sorted, asc or desc.
+	 * @return paginated users that were found,else a message that there wasn't any that meet the conditions.
+	 */
 	@PostMapping("/searchAll/oneCondition")
 	public ResponseEntity<ResPaginationG<ResUser>> searchUsersWithOneCondition(@Valid @RequestBody ReqSearch reqSearch,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
@@ -134,7 +180,16 @@ public class UserC {
 		return ResponseEntity.ok().body(userMapper.pageAndPageInfoDtoToResPaginationG(pageUsers, pageInfoDto));
 	}
 
-	// is POST, but the client will use it as a GET to get users by one condition
+	/**
+	 * Is POST, but the client will use it as a GET to get many users by many conditions
+	 * 
+	 * @param reqSearchList. object with a collection of conditions to user search.
+	 * @param pageNo. For pagination, number of the page.
+	 * @param pageSize. For pagination, size of the elements in the same page.
+	 * @param sortField. For pagination, sorted by..
+	 * @param sortDir. In what direction is sorted, asc or desc.
+	 * @return paginated users that were found,else a message that there wasn't any that meet the conditions.
+	 */
 	@PostMapping("/searchAll/manyConditions")
 	public ResponseEntity<ResPaginationG<ResUser>> searchUsersWithManyConditions(@Valid @RequestBody ReqSearchList reqSearchList,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,

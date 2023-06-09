@@ -12,7 +12,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//this class has a list of ReqSearch
+/**
+ * 
+ * @author matia
+ * Dto to create a list of conditions(ReqSearch) to search records. 
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

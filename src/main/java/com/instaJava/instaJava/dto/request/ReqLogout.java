@@ -8,7 +8,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
+/**
+ * 
+ * @author matia
+ * Dto used when user wants to close its session, make its tokens invalidate.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

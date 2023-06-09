@@ -12,6 +12,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ * Dto to create PersonalDetails records. It doesn't have user information because user
+ * should have been authenticated , we get user information from there.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

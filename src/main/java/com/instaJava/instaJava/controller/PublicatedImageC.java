@@ -40,6 +40,13 @@ public class PublicatedImageC {
 	private final PublicatedImageService publicatedImageService;
 	private final MessagesUtils messUtils;
 
+	/**
+	 * Save a PublicatedImage record.
+	 * 
+	 * @param file. image to save
+	 * @param description. A just text to save with the image
+	 * @return  publicatedImage saved
+	 */
 	@PostMapping("/save")
 	public ResponseEntity<ResPublicatedImage> save(@RequestParam("img") @Image MultipartFile file,
 			@RequestParam("description") String description) {
@@ -50,6 +57,12 @@ public class PublicatedImageC {
 		return ResponseEntity.ok().body(resPublicatedImage);
 	}
 
+	/**
+	 * Delete a PublicatedImage by id
+	 * 
+	 * @param id. id of the PublicatedImage record.
+	 * @return a message telling that was successfully deleted
+	 */
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id) {
 		publicatedImageService.deleteById(id);
@@ -57,6 +70,16 @@ public class PublicatedImageC {
 				.body(ResMessage.builder().message(messUtils.getMessage("mess.publi-image-deleted")).build());
 	}
 	
+	/**
+	 * 
+	 * Search PublicatedImages by the authenticated user.
+	 * 
+	 * @param pageNo. For pagination, number of the page.
+	 * @param pageSize. For pagination, size of the elements in the same page.
+	 * @param sortField. For pagination, sorted by..
+	 * @param sortDir. In what direction is sorted, asc or desc.
+	 * @return a pagination collection with the PublicatedImages records, else a message that there are not records.
+	 */
 	@GetMapping
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> searchByUser(
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
@@ -75,8 +98,13 @@ public class PublicatedImageC {
 
 	
 	/**
-	 * Return status ok if there are publicated images. 
-	 * Return status noContent with a info header if there are not publicated images
+	 * Get PublicatedImages from users with User.visible = true.(public account)
+	 * 
+	 * @param pageNo. For pagination, number of the page.
+	 * @param pageSize. For pagination, size of the elements in the same page.
+	 * @param sortField. For pagination, sorted by..
+	 * @param sortDir. In what direction is sorted, asc or desc.
+	 * @return pagination collection  with the PublicatedImages records, else a message that there are not records.
 	 */
 	@GetMapping("/byVisiblesOwners")
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwnerVisible(
@@ -102,6 +130,20 @@ public class PublicatedImageC {
 	 * header info if any of the next conditions is met - THere are not publicated
 	 * images - The follow status is NOT_ASKED - The follow status is IN_PROCESS -
 	 * The follow status is REJECTED
+	 */
+	/**
+	 * 
+	 * Get all PublicatedImages by owner id of the record.
+	 * 
+	 * @param ownerId
+	 * @param pageNo. For pagination, number of the page.
+	 * @param pageSize. For pagination, size of the elements in the same page.
+	 * @param sortField. For pagination, sorted by..
+	 * @param sortDir. In what direction is sorted, asc or desc.
+	 * @return If followStatus is any of these : NOT_ASKED, IN_PROCESS, REJECTED then a message explaining why cannot be
+	 * possible to see the records, if is ACCEPTED and there is records a pagination collection with PublicatedImages records, 
+	 * else a message that there are not records.
+	 * @throws IllegalArgumentException if follow status no exists.
 	 */
 	@GetMapping("/byOwnerId/{ownerId}")
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwnerId(@PathVariable("ownerId") Long ownerId,

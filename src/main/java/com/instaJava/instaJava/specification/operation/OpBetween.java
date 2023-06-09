@@ -8,6 +8,16 @@ import jakarta.persistence.criteria.Root;
 
 public class OpBetween implements OpI{
 
+	/**
+	 *  
+	 * Create predicate where value wanted to search is casted to String and then searched between 2 values got
+	 * in @param reqSearch.value.
+	 * 
+	 * @param root. Type object: User, Like , etc...
+	 * @param cb. object to create predicates.
+	 * @param reqSearch. has the condition to search.
+	 * @return null if @param reqSearch.value don't have 2 values, else a between predicate.
+	 */
 	@Override
 	public Predicate getPredicate(Root<?> root, CriteriaBuilder cb,ReqSearch reqSearch){
 		String[] splitIn = reqSearch.getValue().split(",");

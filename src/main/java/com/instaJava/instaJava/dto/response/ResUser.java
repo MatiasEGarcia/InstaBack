@@ -7,6 +7,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ * Dto to return {@link com.instaJava.instaJava.entity.User} data to the client.
+ *
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

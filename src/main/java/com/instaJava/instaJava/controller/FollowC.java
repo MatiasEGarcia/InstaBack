@@ -38,15 +38,28 @@ public class FollowC {
 	private final FollowMapper follMapper;
 	private final MessagesUtils messUtils;
 
-	/*
-	 * if the resource is saved then return ResFollowStatus with status CREATED
-	 * */
+	/**
+	 * Save a follow record with the authenticated user as follower and the @param followed as followed.
+	 * 
+	 * @param followed. id of the User that will be followed.
+	 * @return followStatus.
+	 */
 	@PostMapping
 	public ResponseEntity<ResFollowStatus> save(@RequestParam(name = "followed") Long followed){
 		Follow fol = follService.save(followed);
 		return ResponseEntity.ok().body(follMapper.followToResFollowStatus(fol));
 	}
 	
+	/**
+	 * Get Follows records by many conditions.
+	 * 
+	 * @param reqSearchList. object with a collection with conditions to follow search.
+	 * @param pageNo. For pagination, number of the page.
+	 * @param pageSize. For pagination, size of the elements in the same page.
+	 * @param sortField. For pagination, sorted by..
+	 * @param sortDir. In what direction is sorted, asc or desc.
+	 * @return
+	 */
 	@PostMapping("/findAllBy")
 	public ResponseEntity<ResPaginationG<ResFollow>> getAllFollowBy(
 			@Valid @RequestBody ReqSearchList reqSearchList,
@@ -68,6 +81,13 @@ public class FollowC {
 		return new ResponseEntity<> (headers, HttpStatus.NO_CONTENT);
 	}
 	
+	/**
+	 * To update the follow status in Follow records.
+	 * 
+	 * @param followStatus. Kind of followStatus to update to.
+	 * @param id. follow id from the record to updated.
+	 * @return follow record updated
+	 */
 	@PutMapping("/followStatus")
 	public ResponseEntity<ResFollow> updateFollowStatus(@RequestParam(name = "followStatus") FollowStatus followStatus,
 			@RequestParam(name = "followId")Long id){
@@ -75,6 +95,12 @@ public class FollowC {
 		return ResponseEntity.ok().body(follMapper.followToResFollow(fol));
 	}
 
+	/**
+	 * Delete a Follow record.
+	 * 
+	 * @param id. Follow id record.
+	 * @return message that the record was successfully deleted.
+	 */
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id){
 		follService.deleteById(id);

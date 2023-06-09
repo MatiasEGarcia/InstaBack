@@ -40,6 +40,13 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	private final PersonalDetailsMapper personalDetailsMapper;
 	private final SpecificationService<User> specService;
 
+	/**
+	 * Save User.
+	 * 
+	 * @param user. User object to be saved
+	 * @return User object that was saved in database.
+	 * @throws IllegalArgumentException if @param user is null.
+	 */
 	@Override
 	@Transactional
 	public User save(User user) {
@@ -47,6 +54,14 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.save(user);
 	}
 	
+	/**
+	 * 
+	 * Get user by User.username.
+	 * 
+	 * @param username. value of the User record to search.
+	 * @return UserDetails object.
+	 * @throws UsernameNotFoundException if user with @param username no exists.
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -58,6 +73,12 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	}
 
 
+	/**
+	 * Update image of the authenticated user.
+	 * 
+	 * @param file. Image to save.
+	 * @throws ImageException if there was an error getting bytes of the @param image.
+	 */
 	@Override
 	@Transactional
 	public void updateImage(MultipartFile file){
@@ -71,6 +92,11 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	}
 
 
+	/**
+	 * Get the authenticated user image.
+	 * 
+	 * @return String base64 of the image.
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public String getImage(){
@@ -79,6 +105,11 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	}
 
 	//I have to test with postman this
+	/**
+	 * Get personal details by authenticated user.
+	 *
+	 * @return PersonalDetails optional. empty if there is no PersonalDetails record associated with authenticated user.
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<PersonalDetails> getPersonalDetailsByUser() {
@@ -88,6 +119,11 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return Optional.of(perDet);
 	}
 
+	/**
+	 * Save PersonalDetails record with authenticated user associated.
+	 * @return PersonalDetails record saved.
+	 * @throws IllegalArgumentException if personalDetailsDto is null.
+	 */
 
 	@Override
 	@Transactional
@@ -101,6 +137,11 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return perDet;
 	}
 
+	/**
+	 * Change the visible state of the User. public or private / true or false
+	 * 
+	 * @return User already updated.
+	 */
 	@Override
 	@Transactional
 	public User changeVisible() {
@@ -109,6 +150,13 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.save(user);
 	}
 
+	/**
+	 * Get a User record by id.
+	 * 
+	 * @param id. id of the user record wanted.
+	 * @return Optional user.
+	 * @throws IllegalArgumentException if @param id is null.
+	 */
 	@Override
 	@Transactional(readOnly= true)
 	public Optional<User> getById(Long id) {
@@ -116,6 +164,13 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.findById(id);
 	}
 	
+	/**
+	 * Get a User record by username.
+	 * 
+	 * @param username. username of the user record wanted.
+	 * @return Optional user.
+	 * @throws IllegalArgumentException if @param username is null.
+	 */
 	@Override
 	@Transactional(readOnly= true)
 	public Optional<User> getByUsername(String username) {
@@ -125,6 +180,14 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return Optional.of(user);
 	}
 	
+	/**
+	 * 
+	 * Get a only one User record by only one condition ( can't be by password)
+	 * 
+	 * @param reqSearch. Object necessary to get a specficiation and do the research.
+	 * @return Optional user
+	 * @throws IllegalArgumentException if @param reqSearch is null.
+	 */
 	@Override
 	@Transactional(readOnly= true)
 	public Optional<User> getOneUserOneCondition(ReqSearch reqSearch) {
@@ -133,6 +196,13 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.findOne(specService.getSpecification(reqSearch));
 	}
 
+	/**
+	 * Get only one User record by many conditions (can't be by password)
+	 *  
+	 * @param reqSearchList. Object that contain collection of ReqSearch objects and a GlobalOperator to define how combine all the conditions.
+	 * @return Optional user
+	 * @throws IllegalArgumentException if @param reqSearchList is null
+	 */
 	@Override
 	@Transactional(readOnly= true)
 	public Optional<User> getOneUserManyConditions(ReqSearchList reqSearchList) {
@@ -141,7 +211,15 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.findOne(specService.getSpecification(reqSearchList.getReqSearchs(),
 				reqSearchList.getGlobalOperator()));
 	}
-
+	
+	/**
+	 * Get many User records by one condition(can't be password).
+	 * 
+	 * @param pageInfoDto, It has pagination info.
+	 * @param reqSearch. condition
+	 * @return page collection with User records.
+	 * @throws IllegalArgumentException if @param reqSearch or @param pageInfoDto or pageInfoDto.sortDir or pageInfoDto.sortField null.
+	 */
 	@Override
 	@Transactional(readOnly= true)
 	public Page<User> getManyUsersOneCondition(PageInfoDto pageInfoDto,
@@ -156,6 +234,14 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.findAll(specService.getSpecification(reqSearch), pag);
 	}
 
+	/**
+	 * Get many User records by many conditions(can't be password).
+	 * 
+	 * @param pageInfoDto, It has pagination info.
+	 * @param reqSearchList. Collection of conditions
+	 * @return page collection with User records.
+	 * @throws IllegalArgumentException if @param reqSearchList or @param pageInfoDto or pageInfoDto.sortDir or pageInfoDto.sortField null.
+	 */
 	@Override
 	@Transactional(readOnly= true)
 	public Page<User> getManyUsersManyConditions(PageInfoDto pageInfoDto,
@@ -170,6 +256,13 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.findAll(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()),pag);
 	}
 
+	/**
+	 * Ask if exists User record by username.
+	 * 
+	 * @param username. User's username wanted to find.
+	 * @return true if User record exists, else false.
+	 * @throws IllegalArgumentException if @param username is null.
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public boolean existsByUsername(String username) {
@@ -177,6 +270,13 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.existsByUsername(username);
 	}
 	
+	/**
+	 * Ask if exists User record by one condition(can't be password).
+	 * 
+	 * @param reqSearch. conditions details
+	 * @return true if User record exists, else false.
+	 * @throws IllegalArgumentException if @param reqSearch is null.
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public boolean existsOneCondition(ReqSearch reqSearch) {
@@ -185,6 +285,13 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.exists(specService.getSpecification(reqSearch));
 	}
 
+	/**
+	 * Ask if exists User record by many conditions(can't be password).
+	 * 
+	 * @param reqSearchList. Collection of conditions details
+	 * @return true if User record exists, else false.
+	 * @throws IllegalArgumentException if @param reqSearchList is null.
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public boolean existsManyConditions(ReqSearchList reqSearchList) {
@@ -193,13 +300,24 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		return userDao.exists(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()));
 	}
 
-	//Methods to don't allow search by password in specifications searches
+	/**
+	 * Method to test conditions and see if there is one for password.
+	 * 
+	 * @param reqSearch. condition to be tested.
+	 * @throws IllegalArgumentException if one of the conditions is for password.
+	 */
 	private void passNotAvailableForSearch(ReqSearch reqSearch) {
 		if(reqSearch.getColumn() == null) {
 			return;
 		}else if(reqSearch.getColumn().equalsIgnoreCase("password")) throw new IllegalArgumentException(messUtils.getMessage("exception.password-not-searchable"));
 	}
 	
+	/**
+	 * Method to test conditions and see if there is one for password.
+	 * 
+	 * @param searchs. Collections of conditions to be tested.
+	 * @throws IllegalArgumentException if one of the conditions is for password.
+	 */
 	private void passNotAvailableForSearch(List<ReqSearch> searchs) {
 		boolean isTherePassowrdColumn = searchs.stream()
 				.filter(s -> s.getColumn() != null)

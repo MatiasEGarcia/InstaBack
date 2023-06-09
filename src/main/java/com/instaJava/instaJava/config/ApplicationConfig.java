@@ -21,6 +21,11 @@ public class ApplicationConfig {
 
 	private final UserServiceImpl userServiceImpl;
 	
+	/**
+	 * Set userDetailsService and password encoder for DaoAuthenticationProvider. 
+	 * 
+	 * @return DaoAuthenticationProvider.
+	 */
 	@Bean
 	public AuthenticationProvider authenticationProvider() {
 		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -29,16 +34,32 @@ public class ApplicationConfig {
 		return authProvider;
 	}
 	
+	/**
+	 * Bean to get BCryptPasswordEncoder and encode passwords.
+	 * 
+	 * @return BCryptPasswordEncoder.
+	 */
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 	
+	/**
+	 * To get AuthentitcationManager
+	 * 
+	 * @param config . AuthenticationConfiguration
+	 * @return AuthenticationManager.
+	 */
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception{
 		return config.getAuthenticationManager();
 	}
 	
+	/**
+	 * Bean to get UTC Time clock.
+	 * 
+	 * @return UTC clock.
+	 */
 	@Bean
 	public Clock clock() {
 		return Clock.systemUTC();

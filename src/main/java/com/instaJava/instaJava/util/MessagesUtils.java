@@ -5,6 +5,11 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Component;
 
+/**
+ * 
+ * @author matia
+ * Component to retrieve properties messages.
+ */
 @Component
 public class MessagesUtils {
 

@@ -34,6 +34,16 @@ public class FollowServiceImpl implements FollowService{
 	private final MessagesUtils messUtils;
 	private final SpecificationService<Follow> specService;
 	
+	/**
+	 * 
+	 * Get the user wanted to follow, set as follower the autheticated user and 
+	 * save the Follower record.
+	 * 
+	 * @param FollowedId. user id to follow.
+	 * @throws IllegalArgumentException if @param FollowedId is null
+	 * @throws IllegalArgumentException if user to follow not exist.
+	 * @return Follow record created.
+	 */
 	@Override
 	@Transactional
 	public Follow save(Long FollowedId) {
@@ -52,6 +62,18 @@ public class FollowServiceImpl implements FollowService{
 		return followDao.save(follower);
 	}
 
+	
+	/**
+	 * 
+	 * It gets a Follow page collection with the records that met the requirements on @param reqSearchList.
+	 * 
+	 * @param reqSearchList. Contain ReqSearch collection with info to create specification 
+	 * object and a {@link com.instaJava.instaJava.enums.GlobalOperatorEnum} to combine queries.
+	 * @param pageInfoDto. It has pagination info.
+	 * @return Page collection with Follow records.
+	 * @throws IllegalArgumentException if @param reqSearchList or @param pageInfoDto or pageInfoDto.SortField or
+	 * pageInfoDto.SortDir are null.
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Page<Follow> search(PageInfoDto pageInfoDto, ReqSearchList reqSearchList) {
@@ -66,12 +88,20 @@ public class FollowServiceImpl implements FollowService{
 				, reqSearchList.getGlobalOperator());
 		return followDao.findAll(spec, pag);
 	}
-
-	//the only one that can change the follow status is the user followed, 
+	
+	/**
+	 * Update followStatus in the Follow record.
+	 * 
+	 * @return Follow record that was updated.
+	 * @throws IllegalArgumentException if any of the params are null.
+	 * @throws IllegalArgumentException if the user authenticated and who wants to change
+	 * the follow status are not the followed user in the Follow record. 	 
+	 * */
+	
 	@Override
 	@Transactional
 	public Follow updateFollowStatusById(Long id, FollowStatus newStatus){
-		if(newStatus == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		if(newStatus == null || id == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		User userFollowed;
 		Follow follower = findById(id);
 		userFollowed = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -80,6 +110,14 @@ public class FollowServiceImpl implements FollowService{
 		return followDao.save(follower);
 	}
 
+	/**
+	 * 
+	 * Find Follow record by id.
+	 * 
+	 * @param id. Id of the Follow record.
+	 * @return Follow record.
+	 * @throws IllegalArgumentException if the follow record no exists
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Follow findById(Long id) {
@@ -88,31 +126,44 @@ public class FollowServiceImpl implements FollowService{
 		return followerOpt.get();
 	}
 
+	/**
+	 * Get Follow record by id and compare the owner with the user authenticated, 
+	 * if are same user then delete the follow record.
+	 * 
+	 * @param id. Id of the Follow record to delete
+	 * @throws IllegalArgumentException if @param id is null
+	 */
 	@Override
 	@Transactional
 	public void deleteById(Long id) {
+		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		Follow foll = this.findById(id);
 		User userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if(!foll.getFollower().equals(userFollower)) throw new IllegalArgumentException(messUtils.getMessage("exception.follower-is-not-same"));
 		followDao.delete(foll);;
 	}
 	
-	/* if the followed user no exist throw exception
-	 * if the user is visible/public the return FollowStatus.ACCEPTED
-	 * if the user is not visible/public and there is not a follow record then return FollowStatus.NOT_ASKED
-	 * if none of the above conditions is met return the current FollowStatus
-	 * */
+	/**
+	 * 
+	 * Get the User {@link com.instaJava.instaJava.enums.FollowStatus} by id of the user.
+	 * 
+	 * @throws IllegalArgumentException if @param id is null;
+	 * @throws IllegalArgumentException if followed user no exists
+	 * @return FollowStatus.ACCEPTED if followed user.Visible is true. Else
+	 * if followed user.Visible is false and there is not a follow record return. And if
+	 * none of the others condition is met return the current FollowStatus.
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public FollowStatus getFollowStatusByFollowedId(Long id) {
-		if(id == null) throw new IllegalArgumentException();
+		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		Optional<User> userFollowed;
 		Optional<Follow> optFollow;
 		User userFollower;
 		ReqSearch followedSearchEqual;
 		ReqSearch followerSearchEqual;
 		userFollowed = userService.getById(id);
-		if(userFollowed.isEmpty()) throw new IllegalArgumentException();
+		if(userFollowed.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.followed-no-exist"));
 		if(userFollowed.get().isVisible()) return FollowStatus.ACCEPTED; // if the user is public/visible, then we return accepted
 		userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		followedSearchEqual = ReqSearch.builder().column("userId").value(id.toString())
@@ -124,9 +175,13 @@ public class FollowServiceImpl implements FollowService{
 		return optFollow.get().getFollowStatus();
 	}
 
-	/*
-	 * return how many users a user follow
-	 * */
+	/**
+	 * How many users a user follow, by id.
+	 * 
+	 * @param id. id of the user that want to know how many users it follow
+	 * @return the number of users that are followed by the user searched
+	 * @throws IllegalArgumentException if @param id is null
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Long countFollowedByUserId(Long id) {
@@ -136,9 +191,13 @@ public class FollowServiceImpl implements FollowService{
 		return followDao.count(specService.getSpecification(searchFollowByFollowerIdEqual));
 	}
 
-	/*
-	 * return how many followers have a user
-	 * */
+	/**
+	 * How many users follow another user by id.
+	 * 
+	 * @param id. id of the user wanted to know how many followers have
+	 * @return the number of users that follow the user searched
+	 * @throws IllegalArgumentException if @param id is null
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Long countFollowerByUserId(Long id) {

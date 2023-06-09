@@ -36,26 +36,11 @@ public class LikeServiceImpl implements LikeService {
 	private final SpecificationService<Like> likeSpecService;
 	// cuando agrege los comentarios tengo que agregar su service
 
-	/*
-	 * @Override
-	 * 
-	 * @Transactional public Like save(TypeItemLikedEnum type, Long itemId, boolean
-	 * decision) { if (type == null || itemId == null) throw new
-	 * IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"))
-	 * ; Like like; switch (type) { case PULICATED_IMAGE: if
-	 * (publiImaService.getById(itemId).isEmpty()) throw new
-	 * IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"))
-	 * ; break; default: throw new
-	 * IllegalArgumentException(messUtils.getMessage("exception.like-type-no-exist")
-	 * ); } like = Like.builder().itemType(type).decision(decision).build();
-	 * like.setItemId(itemId); like.setLikedAt(ZonedDateTime.now(clock));
-	 * like.setOwnerLike((User)
-	 * SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-	 * return likeDao.save(like); }
-	 */
-
-	/*
-	 * return 0 if the record wasn't deleted return 1 if the record was deleted
+	/**
+	 * Check if Like record exist and Delete a Like record by likeId.
+	 * @param likeId. id of the Like record.
+	 * @throws IllegalArgumentException if @param likeId is null.
+	 * @return 0 if Like record no exist, else 1. 
 	 */
 	@Override
 	@Transactional
@@ -73,7 +58,16 @@ public class LikeServiceImpl implements LikeService {
 		return 1;
 	}
 
-	// me falta testear de aca para abajo//CREO QUE ACA TENEMOS QUE VER
+	/**
+	 * 
+	 * To check if a Like record exist by type, item and owner id.
+	 * 
+	 * @param type. type of the item that was liked, ej : COMMENT.
+	 * @param itemId. id of the item
+	 * @param ownerLikeId. id of the user owner of the Like record.
+	 * @return true if the Like record already exists, else false.
+	 * @throws IllegalArgumentException if anyone of the params are null.
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public boolean exist(TypeItemLikedEnum type, Long itemId, Long ownerLikeId) {
@@ -91,11 +85,20 @@ public class LikeServiceImpl implements LikeService {
 		return likeDao.exists(spec);
 	}
 
+	/**
+	 * 
+	 * Save a Like collection in the database if the ReqLike was valid.
+	 * 
+	 * @param reqLikeList. Collection with ReqLike objects.
+	 * @return Empty collection if reqLikeList is empty or none ReqLike was valid, 
+	 * else a Like collection with the records saved
+	 * @throws IllegalArgumentException if @param reqLikeList is null
+	 */
 	@Override
 	@Transactional
 	public List<Like> saveAll(List<ReqLike> reqLikeList) {
 		if (reqLikeList == null)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		if (reqLikeList.isEmpty())
 			return Collections.emptyList();
 		User userOwner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -110,6 +113,13 @@ public class LikeServiceImpl implements LikeService {
 		return likeDao.saveAll(likeListToSave);
 	}
 
+	/**
+	 * Save a like object in the database.
+	 * 
+	 * @param reqLike. object with the data of the Like to be saved.
+	 * @throws IllegalArgumentException if the param is null.
+	 * @return Empty optional if the reqLike is not valid, else Like optional.
+	 */
 	@Override
 	@Transactional
 	public Optional<Like> save(ReqLike reqLike) {
@@ -123,12 +133,29 @@ public class LikeServiceImpl implements LikeService {
 				.itemType(reqLike.getType()).ownerLike(userOwner).likedAt(ZonedDateTime.now(clock)).build()));
 	}
 
-	// we validate that the item exist and that the like no exist, so then can save
-	// it
+	
+	/**
+	 * @param reqLike. is the object with the data about the item to be liked.
+	 * @param ownerId. is the id of the user owner of the like.
+	 * @return ReqLike with the valid attribute settled as true or false.
+	 * @see {@link #validateReqLikeList(List<ReqLike>, Long) validateReqLikeList} method
+	 */
 	private ReqLike validateReqLike(ReqLike reqLike, Long ownerId) {
 		return this.validateReqLikeList(List.of(reqLike), ownerId).get(0);
 	}
-
+	
+	/**
+	 * It Validates that an item exists from the id passed in itemId, and that 
+	 * a like record with the same owner and item don't exist.
+	 * If a like record already exists will set the ReqLike object as valid = false, else true.
+	 * If the item to be liked does not exist will set the ReqLike object as valid = false, 
+	 * else true.
+	 * 
+	 * @param reqLike is the object with the data about the item to be liked
+	 * @param ownerId is the id of the user owner of the like
+	 * @return a list of ReqLike with the valid attribute settled as true or false
+	 * @throws illegalArgumentException if TypeItemLikedEnum no exists
+	 */
 	private List<ReqLike> validateReqLikeList(List<ReqLike> reqLikeList, Long ownerId) {
 		reqLikeList.forEach((l) -> {
 			

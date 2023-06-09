@@ -11,6 +11,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ *	Dto to send {@link com.instaJava.instaJava.entity.PublicatedImage} data to the client.
+ * With createdAt as String and only the userOwner name.
+ *
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

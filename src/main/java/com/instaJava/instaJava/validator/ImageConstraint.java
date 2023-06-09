@@ -5,6 +5,12 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+/**
+ * 
+ * @author matia
+ *	Validate that image isn't null or empty and if the content type is acceptable.
+ *
+ */
 public class ImageConstraint implements ConstraintValidator<Image,MultipartFile> {
 
 	@Override

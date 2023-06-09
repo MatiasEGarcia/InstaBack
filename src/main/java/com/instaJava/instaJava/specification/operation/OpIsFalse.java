@@ -8,6 +8,14 @@ import jakarta.persistence.criteria.Root;
 
 public class OpIsFalse implements OpI {
 
+	/**
+	 * Predicate to search records that column values is false.
+	 * 
+	 * @param root. Type object: User, Like , etc...
+	 * @param cb. object to create predicates.
+	 * @param reqSearch. has the condition to search.
+	 * @return false predicate.
+	 */
 	@Override
 	public Predicate getPredicate(Root<?> root, CriteriaBuilder cb,ReqSearch reqSearch) {
 		if(reqSearch.getJoinTable() != null) {

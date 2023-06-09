@@ -36,6 +36,14 @@ public class AuthService {
 	private final InvTokenService invTokenService;
 	private final MessagesUtils messUtils;
  	
+	/**
+	 * Save a user and return tokens.
+	 * 
+	 * @param reqUserRegistration. object that contain data to the registration of the user.
+	 * @throws IllegalArgumentException if @param reqUserRegistration is null
+	 * @throws AlreadyExistsException if the reqUserRegistration.username is already used by another user.
+	 * @return ResAuthToken object which contains tokens for later requests.
+	 */
 	@Transactional
 	public ResAuthToken register(ReqUserRegistration reqUserRegistration) {
 		if(reqUserRegistration == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
@@ -51,6 +59,14 @@ public class AuthService {
 		return ResAuthToken.builder().token(token).refreshToken(refreshToken).build();
 	}
 
+	/**
+	 * With this the user already register can authenticate and get tokens to do requests
+	 * 
+	 * @param reqLogin. object that contain data for the login of the user
+	 * @return ResAuthToken object which contains tokens for later requests.
+	 * @throws IllegalArgumentException if @param reqLogin is null.
+	 * @throws UsernameNotFoundException if user no exists.
+	 */
 	@Transactional(readOnly = true)
 	public ResAuthToken authenticate(ReqLogin reqLogin) {
 		if(reqLogin == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
@@ -66,6 +82,15 @@ public class AuthService {
 		return ResAuthToken.builder().token(token).refreshToken(refreshToken).build();
 	}
 
+	/**
+	 * 
+	 * Get Valid tokens for requests if the user give valid refresh token.
+	 * 
+	 * @param reqRefreshToken. contains old tokens expired or invalidated
+	 * @return ResAuthToken object with valid tokens.
+	 * @throws IllegalArgumentException if @param reqRefreshToken is null.
+	 * @throws InvalidException if the the refresh token is expired or invalidated.
+	 */
 	@Transactional(readOnly = true)
 	public ResAuthToken refreshToken(ReqRefreshToken reqRefreshToken) {
 		if(reqRefreshToken == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));

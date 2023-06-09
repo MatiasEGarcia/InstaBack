@@ -14,6 +14,15 @@ import jakarta.persistence.criteria.Root;
 
 public class OpInZonedDateTime implements OpI {
 
+	/**
+	 * Predicate to search records that column values is in @param reqSearch.value. 
+	 * But before values were cast to ZonedDateTIme.
+	 * 
+	 * @param root. Type object: User, Like , etc...
+	 * @param cb. object to create predicates.
+	 * @param reqSearch. has the condition to search.
+	 * @return in predicate.
+	 */
 	@Override
 	public Predicate getPredicate(Root<?> root, CriteriaBuilder cb,ReqSearch reqSearch) {
 		String[] splitIn = reqSearch.getValue().split(",");

@@ -8,6 +8,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ * Dto used to register a user.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
