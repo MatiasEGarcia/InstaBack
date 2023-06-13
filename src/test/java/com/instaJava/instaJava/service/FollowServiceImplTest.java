@@ -4,8 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -17,18 +20,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.instaJava.instaJava.dao.FollowDao;
+import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
+import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.PageableUtils;
 
 @ExtendWith(MockitoExtension.class)
 class FollowServiceImplTest {
@@ -39,6 +48,7 @@ class FollowServiceImplTest {
 	@Mock private FollowDao followDao;
 	@Mock private SpecificationService<Follow> specService;
 	@Mock private MessagesUtils messUtils;
+	@Mock private PageableUtils pageUtils;
 	@InjectMocks private FollowServiceImpl followService;
 	
 	@Test
@@ -81,16 +91,58 @@ class FollowServiceImplTest {
 	
 	
 	@Test
-	void findByIdNoExistThrow() {
-		when(followDao.findById(1L)).thenReturn(Optional.empty());
-		assertThrows(IllegalArgumentException.class, () ->followService.findById(1L));
+	void searchReqSearchListArgNullTrow() {
+		assertThrows(IllegalArgumentException.class,
+				() -> followService.search(any(PageInfoDto.class), null));
 	}
 	@Test
-	void findByIdExistReturnNotNull() {
-		when(followDao.findById(1L)).thenReturn(Optional.of(new Follow()));
-		assertNotNull(followService.findById(1L));
+	void searchPageInfoDtoArgNullThrow() {
+		assertThrows(IllegalArgumentException.class,
+				() -> followService.search(null, any(ReqSearchList.class)));
 	}
-
+	@Test
+	void searchPageInfoDtoSortFieldNullThrow() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.pageNo(1)
+				.pageSize(10)
+				.sortDir(Direction.ASC)
+				.build();
+		assertThrows(IllegalArgumentException.class,
+				() -> followService.search(pageInfoDto, any(ReqSearchList.class)));
+	}
+	@Test
+	void searchPageInfoDtoSortDirNullThrow() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.pageNo(1)
+				.pageSize(10)
+				.sortField("random")
+				.build();
+		assertThrows(IllegalArgumentException.class,
+				() -> followService.search(pageInfoDto, any(ReqSearchList.class)));
+	}
+	@Test
+	void search() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.pageNo(0)
+				.pageSize(10)
+				.sortDir(Direction.ASC)
+				.sortField("username")
+				.build();
+		ReqSearch reqSearch = ReqSearch.builder().build();
+		ReqSearchList rqSearchList = ReqSearchList.builder()
+				.reqSearchs(List.of(reqSearch))
+				.globalOperator(GlobalOperationEnum.AND).build();
+		//spec for example only, does not match reqSearch
+		Specification<Follow> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("followId"), 1);
+		when(specService.getSpecification(rqSearchList.getReqSearchs(),GlobalOperationEnum.AND)).thenReturn(spec);
+		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
+		when(followDao.findAll(eq(spec), any(Pageable.class))).thenReturn(Page.empty());
+		assertNotNull(followService.search(pageInfoDto, rqSearchList));
+		verify(followDao).findAll(eq(spec), any(Pageable.class));
+	}
+	
+	
+	
 	
 	@Test
 	void updateFollowStatusByIdFollowedNotSameThrow() {
@@ -135,6 +187,53 @@ class FollowServiceImplTest {
 	@Test
 	void updateFollowStatusByIdArgFollowStatusNullThrow() {
 		assertThrows(IllegalArgumentException.class,() -> followService.updateFollowStatusById(1L, null));
+	}
+	
+	
+	
+	
+	@Test
+	void findByIdNoExistThrow() {
+		when(followDao.findById(1L)).thenReturn(Optional.empty());
+		assertThrows(IllegalArgumentException.class, () ->followService.findById(1L));
+	}
+	@Test
+	void findByIdExistReturnNotNull() {
+		when(followDao.findById(1L)).thenReturn(Optional.of(new Follow()));
+		assertNotNull(followService.findById(1L));
+	}
+	
+	
+	@Test
+	void deleteByIdThrow() {
+		assertThrows(IllegalArgumentException.class, () -> followService.deleteById(null));
+	}
+	@Test
+	void deleteByIdFollowerNotSameThrow() {
+		User userWhoAuth= User.builder().userId(2L).visible(false).build();
+		User followOwn= User.builder().userId(3L).visible(false).build();
+		Follow follow = Follow.builder().follower(followOwn).build(); //I will only compare follower owner with the auth user.
+		FollowServiceImpl follSerSpy = spy(followService);
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.thenReturn(userWhoAuth);
+		doReturn(follow).when(follSerSpy).findById(anyLong());
+		assertThrows(IllegalArgumentException.class,() ->  follSerSpy.deleteById(anyLong()),"if followOwner is not the same than"
+				+ " the authenticated user , the follow cannot be deleted");
+	}
+	@Test
+	void deleteById() {
+		User userWhoAuth= User.builder().userId(2L).visible(false).build();
+		Follow follow = Follow.builder().follower(userWhoAuth).build(); 
+		FollowServiceImpl follSerSpy = spy(followService);
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.thenReturn(userWhoAuth);
+		doReturn(follow).when(follSerSpy).findById(anyLong());
+		follSerSpy.deleteById(anyLong());
+		verify(followDao).delete(follow);
 	}
 	
 	

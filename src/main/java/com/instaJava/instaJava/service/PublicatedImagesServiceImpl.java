@@ -6,9 +6,6 @@ import java.util.Base64;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +20,7 @@ import com.instaJava.instaJava.enums.OperationEnum;
 import com.instaJava.instaJava.exception.IllegalActionException;
 import com.instaJava.instaJava.exception.ImageException;
 import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.PageableUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +32,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	private final PublicatedImagesDao publicatedImagesDao;
 	private final MessagesUtils messUtils;
 	private final SpecificationService<PublicatedImage> specService;
+	private final PageableUtils pagUtils;
 
 	/**
 	 * Convert MuliparFile to Base64 and try to save a PublicatedImage in the database
@@ -116,7 +115,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		ReqSearch reqSearchPubliImaByOwnerEqual = ReqSearch.builder().column("userId")
 				.dateValue(false).value(authUser.getUserId().toString()).joinTable("userOwner")
 				.operation(OperationEnum.EQUAL).build();
-		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchPubliImaByOwnerEqual), this.getPageable(pageInfoDto));
+		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchPubliImaByOwnerEqual), pagUtils.getPageable(pageInfoDto));
 	};
 
 	/**
@@ -135,7 +134,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		}
 		ReqSearch reqSearchuserOwnersVisibleTrue = ReqSearch.builder().column("visible")
 				.value("true").joinTable("userOwner").operation(OperationEnum.IS_TRUE).build();
-		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchuserOwnersVisibleTrue),this.getPageable(pageInfoDto));
+		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchuserOwnersVisibleTrue),pagUtils.getPageable(pageInfoDto));
 	}
 
 	/**
@@ -155,45 +154,6 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		}
 		ReqSearch reqSearchuserOwnerIdEqual = ReqSearch.builder().column("userId").dateValue(false)
 				.value(ownerId.toString()).joinTable("userOwner").operation(OperationEnum.EQUAL).build();
-		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchuserOwnerIdEqual),this.getPageable(pageInfoDto));
-	}
-
-	/**
-	 * Method to create Pageable info with PageInfoDto.
-	 * 
-	 * @param pageInfoDto. It has pagination info.
-	 * @return Pageable object 
-	 */
-	private Pageable getPageable(PageInfoDto pageInfoDto) {
-		Sort sort = pageInfoDto.getSortDir().equals(Sort.Direction.ASC)
-				? Sort.by(pageInfoDto.getSortField()).ascending()
-				: Sort.by(pageInfoDto.getSortField()).descending();
-		// first page for the most people is 1 , but for us is 0
-		 return  PageRequest.of(
-				pageInfoDto.getPageNo() == 0 ? pageInfoDto.getPageNo() : pageInfoDto.getPageNo() - 1,
-				pageInfoDto.getPageSize(), sort);
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchuserOwnerIdEqual),pagUtils.getPageable(pageInfoDto));
+	}	
 }

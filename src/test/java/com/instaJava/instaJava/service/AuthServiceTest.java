@@ -27,6 +27,7 @@ import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.PageableUtils;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {

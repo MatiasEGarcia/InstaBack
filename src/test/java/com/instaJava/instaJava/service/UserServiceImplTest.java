@@ -44,6 +44,7 @@ import com.instaJava.instaJava.exception.ImageException;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.PageableUtils;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -53,6 +54,7 @@ class UserServiceImplTest {
 	@Mock private UserDao userDao;
 	@Mock private PersonalDetailsDao personalDetailsDao;
 	@Mock private MessagesUtils messUtils;
+	@Mock private PageableUtils pageUtils;
 	@Mock private UserMapper userMapper;
 	@Mock private PersonalDetailsMapper personalDetailsMapper;
 	@Mock private SpecificationService<User> specService;
@@ -355,6 +357,7 @@ class UserServiceImplTest {
 		//spec for example only, does not match reqSearch
 		Specification<User> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("username"), user.getUsername());
 		when(specService.getSpecification(reqSearch)).thenReturn(spec);
+		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
 		when(userDao.findAll(eq(spec), any(Pageable.class))).thenReturn(Page.empty());
 		assertNotNull(userService.getManyUsersOneCondition(pageInfoDto, reqSearch));
 		verify(specService).getSpecification(reqSearch);
@@ -403,6 +406,7 @@ class UserServiceImplTest {
 		//spec for example only, does not match reqSearch
 		Specification<User> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("username"), user.getUsername());
 		when(specService.getSpecification(reqSearchList.getReqSearchs(),reqSearchList.getGlobalOperator())).thenReturn(spec);
+		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
 		when(userDao.findAll(eq(spec), any(Pageable.class))).thenReturn(Page.empty());
 		assertNotNull(userService.getManyUsersManyConditions(pageInfoDto,reqSearchList));
 		verify(specService).getSpecification(reqSearchList.getReqSearchs(),reqSearchList.getGlobalOperator());

@@ -40,6 +40,7 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.IllegalActionException;
 import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.PageableUtils;
 
 @ExtendWith(MockitoExtension.class)
 class PublicatedImagesServiceImplTest {
@@ -48,6 +49,7 @@ class PublicatedImagesServiceImplTest {
 	@Mock private SecurityContext securityContext;
 	@Mock private Clock clock;
 	@Mock private MessagesUtils messUtils;
+	@Mock private PageableUtils pageUtils;
 	@Mock private PublicatedImagesDao publicatedImagesDao;
 	@Mock private SpecificationService<PublicatedImage> specService;
 	@InjectMocks PublicatedImagesServiceImpl publicatedImagesService;
@@ -192,6 +194,7 @@ class PublicatedImagesServiceImplTest {
 		//spec for example only, does not match reqSearch
 		Specification<PublicatedImage> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("random"), "someRandom");
 		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
+		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
 		when(publicatedImagesDao.findAll(eq(spec), any(Pageable.class))).thenReturn(Page.empty());
 		assertNotNull(publicatedImagesService.getAllByUser(pageInfoDto));
 		verify(specService).getSpecification(any(ReqSearch.class));
@@ -220,6 +223,7 @@ class PublicatedImagesServiceImplTest {
 		//spec for example only, does not match reqSearch
 		Specification<PublicatedImage> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("random"), "someRandom");
 		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
+		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
 		when(publicatedImagesDao.findAll(eq(spec), any(Pageable.class))).thenReturn(Page.empty());
 		assertNotNull(publicatedImagesService.getAllByOwnersVisibles(pageInfoDto));
 		verify(specService).getSpecification(any(ReqSearch.class));
@@ -254,6 +258,7 @@ class PublicatedImagesServiceImplTest {
 		//spec for example only, does not match reqSearch
 		Specification<PublicatedImage> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("random"), "someRandom");
 		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
+		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
 		when(publicatedImagesDao.findAll(eq(spec), any(Pageable.class))).thenReturn(Page.empty());
 		assertNotNull(publicatedImagesService.getAllByOwnerId(pageInfoDto,user.getUserId()));
 		verify(specService).getSpecification(any(ReqSearch.class));

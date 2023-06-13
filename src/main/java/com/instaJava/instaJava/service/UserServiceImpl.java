@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,6 +24,7 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.PageableUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +37,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	private final MessagesUtils messUtils;
 	private final PersonalDetailsMapper personalDetailsMapper;
 	private final SpecificationService<User> specService;
+	private final PageableUtils pagUtils;
 
 	/**
 	 * Save User.
@@ -227,11 +226,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		if(reqSearch == null || pageInfoDto == null ||
 				pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null )throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
 		this.passNotAvailableForSearch(reqSearch);
-		Sort sort = pageInfoDto.getSortDir().equals(Sort.Direction.ASC) ? 
-				Sort.by(pageInfoDto.getSortField()).ascending() : Sort.by(pageInfoDto.getSortField()).descending(); 
-		//first page for the most people is 1 , but for us is 0
-		Pageable pag = PageRequest.of(pageInfoDto.getPageNo() == 0 ? pageInfoDto.getPageNo() : pageInfoDto.getPageNo() - 1, pageInfoDto.getPageSize(),sort);
-		return userDao.findAll(specService.getSpecification(reqSearch), pag);
+		return userDao.findAll(specService.getSpecification(reqSearch), pagUtils.getPageable(pageInfoDto));
 	}
 
 	/**
@@ -249,11 +244,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 		if(reqSearchList == null || pageInfoDto == null ||
 				pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null )throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
 		this.passNotAvailableForSearch(reqSearchList.getReqSearchs());
-		Sort sort = pageInfoDto.getSortDir().equals(Sort.Direction.ASC) ?
-				Sort.by(pageInfoDto.getSortField()).ascending() : Sort.by(pageInfoDto.getSortField()).descending();
-		//first page for the most people is 1 , but for us is 0
-		Pageable pag = PageRequest.of(pageInfoDto.getPageNo() == 0 ? pageInfoDto.getPageNo() : pageInfoDto.getPageNo() - 1, pageInfoDto.getPageSize(),sort);
-		return userDao.findAll(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()),pag);
+		return userDao.findAll(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()),pagUtils.getPageable(pageInfoDto));
 	}
 
 	/**
@@ -324,8 +315,4 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 				.anyMatch(s -> s.getColumn().equalsIgnoreCase("password"));
 		if(isTherePassowrdColumn) throw new IllegalArgumentException(messUtils.getMessage("exception.password-not-searchable"));
 	}
-
-
-
-
 }

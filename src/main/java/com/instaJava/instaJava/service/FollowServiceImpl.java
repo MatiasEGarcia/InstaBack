@@ -4,9 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,6 +19,7 @@ import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.enums.OperationEnum;
 import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.PageableUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +31,7 @@ public class FollowServiceImpl implements FollowService{
 	private final FollowDao followDao;
 	private final MessagesUtils messUtils;
 	private final SpecificationService<Follow> specService;
+	private final PageableUtils pagUtils;
 	
 	/**
 	 * 
@@ -79,14 +78,9 @@ public class FollowServiceImpl implements FollowService{
 	public Page<Follow> search(PageInfoDto pageInfoDto, ReqSearchList reqSearchList) {
 		if(pageInfoDto == null || reqSearchList == null || 
 				pageInfoDto.getSortField() == null || pageInfoDto.getSortDir() == null) throw new IllegalArgumentException(messUtils.getMessage("exepcion.argument-not-null-empty"));
-		//as sortfield I can pass attributes from another entity that is related - > user_username
-		Sort sort = pageInfoDto.getSortDir().equals(Sort.Direction.ASC) ? 
-				Sort.by(pageInfoDto.getSortField()).ascending() : Sort.by(pageInfoDto.getSortField()).descending();
-		//first page for the most people is 1 , but for us is 0
-		Pageable pag = PageRequest.of(pageInfoDto.getPageNo() == 0 ? pageInfoDto.getPageNo() : pageInfoDto.getPageNo() - 1, pageInfoDto.getPageSize(),sort);
 		Specification<Follow> spec = specService.getSpecification(reqSearchList.getReqSearchs()
 				, reqSearchList.getGlobalOperator());
-		return followDao.findAll(spec, pag);
+		return followDao.findAll(spec, pagUtils.getPageable(pageInfoDto));
 	}
 	
 	/**
