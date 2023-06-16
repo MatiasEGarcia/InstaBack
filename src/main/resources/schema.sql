@@ -34,11 +34,10 @@ CREATE TABLE chats(
 CREATE TABLE messages(
 	id int primary key auto_increment not null,
     body varchar(100) not null,
-    user_owner int not null,
+    user_owner varchar(20) not null,
     chat int not null,
     sended_at datetime not null,
-	foreign key (chat) references chats(id) on delete cascade,
-	foreign key (user_owner) references users(id) -- if the user is deleted i want to keep its messages, for context
+	foreign key (chat) references chats(id) on delete cascade
 );
 
 CREATE TABLE chats_users(
@@ -52,12 +51,11 @@ CREATE TABLE chats_users(
 CREATE TABLE comments(
 	id int primary key auto_increment not null,
     body varchar(100) not null,
-    associate_user int not null,
+    associate_user varchar(20) not null,
     img int not null,
     parent_id int,
-    created_at datetime not null,
-	foreign key (img) references publicated_images(id) on delete cascade,
-	foreign key (associate_user) references users(id) -- I want that the comments exist even if the user not, for context
+    created_at datetime not null, 
+	foreign key (img) references publicated_images(id) on delete cascade
 );
 
 CREATE TABLE chats_admins(

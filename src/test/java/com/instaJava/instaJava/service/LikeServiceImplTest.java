@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -18,6 +19,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.instaJava.instaJava.dao.LikeDao;
 import com.instaJava.instaJava.dto.request.ReqLike;
+import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.entity.Like;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
@@ -293,9 +296,23 @@ class LikeServiceImplTest {
 	}
 	
 	
-	
-	
-	
+	@Test
+	void getPositiveAndNegativeLikesByItemIdArgNullThrow() {
+		assertThrows(IllegalArgumentException.class,() -> likeService.getPositiveAndNegativeLikesByItemId(null));
+	}
+	@Test
+	void getPositiveAndNegativeLikesByItemId() {
+		//only decision matters here
+		Like positiveLike = Like.builder().decision(true).build();
+		Like negativeLike = Like.builder().decision(false).build();
+		
+		Specification<Like> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("itemId"), "1");
+		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
+		when(likeDao.findAll(spec)).thenReturn(List.of(positiveLike,negativeLike));
+		Map<String,String> map= likeService.getPositiveAndNegativeLikesByItemId(anyLong()); 
+		if( !map.get("Positive").equalsIgnoreCase("1") || !map.get("Negative").equalsIgnoreCase("1")) 
+			fail("There should be 1 Positive like and 1 Negative");
+	}
 	
 	
 	

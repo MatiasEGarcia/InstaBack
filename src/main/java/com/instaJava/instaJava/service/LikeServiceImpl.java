@@ -5,8 +5,11 @@ import static java.util.stream.Collectors.toList;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -134,6 +137,23 @@ public class LikeServiceImpl implements LikeService {
 	}
 
 	
+	@Override
+	@Transactional(readOnly = true)
+	public Map<String, String> getPositiveAndNegativeLikesByItemId(Long id) {
+		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
+		List<Like> likes;
+		Map<Boolean,Long> countByDecision;
+		Map<String,String> positiveAndNegativeLikeCount = new HashMap<>();
+		ReqSearch reqSearch= ReqSearch.builder().column("itemId").value(id.toString()).operation(OperationEnum.EQUAL).build();
+		likes = likeDao.findAll(likeSpecService.getSpecification(reqSearch));
+		countByDecision = likes.stream()
+				.collect(Collectors.groupingBy(Like::isDecision,Collectors.counting()));
+		positiveAndNegativeLikeCount.put("Positive", countByDecision.get(true).toString());
+		positiveAndNegativeLikeCount.put("Negative", countByDecision.get(false).toString());
+		return positiveAndNegativeLikeCount;
+	}
+	
+	
 	/**
 	 * @param reqLike. is the object with the data about the item to be liked.
 	 * @param ownerId. is the id of the user owner of the like.
@@ -177,5 +197,7 @@ public class LikeServiceImpl implements LikeService {
 		});
 		return reqLikeList;
 	}
+
+
 
 }
