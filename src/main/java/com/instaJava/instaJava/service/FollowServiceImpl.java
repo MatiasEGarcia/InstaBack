@@ -18,6 +18,7 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.enums.OperationEnum;
+import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
 
@@ -116,7 +117,7 @@ public class FollowServiceImpl implements FollowService{
 	@Transactional(readOnly = true)
 	public Follow findById(Long id) {
 		Optional<Follow> followerOpt = followDao.findById(id);
-		if(followerOpt.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.follow-id-not-found"));
+		if(followerOpt.isEmpty()) throw new InvalidException(messUtils.getMessage("exception.follow-id-not-found"));
 		return followerOpt.get();
 	}
 
@@ -133,7 +134,7 @@ public class FollowServiceImpl implements FollowService{
 		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		Follow foll = this.findById(id);
 		User userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if(!foll.getFollower().equals(userFollower)) throw new IllegalArgumentException(messUtils.getMessage("exception.follower-is-not-same"));
+		if(!foll.getFollower().equals(userFollower)) throw new InvalidException(messUtils.getMessage("exception.follower-is-not-same"));
 		followDao.delete(foll);;
 	}
 	

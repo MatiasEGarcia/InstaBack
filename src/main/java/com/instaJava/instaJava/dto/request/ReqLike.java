@@ -24,13 +24,14 @@ public class ReqLike implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
-	@NotNull(message= "{vali.type-not-null}")
-	private TypeItemLikedEnum type;
+	
 	private long itemId;
 	@NotNull(message= "{vali.decision-not-null}")
 	private Boolean decision;
 	@JsonIgnore
 	private boolean valid;
+	@NotNull(message= "{vali.type-not-null}")
+	private TypeItemLikedEnum type;
 	
 
 }

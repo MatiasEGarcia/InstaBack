@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -145,7 +146,9 @@ class PublicatedImageCTest {
 				.param("description", description))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.file",is(messUtils.getMessage("vali.image"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.constraint-violation-handler"))))
+				.andExpect(jsonPath("$.details.file",is(messUtils.getMessage("vali.image"))));
 	}
 	@Test
 	void postSaveStatusBadRequestImgNotGiven() throws Exception {
@@ -156,8 +159,8 @@ class PublicatedImageCTest {
 				.param("description", description))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.field",is("img")))
-				.andExpect(jsonPath("$.errorMessage",is(messUtils.getMessage("vali.part.not.present"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("vali.part.not.present"))));
 	}
 
 	

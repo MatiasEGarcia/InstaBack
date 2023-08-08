@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -138,7 +139,9 @@ class UserCTest {
 				.header("Authorization","Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.file",is(messUtils.getMessage("vali.image"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.constraint-violation-handler"))))
+				.andExpect(jsonPath("$.details.file",is(messUtils.getMessage("vali.image"))));
 	}
 	
 	@Test
@@ -188,8 +191,10 @@ class UserCTest {
 				.contentType(APPLICATION_JSON_UTF8)
 				.content(objectMapper.writeValueAsString(reqLogout)))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.token",is(messUtils.getMessage("vali.token-not-blank"))))
-				.andExpect(jsonPath("$.refreshToken", is(messUtils.getMessage("vali.refreshToken-not-blank"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.details.token",is(messUtils.getMessage("vali.token-not-blank"))))
+				.andExpect(jsonPath("$.details.refreshToken", is(messUtils.getMessage("vali.refreshToken-not-blank"))));
 	}
 	
 	@Test
@@ -228,10 +233,12 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(perDetDto)))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.name",is(messUtils.getMessage("vali.name-not-blank"))))
-				.andExpect(jsonPath("$.lastname",is(messUtils.getMessage("vali.lastname-not-blank"))))
-				.andExpect(jsonPath("$.age",is(messUtils.getMessage("vali.age-range"))))
-				.andExpect(jsonPath("$.email",is(messUtils.getMessage("vali.email-not-blank"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.details.name",is(messUtils.getMessage("vali.name-not-blank"))))
+				.andExpect(jsonPath("$.details.lastname",is(messUtils.getMessage("vali.lastname-not-blank"))))
+				.andExpect(jsonPath("$.details.age",is(messUtils.getMessage("vali.age-range"))))
+				.andExpect(jsonPath("$.details.email",is(messUtils.getMessage("vali.email-not-blank"))));
 	
 		assertNull(personalDetailsDao.findByUser(matiAuth));
 	}
@@ -300,10 +307,12 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqSearch))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.column", is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
-				.andExpect(jsonPath("$.value", is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
-				.andExpect(jsonPath("$.dateValue", is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
-				.andExpect(jsonPath("$.operation", is(messUtils.getMessage("vali.ReqSearch.operation-not-null"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.details.column", is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
+				.andExpect(jsonPath("$.details.value", is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
+				.andExpect(jsonPath("$.details.dateValue", is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
+				.andExpect(jsonPath("$.details.operation", is(messUtils.getMessage("vali.ReqSearch.operation-not-null"))));
 	}
 	@Test
 	void postSearchUserWithOneConditionMatchesOk() throws Exception {
@@ -365,8 +374,10 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqSearchList))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.reqSearchs", is(messUtils.getMessage("vali.reqSearchs-not-null"))))
-				.andExpect(jsonPath("$.globalOperator", is(messUtils.getMessage("vali.globalOperator-not-null"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.details.reqSearchs", is(messUtils.getMessage("vali.reqSearchs-not-null"))))
+				.andExpect(jsonPath("$.details.globalOperator", is(messUtils.getMessage("vali.globalOperator-not-null"))));
 	}
 	
 	
@@ -438,10 +449,12 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqSearch))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.column", is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
-				.andExpect(jsonPath("$.value", is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
-				.andExpect(jsonPath("$.dateValue", is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
-				.andExpect(jsonPath("$.operation", is(messUtils.getMessage("vali.ReqSearch.operation-not-null"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.details.column", is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
+				.andExpect(jsonPath("$.details.value", is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
+				.andExpect(jsonPath("$.details.dateValue", is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
+				.andExpect(jsonPath("$.details.operation", is(messUtils.getMessage("vali.ReqSearch.operation-not-null"))));
 	}
 	
 	
@@ -515,8 +528,10 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqSearchList))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.reqSearchs", is(messUtils.getMessage("vali.reqSearchs-not-null"))))
-				.andExpect(jsonPath("$.globalOperator", is(messUtils.getMessage("vali.globalOperator-not-null"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.details.reqSearchs", is(messUtils.getMessage("vali.reqSearchs-not-null"))))
+				.andExpect(jsonPath("$.details.globalOperator", is(messUtils.getMessage("vali.globalOperator-not-null"))));
 	}
 	
 	@AfterEach

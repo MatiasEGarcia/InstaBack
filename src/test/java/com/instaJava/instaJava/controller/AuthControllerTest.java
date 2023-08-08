@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -102,8 +103,10 @@ class AuthControllerTest {
 				.content(objectMapper.writeValueAsString(reqUserRegistration)))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.username",is(messUtils.getMessage("vali.username-not-blank"))))
-				.andExpect(jsonPath("$.password",is(messUtils.getMessage("vali.password-not-blank"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.details.username",is(messUtils.getMessage("vali.username-not-blank"))))
+				.andExpect(jsonPath("$.details.password",is(messUtils.getMessage("vali.password-not-blank"))));
 	}
 	
 	@Test
@@ -151,8 +154,10 @@ class AuthControllerTest {
 				.content(objectMapper.writeValueAsString(reqRefreshToken)))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.token",is(messUtils.getMessage("vali.token-not-blank"))))
-				.andExpect(jsonPath("$.refreshToken",is(messUtils.getMessage("vali.refreshToken-not-blank"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.details.token",is(messUtils.getMessage("vali.token-not-blank"))))
+				.andExpect(jsonPath("$.details.refreshToken",is(messUtils.getMessage("vali.refreshToken-not-blank"))));
 		
 	}
 	

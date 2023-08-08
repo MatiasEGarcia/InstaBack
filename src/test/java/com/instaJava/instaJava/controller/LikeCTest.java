@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -96,6 +97,7 @@ class LikeCTest {
 				.header("Authorization", "Bearer " + token))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
 				.andExpect(jsonPath("$.message", is(messUtils.getMessage("exception.request-incorrect"))));
 	}
 	@Test
@@ -108,8 +110,10 @@ class LikeCTest {
 				.contentType(APPLICATION_JSON_UTF8)
 				.content(objectMapper.writeValueAsString(req)))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.type", is(messUtils.getMessage("vali.type-not-null"))))
-				.andExpect(jsonPath("$.decision", is(messUtils.getMessage("vali.decision-not-null"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.details.type", is(messUtils.getMessage("vali.type-not-null"))))
+				.andExpect(jsonPath("$.details.decision", is(messUtils.getMessage("vali.decision-not-null"))));
 	}
 	@Test
 	void postSaveOkReturnLike() throws Exception {

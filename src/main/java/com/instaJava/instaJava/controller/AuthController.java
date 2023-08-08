@@ -1,6 +1,7 @@
 package com.instaJava.instaJava.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +17,7 @@ import com.instaJava.instaJava.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -29,7 +31,7 @@ public class AuthController {
 	 * @param reqUserRegistration. Object with necessary data to registration
 	 * @return tokens for requestss
 	 */
-	@PostMapping("/register")
+	@PostMapping(value="/register", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResAuthToken> register(@Valid @RequestBody ReqUserRegistration reqUserRegistration){
 		return ResponseEntity.ok(authService.register(reqUserRegistration));
 	}

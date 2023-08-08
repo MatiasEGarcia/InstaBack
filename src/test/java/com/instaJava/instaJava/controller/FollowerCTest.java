@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -104,7 +105,8 @@ class FollowerCTest {
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow")
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.field", is("followed")));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.missing-servlet-request-parameter-handler"))));
 		
 	}
 	@Test
@@ -144,10 +146,12 @@ class FollowerCTest {
 				.contentType(APPLICATION_JSON_UTF8)
 				.content(objectMapper.writeValueAsString(reqSearchList)))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.['reqSearchs[0].column']",is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
-				.andExpect(jsonPath("$.['reqSearchs[0].value']",is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
-				.andExpect(jsonPath("$.['reqSearchs[0].dateValue']",is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
-				.andExpect(jsonPath("$.['reqSearchs[0].operation']",is(messUtils.getMessage("vali.ReqSearch.operation-not-null"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.details.['reqSearchs[0].column']",is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
+				.andExpect(jsonPath("$.details.['reqSearchs[0].value']",is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
+				.andExpect(jsonPath("$.details.['reqSearchs[0].dateValue']",is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
+				.andExpect(jsonPath("$.details.['reqSearchs[0].operation']",is(messUtils.getMessage("vali.ReqSearch.operation-not-null"))));
 	}
 	@Test
 	void postGetAllFollowByOk() throws Exception {
@@ -219,7 +223,8 @@ class FollowerCTest {
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.field", is("followStatus")));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.missing-servlet-request-parameter-handler"))));
 	}
 	
 	
@@ -237,15 +242,19 @@ class FollowerCTest {
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/{id}",2)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("exception.follow-id-not-found"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("mess.invalid-exception-handler"))))
+				.andExpect(jsonPath("$.details.message" , is(messUtils.getMessage("exception.follow-id-not-found"))));
 	}
 	@Test
-	void deleteDeleteByIdNotSameFollowerRequest() throws Exception {
+	void deleteDeleteByIdNotSameFollowerBadRequest() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/{id}",1)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("exception.follower-is-not-same"))));
+				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("mess.invalid-exception-handler"))))
+				.andExpect(jsonPath("$.details.message" , is(messUtils.getMessage("exception.follower-is-not-same"))));
 	}
 	
 	@AfterEach
