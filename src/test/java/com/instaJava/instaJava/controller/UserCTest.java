@@ -108,6 +108,18 @@ class UserCTest {
 	}
 
 	@Test
+	void getUserBasicInfoOk() throws Exception{
+		String token = jwtService.generateToken(matiAuth);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/userBasicInfo")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.username", is(matiAuth.getUsername())))
+				.andExpect(jsonPath("$.visible", is(true)));
+		
+	}
+	
+	
+	@Test
 	void postUploadImageOk() throws Exception {
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
 				 MediaType.IMAGE_JPEG_VALUE, 

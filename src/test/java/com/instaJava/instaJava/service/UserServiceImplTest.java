@@ -195,6 +195,16 @@ class UserServiceImplTest {
 		verify(userDao).save(user);
 	}
 	
+	
+	@Test
+	void getByPrincipal() {
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.thenReturn(user);//here the user is visible = true
+		assertEquals(user, userService.getByPrincipal());
+	}
+	
 	@Test
 	void getByIdArgNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> userService.getById(null));

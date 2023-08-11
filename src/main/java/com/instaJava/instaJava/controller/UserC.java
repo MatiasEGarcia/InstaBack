@@ -52,6 +52,15 @@ public class UserC {
 	private final UserMapper userMapper;
 
 	/**
+	 * Get basic user info from the authenticated user.
+	 * @return ResponseEntity with basic user info.
+	 */
+	@GetMapping("/userBasicInfo")
+	public ResponseEntity<ResUser> getAuthBasicUserInfo(){
+		return ResponseEntity.ok(userMapper.UserToResUser(userService.getByPrincipal()));
+	}
+	
+	/**
 	 * Save an image.
 	 * 
 	 * @param file. image to save.

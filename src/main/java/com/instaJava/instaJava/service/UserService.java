@@ -26,6 +26,8 @@ public interface UserService {
 	
 	User changeVisible();
 	
+	User getByPrincipal();
+	
 	Optional<User> getById(Long id);
 	
 	Optional<User> getByUsername(String username);

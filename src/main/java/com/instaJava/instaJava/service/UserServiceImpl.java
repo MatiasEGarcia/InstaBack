@@ -150,6 +150,14 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	}
 
 	/**
+	 * Method to get authenticated user info.
+	 */
+	@Override
+	public User getByPrincipal() {
+		return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+	}
+	
+	/**
 	 * Get a User record by id.
 	 * 
 	 * @param id. id of the user record wanted.
@@ -315,4 +323,5 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 				.anyMatch(s -> s.getColumn().equalsIgnoreCase("password"));
 		if(isTherePassowrdColumn) throw new IllegalArgumentException(messUtils.getMessage("exception.password-not-searchable"));
 	}
+	
 }
