@@ -72,10 +72,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				jwt = authHeader.substring(7);
 				// Now I have to check if this token is invalidated from a logout user
 				if (invTokenService.existByToken(jwt)) {
-					response.setStatus(FORBIDDEN.value());
+					response.setStatus(HttpStatus.UNAUTHORIZED.value());
 					response.setContentType(APPLICATION_JSON_VALUE);
 					new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-							.error(HttpStatus.FORBIDDEN.toString()).message(messUtils.getMessage("mess.auth-token-invalid")).build());
+							.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-invalid")).build());
 				}
 
 				try {
@@ -90,20 +90,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 							authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 							SecurityContextHolder.getContext().setAuthentication(authToken);
 						}else {
-							response.setStatus(FORBIDDEN.value());
+							response.setStatus(HttpStatus.UNAUTHORIZED.value());
 							response.setContentType(APPLICATION_JSON_VALUE);
 							new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-									.error(HttpStatus.FORBIDDEN.toString()).message(messUtils.getMessage("auth-token-expired"))
+									.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("auth-token-expired"))
 									.build());
 						}
 
 					}
 					filterChain.doFilter(request, response);
 				} catch (ExpiredJwtException e) {
-					response.setStatus(FORBIDDEN.value());
+					response.setStatus(HttpStatus.UNAUTHORIZED.value());
 					response.setContentType(APPLICATION_JSON_VALUE);
 					new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-							.error(HttpStatus.FORBIDDEN.toString()).message(messUtils.getMessage("auth-token-expired"))
+							.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("auth-token-expired"))
 							.details(Map.of("exception_message", e.getMessage()))
 							.build());
 				}

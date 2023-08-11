@@ -109,7 +109,7 @@ class JwtAuthenticationFilterTest {
     	
     	filter.doFilterInternal(request, response, filterChain);
     	
-    	assertEquals(HttpServletResponse.SC_FORBIDDEN, response.getStatus());
+    	assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
     	verify(invTokenService).existByToken(any(String.class));
     }
     
@@ -129,7 +129,7 @@ class JwtAuthenticationFilterTest {
     	
     	filter.doFilterInternal(request, response, filterChain);
     	
-    	assertEquals(HttpServletResponse.SC_FORBIDDEN, response.getStatus());
+    	assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
     	verify(invTokenService).existByToken(any(String.class));
     	verify(jwtService).extractUsername(any(String.class));
     	verify(userDetailservice).loadUserByUsername(username);
