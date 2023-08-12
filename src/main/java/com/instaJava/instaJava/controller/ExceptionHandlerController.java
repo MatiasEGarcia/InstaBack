@@ -20,8 +20,10 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 
 import com.instaJava.instaJava.dto.response.ResErrorMessage;
 import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.TokenException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
@@ -191,6 +193,22 @@ public class ExceptionHandlerController {
 				.details(Map.of(e.getName(), e.getMessage()))		
 				.build());
 		
+	}
+	
+	/**
+	 * Will handle exceptions from invalids tokens.
+	 * 
+	 * @param e. exception that we need to handle.
+	 * @return ResponseEntity.
+	 */
+	@ExceptionHandler(value = {TokenException.class})
+	public ResponseEntity<ResErrorMessage> handlerExpiredJwtException(ExpiredJwtException e){
+		LOGGER.error("There was some ExpiredJwtException", e.getMessage());
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+				ResErrorMessage.builder()
+				.error(HttpStatus.UNAUTHORIZED.toString())
+				.message(e.getMessage())
+				.build());
 	}
 }
 

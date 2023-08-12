@@ -20,6 +20,7 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
 import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.TokenException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -102,7 +103,7 @@ public class AuthService {
 					.refreshToken(reqRefreshToken.getRefreshToken()) //we return the same refreshToken
 					.build();
 		}else {
-			throw new InvalidException(messUtils.getMessage("exception.refreshToken-invalid"));
+			throw new TokenException(messUtils.getMessage("exception.refreshToken-invalid"));
 		}
 	}
 	
