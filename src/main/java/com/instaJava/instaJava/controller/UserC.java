@@ -55,7 +55,7 @@ public class UserC {
 	 * Get basic user info from the authenticated user.
 	 * @return ResponseEntity with basic user info.
 	 */
-	@GetMapping("/userBasicInfo")
+	@GetMapping(value="/userBasicInfo", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResUser> getAuthBasicUserInfo(){
 		return ResponseEntity.ok(userMapper.UserToResUser(userService.getByPrincipal()));
 	}
@@ -66,7 +66,7 @@ public class UserC {
 	 * @param file. image to save.
 	 * @return ResponseEntity with the image saved as base64.
 	 */
-	@PostMapping("/image")
+	@PostMapping(value="/image", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResImageString> uploadImage(@RequestParam("img") @NotNull @Image MultipartFile file) {
 		userService.updateImage(file);
 		return ResponseEntity.status(HttpStatus.OK)
@@ -78,7 +78,7 @@ public class UserC {
 	 * 
 	 * @return ResponseEntity with the image as base64.
 	 */
-	@GetMapping("/image")
+	@GetMapping(value="/image", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResImageString> downloadImage() {
 		return ResponseEntity.status(HttpStatus.OK)
 				.body(ResImageString.builder().image64(userService.getImage()).build());
@@ -90,7 +90,7 @@ public class UserC {
 	 * @param reqLogout. Contain tokens to invalidate.
 	 * @return a message to indicate that the logout was successfully.
 	 */
-	@PostMapping("/logout")
+	@PostMapping(value="/logout", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResMessage> logout(@Valid @RequestBody ReqLogout reqLogout) {
 		invTokenService.invalidateTokens(List.of(reqLogout.getToken(),reqLogout.getRefreshToken()));
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("mess.successfully-logout")));
@@ -102,7 +102,7 @@ public class UserC {
 	 * @param personalDetailsDto . Object with the info to create a PersonalDetail object and save it in database
 	 * @return personalDetails saved
 	 */
-	@PostMapping("/personalDetails")
+	@PostMapping(value="/personalDetails", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<PersonalDetailsDto> savePersonalDetails(
 			@Valid @RequestBody PersonalDetailsDto personalDetailsDto) {
 		personalDetailsDto = personalDetailsMapper
@@ -115,7 +115,7 @@ public class UserC {
 	 * 
 	 * @return user information updated.
 	 */
-	@PutMapping("/visible")
+	@PutMapping(value="/visible", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResUser> setVisible() {
 		return ResponseEntity.ok().body(userMapper.UserToResUser(userService.changeVisible()));
 	}
@@ -125,7 +125,7 @@ public class UserC {
 	 * 
 	 * @return personal details, else a message that nothing was found.
 	 */
-	@GetMapping("/personalDetails")
+	@GetMapping(value="/personalDetails", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<PersonalDetailsDto> getPersonalDetails() {
 		Optional<PersonalDetails> optPersDetails = userService.getPersonalDetailsByUser();
 		if (optPersDetails.isEmpty()) {
@@ -143,7 +143,7 @@ public class UserC {
 	 * @param reqSearch. object with conditions to user search.
 	 * @return user that was found,else a message that there wasn't any that meet the conditions.
 	 */
-	@PostMapping("/searchOne/oneCondition")
+	@PostMapping(value="/searchOne/oneCondition", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResUser> searchUserWithOneCondition(@Valid @RequestBody ReqSearch reqSearch) {
 		Optional<User> optUser = userService.getOneUserOneCondition(reqSearch);
 		if (optUser.isEmpty())return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.there-no-users")).build();
@@ -156,7 +156,7 @@ public class UserC {
 	 * @param reqSearchList. object with a collection of conditions to user search.
 	 * @return user that was found,else a message that there wasn't any that meet the conditions.
 	 */
-	@PostMapping("searchOne/manyConditions")
+	@PostMapping(value="searchOne/manyConditions", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResUser> searchUserWithManyConditions(@Valid @RequestBody ReqSearchList reqSearchList) {
 		Optional<User> optUser = userService.getOneUserManyConditions(reqSearchList);
 		if (optUser.isEmpty())
@@ -174,7 +174,7 @@ public class UserC {
 	 * @param sortDir. In what direction is sorted, asc or desc.
 	 * @return paginated users that were found,else a message that there wasn't any that meet the conditions.
 	 */
-	@PostMapping("/searchAll/oneCondition")
+	@PostMapping(value="/searchAll/oneCondition", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResUser>> searchUsersWithOneCondition(@Valid @RequestBody ReqSearch reqSearch,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
@@ -199,7 +199,7 @@ public class UserC {
 	 * @param sortDir. In what direction is sorted, asc or desc.
 	 * @return paginated users that were found,else a message that there wasn't any that meet the conditions.
 	 */
-	@PostMapping("/searchAll/manyConditions")
+	@PostMapping(value="/searchAll/manyConditions", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResUser>> searchUsersWithManyConditions(@Valid @RequestBody ReqSearchList reqSearchList,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,

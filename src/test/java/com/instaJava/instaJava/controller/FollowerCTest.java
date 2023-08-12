@@ -103,6 +103,7 @@ class FollowerCTest {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
@@ -113,6 +114,7 @@ class FollowerCTest {
 	void postSave() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token)
 				.param("followed", "2"))
 				.andExpect(status().isOk())
@@ -125,6 +127,7 @@ class FollowerCTest {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow/findAllBy")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.message",instanceOf(String.class)));
@@ -204,6 +207,7 @@ class FollowerCTest {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/followStatus")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token)
 				.param("followStatus", FollowStatus.ACCEPTED.toString())
 				.param("followId", "1"))
@@ -220,6 +224,7 @@ class FollowerCTest {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/followStatus")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
@@ -232,6 +237,7 @@ class FollowerCTest {
 	void deleteDeleteByIdOk() throws Exception {
 		String token = jwtService.generateToken(rociUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/{id}",1)
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.record-delete"))));
@@ -240,6 +246,7 @@ class FollowerCTest {
 	void deleteDeleteByIdNoExistBadRequest() throws Exception {
 		String token = jwtService.generateToken(rociUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/{id}",2)
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
@@ -250,6 +257,7 @@ class FollowerCTest {
 	void deleteDeleteByIdNotSameFollowerBadRequest() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/{id}",1)
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))

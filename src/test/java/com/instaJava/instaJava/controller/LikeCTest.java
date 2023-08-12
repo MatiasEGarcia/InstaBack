@@ -94,6 +94,7 @@ class LikeCTest {
 		String token = jwtService.generateToken(matiasUserAuth);
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/like")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())

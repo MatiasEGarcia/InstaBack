@@ -122,6 +122,7 @@ class PublicatedImageCTest {
 		String description = "description";
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/publicatedImages/save")
 				.file(img)
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("authorization", "Bearer " + token)
 				.param("description", description))
 				.andExpect(status().isOk())
@@ -142,6 +143,7 @@ class PublicatedImageCTest {
 		String description = "description";
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/publicatedImages/save")
 				.file(img)
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("authorization", "Bearer " + token)
 				.param("description", description))
 				.andExpect(status().isBadRequest())
@@ -155,6 +157,7 @@ class PublicatedImageCTest {
 		String token = jwtService.generateToken(userAuthMati);
 		String description = "description";
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/publicatedImages/save")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("authorization", "Bearer " + token)
 				.param("description", description))
 				.andExpect(status().isBadRequest())
@@ -180,6 +183,7 @@ class PublicatedImageCTest {
 				.build());
 		
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/publicatedImages/{id}",1)
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.publi-image-deleted"))));
@@ -193,6 +197,7 @@ class PublicatedImageCTest {
 	void getSearchByUserWithoutParamsOk() throws Exception {
 		String token = jwtService.generateToken(userAuthMati); //this user has publicated images
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
@@ -208,6 +213,7 @@ class PublicatedImageCTest {
 	void getSearchByUserWithParamsOk() throws Exception {
 		String token = jwtService.generateToken(userAuthMati); //this user has publicated images
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token)
 				.param("sortField", "userOwner_username")
 				.param("sortDir", Direction.DESC.toString()))
@@ -225,6 +231,7 @@ class PublicatedImageCTest {
 	void getSearchByUserWithoutParamsNoContent() throws Exception {
 		String token = jwtService.generateToken(userAuthRoci); //this user hasn't publicated images
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
 				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.not-publi-image")));
@@ -235,6 +242,7 @@ class PublicatedImageCTest {
 	void getGetAllByOwnerVisibleWithoutParamsOk() throws Exception {
 		String token = jwtService.generateToken(userAuthMati); //this user is public and has publicated images
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisiblesOwners")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
@@ -250,6 +258,7 @@ class PublicatedImageCTest {
 	void getGetAllByOwnerVisibleWithParamsOk() throws Exception {
 		String token = jwtService.generateToken(userAuthMati); //this user is public and has publicated images
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisiblesOwners")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token)
 				.param("sortField", "userOwner_username")
 				.param("sortDir", Direction.DESC.toString()))
@@ -268,6 +277,7 @@ class PublicatedImageCTest {
 		publicatedImagesDao.deleteById(1L); //we delete the only publicated image belong to the only visible/public user
 		String token = jwtService.generateToken(userAuthRoci); //this user hasn't publicated images
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisiblesOwners")
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
 				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.not-publi-image")));
@@ -279,6 +289,7 @@ class PublicatedImageCTest {
 	void getAllByOwnerIdFollowStatusNotAskedNoContent() throws Exception {
 		String token = jwtService.generateToken(userAuthMati); 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",2) //the sqlAddUser2 id
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
 				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.followStatus-not-asked")));
@@ -289,6 +300,7 @@ class PublicatedImageCTest {
 		userDao.save(userAuthMati); //now the user is private/no visible
 		String token = jwtService.generateToken(userAuthRoci); 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
 				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.followStatus-in-process")));
@@ -301,6 +313,7 @@ class PublicatedImageCTest {
 				.followed(userAuthMati).followStatus(FollowStatus.REJECTED).build());  // we edit this record : sqlAddFollow
 		String token = jwtService.generateToken(userAuthRoci);  
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
 				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.followStatus-rejected")));
@@ -314,6 +327,7 @@ class PublicatedImageCTest {
 		publicatedImagesDao.deleteById(1L); //it delete the only sqlAddUser1's publicatedImage 
 		String token = jwtService.generateToken(userAuthRoci);  
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 		        .andExpect(status().isNoContent())
 		        .andExpect(header().string("moreInfo", messUtils.getMessage("mess.not-publi-image")));
@@ -326,6 +340,7 @@ class PublicatedImageCTest {
 				.followed(userAuthMati).followStatus(FollowStatus.ACCEPTED).build());  // we edit this record : sqlAddFollow
 		String token = jwtService.generateToken(userAuthRoci);  
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1) //the sqlAddUser1 id
+				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 		        .andExpect(content().contentType(APPLICATION_JSON_UTF8))
 		        .andExpect(status().isOk())

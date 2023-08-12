@@ -42,7 +42,7 @@ public class AuthController {
 	 * @param reqLogin. Object with necessary data to authentication.
 	 * @return tokens for requests.
 	 */
-	@PostMapping("/authenticate")
+	@PostMapping(value="/authenticate", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResAuthToken> authenticate(@Valid @RequestBody ReqLogin reqLogin){
 		return ResponseEntity.ok(authService.authenticate(reqLogin));
 	}
@@ -53,7 +53,7 @@ public class AuthController {
 	 * @param reqRefreshToken. Object with 2 tokens, simple token and refresh token.
 	 * @return valid tokens for requests.
 	 */
-	@GetMapping("/refreshToken")
+	@GetMapping(value="/refreshToken", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResAuthToken> refreshToken(@Valid @RequestBody ReqRefreshToken reqRefreshToken){
 		return ResponseEntity.ok(authService.refreshToken(reqRefreshToken));
 	}

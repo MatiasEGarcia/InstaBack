@@ -44,7 +44,7 @@ public class FollowC {
 	 * @param followed. id of the User that will be followed.
 	 * @return followStatus.
 	 */
-	@PostMapping
+	@PostMapping(consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResFollowStatus> save(@RequestParam(name = "followed") Long followed){
 		Follow fol = follService.save(followed);
 		return ResponseEntity.ok().body(follMapper.followToResFollowStatus(fol));
@@ -60,7 +60,7 @@ public class FollowC {
 	 * @param sortDir. In what direction is sorted, asc or desc.
 	 * @return
 	 */
-	@PostMapping("/findAllBy")
+	@PostMapping(value="/findAllBy", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResFollow>> getAllFollowBy(
 			@Valid @RequestBody ReqSearchList reqSearchList,
 			@RequestParam(name ="page", defaultValue = "1") String pageNo,
@@ -88,7 +88,7 @@ public class FollowC {
 	 * @param id. follow id from the record to updated.
 	 * @return follow record updated
 	 */
-	@PutMapping("/followStatus")
+	@PutMapping(value="/followStatus", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResFollow> updateFollowStatus(@RequestParam(name = "followStatus") FollowStatus followStatus,
 			@RequestParam(name = "followId")Long id){
 		Follow fol  = follService.updateFollowStatusById(id, followStatus);
@@ -101,7 +101,7 @@ public class FollowC {
 	 * @param id. Follow id record.
 	 * @return message that the record was successfully deleted.
 	 */
-	@DeleteMapping("/{id}")
+	@DeleteMapping(value="/{id}", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id){
 		follService.deleteById(id);
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("mess.record-delete")));

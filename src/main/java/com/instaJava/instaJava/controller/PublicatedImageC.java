@@ -47,7 +47,7 @@ public class PublicatedImageC {
 	 * @param description. A just text to save with the image
 	 * @return  publicatedImage saved
 	 */
-	@PostMapping("/save")
+	@PostMapping(value="/save", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResPublicatedImage> save(@RequestParam("img") @Image MultipartFile file,
 			@RequestParam("description") String description) {
 		ResPublicatedImage resPublicatedImage = publicImaMapper.publicatedImageAndUserToResPublicatedImage(
@@ -63,7 +63,7 @@ public class PublicatedImageC {
 	 * @param id. id of the PublicatedImage record.
 	 * @return a message telling that was successfully deleted
 	 */
-	@DeleteMapping("/{id}")
+	@DeleteMapping(value="/{id}", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id) {
 		publicatedImageService.deleteById(id);
 		return ResponseEntity.ok()
@@ -73,6 +73,7 @@ public class PublicatedImageC {
 	/**
 	 * 
 	 * Search PublicatedImages by the authenticated user.
+	 * It didnt have value.
 	 * 
 	 * @param pageNo. For pagination, number of the page.
 	 * @param pageSize. For pagination, size of the elements in the same page.
@@ -80,7 +81,7 @@ public class PublicatedImageC {
 	 * @param sortDir. In what direction is sorted, asc or desc.
 	 * @return a pagination collection with the PublicatedImages records, else a message that there are not records.
 	 */
-	@GetMapping
+	@GetMapping(consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> searchByUser(
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
@@ -106,7 +107,7 @@ public class PublicatedImageC {
 	 * @param sortDir. In what direction is sorted, asc or desc.
 	 * @return pagination collection  with the PublicatedImages records, else a message that there are not records.
 	 */
-	@GetMapping("/byVisiblesOwners")
+	@GetMapping(value="/byVisiblesOwners", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwnerVisible(
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
@@ -122,15 +123,6 @@ public class PublicatedImageC {
 				.body(publicImaMapper.pageAndPageInfoDtoToResPaginationG(pagePubliImages, pageInfoDto));
 	}
 
-	/*
-	 * We ask the follow status and only if the follow status is accepted we ask for
-	 * the publicated images
-	 * 
-	 * Return status ok if there are publicated images ,Return status noContent with
-	 * header info if any of the next conditions is met - THere are not publicated
-	 * images - The follow status is NOT_ASKED - The follow status is IN_PROCESS -
-	 * The follow status is REJECTED
-	 */
 	/**
 	 * 
 	 * Get all PublicatedImages by owner id of the record.
@@ -145,7 +137,7 @@ public class PublicatedImageC {
 	 * else a message that there are not records.
 	 * @throws IllegalArgumentException if follow status no exists.
 	 */
-	@GetMapping("/byOwnerId/{ownerId}")
+	@GetMapping(value="/byOwnerId/{ownerId}", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwnerId(@PathVariable("ownerId") Long ownerId,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,

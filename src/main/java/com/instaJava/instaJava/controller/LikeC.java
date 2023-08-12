@@ -38,7 +38,7 @@ public class LikeC {
 	 * @param reqLike. Data to save .
 	 * @return like saved.
 	 */
-	@PostMapping
+	@PostMapping(consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResLike> save(@Valid @RequestBody ReqLike reqLike) {
 		Optional<Like> optLike = likeService.save(reqLike);
 		if (optLike.isEmpty())
@@ -54,7 +54,7 @@ public class LikeC {
 	 * @return Like collection saved.
 	 */
 	
-	@PostMapping("/all")
+	@PostMapping(value="/all", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResListG<ResLike>> saveAll(@Valid @RequestBody ReqLikeList reqLikeList) {
 		List<Like> likeListSaved = likeService.saveAll(reqLikeList.getReqLikeList());
 		if (likeListSaved.isEmpty())
