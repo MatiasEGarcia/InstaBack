@@ -1,5 +1,7 @@
 package com.instaJava.instaJava.config;
 
+import java.util.Arrays;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -9,6 +11,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.instaJava.instaJava.config.filter.JwtAuthenticationFilter;
 
@@ -25,9 +29,11 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http
-			.csrf()
+		http.csrf()
 			.disable()
+			.cors()
+			.configurationSource(corsConfigurationSource())
+			.and()
 			.authorizeHttpRequests()
 			.requestMatchers("/api/v1/auth/**")
 			.permitAll()
@@ -41,4 +47,40 @@ public class SecurityConfig {
 			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
+	
+	/**
+	 * Allowing cross-origin requests.
+	 * @return WebMvcConfigurer
+	 */
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		return request -> {
+			CorsConfiguration  corsConf =  new CorsConfiguration();
+			corsConf.setAllowedOrigins(Arrays.asList("*"));
+			corsConf.setAllowedMethods(Arrays.asList("*"));
+			corsConf.setAllowedHeaders(Arrays.asList("*"));
+			return corsConf;
+		};
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
