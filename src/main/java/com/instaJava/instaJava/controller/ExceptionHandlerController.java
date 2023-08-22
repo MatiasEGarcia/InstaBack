@@ -23,7 +23,6 @@ import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.exception.TokenException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
@@ -202,8 +201,8 @@ public class ExceptionHandlerController {
 	 * @return ResponseEntity.
 	 */
 	@ExceptionHandler(value = {TokenException.class})
-	public ResponseEntity<ResErrorMessage> handlerExpiredJwtException(ExpiredJwtException e){
-		LOGGER.error("There was some ExpiredJwtException", e.getMessage());
+	public ResponseEntity<ResErrorMessage> handlerExpiredJwtException(TokenException e){
+		LOGGER.error("There was some TokenException", e.getMessage());
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
 				ResErrorMessage.builder()
 				.error(HttpStatus.UNAUTHORIZED.toString())

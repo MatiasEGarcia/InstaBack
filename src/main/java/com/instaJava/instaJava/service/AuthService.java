@@ -19,10 +19,10 @@ import com.instaJava.instaJava.dto.response.ResAuthToken;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
-import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.exception.TokenException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -90,12 +90,17 @@ public class AuthService {
 	 * @param reqRefreshToken. contains old tokens expired or invalidated
 	 * @return ResAuthToken object with valid tokens.
 	 * @throws IllegalArgumentException if @param reqRefreshToken is null.
-	 * @throws InvalidException if the the refresh token is expired or invalidated.
+	 * @throws TokenException if the the refresh token is expired or invalidated because was logout.
 	 */
 	@Transactional(readOnly = true)
 	public ResAuthToken refreshToken(ReqRefreshToken reqRefreshToken) {
 		if(reqRefreshToken == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
-		UserDetails userDetails = userDetailsService.loadUserByUsername(jwtService.extractUsername(reqRefreshToken.getRefreshToken()));
+		UserDetails userDetails;
+		try {
+			userDetails = userDetailsService.loadUserByUsername(jwtService.extractUsername(reqRefreshToken.getRefreshToken()));
+		} catch (ExpiredJwtException e) {
+			throw new TokenException(messUtils.getMessage("exception.refreshToken-invalid"));
+		}
 		if(jwtService.isTokenValid(reqRefreshToken.getRefreshToken(), userDetails)
 				&& !invTokenService.existByToken(reqRefreshToken.getRefreshToken())) {
 			 return ResAuthToken.builder()

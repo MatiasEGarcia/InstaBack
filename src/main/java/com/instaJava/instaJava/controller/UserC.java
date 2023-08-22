@@ -57,7 +57,6 @@ public class UserC {
 	 */
 	@GetMapping(value="/userBasicInfo", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResUser> getAuthBasicUserInfo(){
-		System.out.println("------------------------entrando en /userBasicInfo-------------------- ");
 		return ResponseEntity.ok(userMapper.UserToResUser(userService.getByPrincipal()));
 	}
 	

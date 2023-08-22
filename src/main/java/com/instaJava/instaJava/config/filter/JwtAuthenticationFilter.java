@@ -34,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
 	private final MessagesUtils messUtils;
 	private final JwtService jwtService;
 	private final UserDetailsService userDetailsService;
@@ -60,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		final String authHeader;
 		final String jwt;
 		final String username;
-
+		
 		if (isPathAuthFree(request.getRequestURI())) {
 			filterChain.doFilter(request, response); // request continues
 			return;
@@ -91,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 							response.setStatus(HttpStatus.UNAUTHORIZED.value());
 							response.setContentType(APPLICATION_JSON_VALUE);
 							new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-									.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("auth-token-expired"))
+									.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-expired"))
 									.build());
 						}
 
@@ -101,7 +100,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					response.setStatus(HttpStatus.UNAUTHORIZED.value());
 					response.setContentType(APPLICATION_JSON_VALUE);
 					new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-							.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("auth-token-expired"))
+							.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-expired"))
 							.details(Map.of("exception_message", e.getMessage()))
 							.build());
 				}

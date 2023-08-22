@@ -1,7 +1,7 @@
 package com.instaJava.instaJava.controller;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,10 +22,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.instaJava.instaJava.dto.request.ReqLike;
-import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;

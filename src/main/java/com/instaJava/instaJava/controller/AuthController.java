@@ -1,7 +1,6 @@
 package com.instaJava.instaJava.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,7 +50,7 @@ public class AuthController {
 	 * @param reqRefreshToken. Object with 2 tokens, simple token and refresh token.
 	 * @return valid tokens for requests.
 	 */
-	@GetMapping(value="/refreshToken", consumes = "application/json", produces = "application/json")
+	@PostMapping(value="/refreshToken", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResAuthToken> refreshToken(@Valid @RequestBody ReqRefreshToken reqRefreshToken){
 		return ResponseEntity.ok(authService.refreshToken(reqRefreshToken));
 	}

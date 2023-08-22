@@ -30,7 +30,6 @@ import com.instaJava.instaJava.dto.request.ReqLogin;
 import com.instaJava.instaJava.dto.request.ReqRefreshToken;
 import com.instaJava.instaJava.dto.request.ReqUserRegistration;
 import com.instaJava.instaJava.entity.User;
-import com.instaJava.instaJava.service.AuthService;
 import com.instaJava.instaJava.service.JwtService;
 import com.instaJava.instaJava.util.MessagesUtils;
 
@@ -45,8 +44,6 @@ class AuthControllerTest {
 	private MockMvc mockMvc;
 	@Autowired
 	private JdbcTemplate jdbc;
-	@Autowired
-	private AuthService authService;
 	@Autowired
 	private ObjectMapper objectMapper;
 	@Autowired
@@ -126,7 +123,7 @@ class AuthControllerTest {
 	}
 	
 	@Test
-	void getrefreshTokenStatusOk() throws Exception {
+	void postrefreshTokenStatusOk() throws Exception {
 		UserDetails user = User.builder()
 				.username("matias") //username from -> sqlAddUser1
 				.build(); 
@@ -135,7 +132,7 @@ class AuthControllerTest {
 				.refreshToken(jwtService.generateRefreshToken(user))
 				.build();
 		
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/auth/refreshToken")
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/refreshToken")
 				.contentType(APPLICATION_JSON_UTF8)
 				.content(objectMapper.writeValueAsString(reqRefreshToken)))
 				.andExpect(status().isOk())
@@ -146,10 +143,10 @@ class AuthControllerTest {
 	}
 	
 	@Test
-	void getrefreshTokenStatusBadRequest() throws Exception { 
+	void postrefreshTokenStatusBadRequest() throws Exception { 
 		ReqRefreshToken reqRefreshToken = ReqRefreshToken.builder().build();
 		
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/auth/refreshToken")
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/refreshToken")
 				.contentType(APPLICATION_JSON_UTF8)
 				.content(objectMapper.writeValueAsString(reqRefreshToken)))
 				.andExpect(status().isBadRequest())

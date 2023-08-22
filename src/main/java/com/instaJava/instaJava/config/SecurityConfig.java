@@ -62,25 +62,4 @@ public class SecurityConfig {
 			return corsConf;
 		};
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
