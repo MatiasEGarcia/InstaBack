@@ -7,6 +7,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -209,6 +210,23 @@ public class ExceptionHandlerController {
 				.message(e.getMessage())
 				.build());
 	}
+	
+	/**
+	 * When client send a wrong entity property when try to search records this will handle the exception that will be throw. 
+	 * @param e PropertyReferenceException
+	 * @return ResErrorMessage with all the information required by the client to resolve the incorrect property.
+	 */
+	@ExceptionHandler(value = {PropertyReferenceException.class})
+	public ResponseEntity<ResErrorMessage> handlerPropertyReferenceException(PropertyReferenceException e){
+		LOGGER.error("There was some PropertyReferenceException : " , e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+				ResErrorMessage.builder()
+				.error(HttpStatus.BAD_REQUEST.toString())
+				.message(messUtils.getMessage("exception.incorrect-property"))
+				.details(Map.of(e.getPropertyName(),e.getMessage()))
+				.build());
+	}
+	
 }
 
 
