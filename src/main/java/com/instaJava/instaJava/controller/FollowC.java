@@ -44,7 +44,7 @@ public class FollowC {
 	 * @param followed. id of the User that will be followed.
 	 * @return followStatus.
 	 */
-	@PostMapping(consumes = "application/json", produces = "application/json")
+	@PostMapping(produces = "application/json")
 	public ResponseEntity<ResFollowStatus> save(@RequestParam(name = "followed") Long followed){
 		Follow fol = follService.save(followed);
 		return ResponseEntity.ok().body(follMapper.followToResFollowStatus(fol));
@@ -88,7 +88,7 @@ public class FollowC {
 	 * @param id. follow id from the record to updated.
 	 * @return follow record updated
 	 */
-	@PutMapping(value="/followStatus", consumes = "application/json", produces = "application/json")
+	@PutMapping(value="/followStatus", produces = "application/json")
 	public ResponseEntity<ResFollow> updateFollowStatus(@RequestParam(name = "followStatus") FollowStatus followStatus,
 			@RequestParam(name = "followId")Long id){
 		Follow fol  = follService.updateFollowStatusById(id, followStatus);
@@ -101,7 +101,7 @@ public class FollowC {
 	 * @param id. Follow id record.
 	 * @return message that the record was successfully deleted.
 	 */
-	@DeleteMapping(value="/{id}", consumes = "application/json", produces = "application/json")
+	@DeleteMapping(value="/{id}", produces = "application/json")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id){
 		follService.deleteById(id);
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("mess.record-delete")));

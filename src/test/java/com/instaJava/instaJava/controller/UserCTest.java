@@ -54,6 +54,7 @@ import com.instaJava.instaJava.util.MessagesUtils;
 @SpringBootTest
 class UserCTest {
 	
+	@SuppressWarnings("unused")
 	private static MockHttpServletRequest request;
 
 	@Autowired
@@ -111,7 +112,6 @@ class UserCTest {
 	void getUserBasicInfoOk() throws Exception{
 		String token = jwtService.generateToken(matiAuth);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/userBasicInfo")
-				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.username", is(matiAuth.getUsername())))
@@ -131,7 +131,7 @@ class UserCTest {
 		
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/users/image")
 				.file(img)
-				.contentType(APPLICATION_JSON_UTF8)
+				.contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
 				.header("Authorization","Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
@@ -150,7 +150,7 @@ class UserCTest {
 		
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/users/image")
 				.file(img)
-				.contentType(APPLICATION_JSON_UTF8)
+				.contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
 				.header("Authorization","Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
@@ -171,7 +171,6 @@ class UserCTest {
 		userDao.save(matiAuth);
 		
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/image")
-				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization","Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
@@ -263,7 +262,6 @@ class UserCTest {
 	void putVisibleOk() throws Exception {
 		String token = jwtService.generateToken(matiAuth);
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/users/visible")
-				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
@@ -274,7 +272,6 @@ class UserCTest {
 	void getPersonalDetailsNoExistNoContent() throws Exception {
 		String token = jwtService.generateToken(matiAuth);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/personalDetails")
-				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
 				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.perDet-not-found"))));
@@ -293,7 +290,6 @@ class UserCTest {
 				.build();
 		personalDetailsDao.save(perDet);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/personalDetails")
-				.contentType(APPLICATION_JSON_UTF8)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())

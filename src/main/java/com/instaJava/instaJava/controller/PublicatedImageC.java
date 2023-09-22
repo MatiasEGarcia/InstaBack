@@ -63,7 +63,7 @@ public class PublicatedImageC {
 	 * @param id. id of the PublicatedImage record.
 	 * @return a message telling that was successfully deleted
 	 */
-	@DeleteMapping(value="/{id}", consumes = "application/json", produces = "application/json")
+	@DeleteMapping(value="/{id}", produces = "application/json")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id) {
 		publicatedImageService.deleteById(id);
 		return ResponseEntity.ok()
@@ -72,8 +72,8 @@ public class PublicatedImageC {
 	
 	/**
 	 * 
-	 * Search PublicatedImages by the authenticated user.
-	 * It didnt have value.
+	 * Search authenticated user publicated images, that is why don't have a value, only with /api/v1/publicatedImages works
+	 * I don't use ReqSearch with postMapping because we already know that is by user equal to authenticated user.
 	 * 
 	 * @param pageNo. For pagination, number of the page.
 	 * @param pageSize. For pagination, size of the elements in the same page.
@@ -81,7 +81,7 @@ public class PublicatedImageC {
 	 * @param sortDir. In what direction is sorted, asc or desc.
 	 * @return a pagination collection with the PublicatedImages records, else a message that there are not records.
 	 */
-	@GetMapping(consumes = "application/json", produces = "application/json")
+	@GetMapping(produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> searchByUser(
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
@@ -99,7 +99,8 @@ public class PublicatedImageC {
 
 	
 	/**
-	 * Get PublicatedImages from users with User.visible = true.(public account)
+	 * Get PublicatedImages from any user with User.visible = true.(public account)
+	 * I don't use ReqSearch with postMapping because I already know that is for onwer visible.
 	 * 
 	 * @param pageNo. For pagination, number of the page.
 	 * @param pageSize. For pagination, size of the elements in the same page.
@@ -107,7 +108,7 @@ public class PublicatedImageC {
 	 * @param sortDir. In what direction is sorted, asc or desc.
 	 * @return pagination collection  with the PublicatedImages records, else a message that there are not records.
 	 */
-	@GetMapping(value="/byVisiblesOwners", consumes = "application/json", produces = "application/json")
+	@GetMapping(value="/byVisiblesOwners", produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwnerVisible(
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
@@ -126,6 +127,7 @@ public class PublicatedImageC {
 	/**
 	 * 
 	 * Get all PublicatedImages by owner id of the record.
+	 * I don't use ReqSearch with postMapping because I already know that is owner id.
 	 * 
 	 * @param ownerId
 	 * @param pageNo. For pagination, number of the page.
@@ -137,7 +139,7 @@ public class PublicatedImageC {
 	 * else a message that there are not records.
 	 * @throws IllegalArgumentException if follow status no exists.
 	 */
-	@GetMapping(value="/byOwnerId/{ownerId}", consumes = "application/json", produces = "application/json")
+	@GetMapping(value="/byOwnerId/{ownerId}", produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwnerId(@PathVariable("ownerId") Long ownerId,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,

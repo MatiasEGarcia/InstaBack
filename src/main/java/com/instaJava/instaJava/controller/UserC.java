@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,7 +57,7 @@ public class UserC {
 	 * Get basic user info from the authenticated user.
 	 * @return ResponseEntity with basic user info.
 	 */
-	@GetMapping(value="/userBasicInfo", consumes = "application/json", produces = "application/json")
+	@GetMapping(value="/userBasicInfo", produces = "application/json")
 	public ResponseEntity<ResUser> getAuthBasicUserInfo(){
 		return ResponseEntity.ok(userMapper.UserToResUser(userService.getByPrincipal()));
 	}
@@ -66,8 +68,8 @@ public class UserC {
 	 * @param file. image to save.
 	 * @return ResponseEntity with the image saved as base64.
 	 */
-	@PostMapping(value="/image", consumes = "application/json", produces = "application/json")
-	public ResponseEntity<ResImageString> uploadImage(@RequestParam("img") @NotNull @Image MultipartFile file) {
+	@PostMapping(value="/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE , produces = "application/json")
+	public ResponseEntity<ResImageString> uploadImage(@RequestPart("img") @NotNull @Image MultipartFile file) {
 		userService.updateImage(file);
 		return ResponseEntity.status(HttpStatus.OK)
 				.body(ResImageString.builder().image64(userService.getImage()).build());
@@ -78,7 +80,7 @@ public class UserC {
 	 * 
 	 * @return ResponseEntity with the image as base64.
 	 */
-	@GetMapping(value="/image", consumes = "application/json", produces = "application/json")
+	@GetMapping(value="/image", produces = "application/json")
 	public ResponseEntity<ResImageString> downloadImage() {
 		return ResponseEntity.status(HttpStatus.OK)
 				.body(ResImageString.builder().image64(userService.getImage()).build());
@@ -115,7 +117,7 @@ public class UserC {
 	 * 
 	 * @return user information updated.
 	 */
-	@PutMapping(value="/visible", consumes = "application/json", produces = "application/json")
+	@PutMapping(value="/visible", produces = "application/json")
 	public ResponseEntity<ResUser> setVisible() {
 		return ResponseEntity.ok().body(userMapper.UserToResUser(userService.changeVisible()));
 	}
@@ -125,7 +127,7 @@ public class UserC {
 	 * 
 	 * @return personal details, else a message that nothing was found.
 	 */
-	@GetMapping(value="/personalDetails", consumes = "application/json", produces = "application/json")
+	@GetMapping(value="/personalDetails", produces = "application/json")
 	public ResponseEntity<PersonalDetailsDto> getPersonalDetails() {
 		Optional<PersonalDetails> optPersDetails = userService.getPersonalDetailsByUser();
 		if (optPersDetails.isEmpty()) {

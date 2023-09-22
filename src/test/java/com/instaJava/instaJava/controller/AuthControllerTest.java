@@ -38,6 +38,7 @@ import com.instaJava.instaJava.util.MessagesUtils;
 @SpringBootTest
 class AuthControllerTest {
 
+	@SuppressWarnings("unused")
 	private static MockHttpServletRequest request;
 
 	@Autowired

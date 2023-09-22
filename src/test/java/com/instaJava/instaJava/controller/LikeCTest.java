@@ -35,6 +35,7 @@ import com.instaJava.instaJava.util.MessagesUtils;
 @SpringBootTest
 class LikeCTest {
 
+	@SuppressWarnings("unused")
 	private static MockHttpServletRequest request;
 	
 	@Autowired private MockMvc mockMvc;
@@ -63,13 +64,6 @@ class LikeCTest {
 	private  User matiasUserAuth = User.builder()
 			.userId(1L)
 			.username("matias")
-			.password("123456")
-			.role(RolesEnum.ROLE_USER)
-			.build();
-	//this user is in the bdd , because we save it with sqlAddUser2
-	private User rociUserAuth = User.builder()
-			.userId(2L)
-			.username("rocio")
 			.password("123456")
 			.role(RolesEnum.ROLE_USER)
 			.build();
