@@ -58,6 +58,7 @@ public class SecurityConfig {
 			CorsConfiguration  corsConf =  new CorsConfiguration();
 			corsConf.setAllowedOrigins(Arrays.asList("*"));
 			corsConf.setAllowedMethods(Arrays.asList("*"));
+			corsConf.addExposedHeader("moreInfo"); // With this now the frontend can get the moreInfo header.
 			corsConf.setAllowedHeaders(Arrays.asList("*"));
 			return corsConf;
 		};
