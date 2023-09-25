@@ -211,7 +211,7 @@ class FollowerCTest {
 				.param("followId", "1"))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.followId", is(1)))
+				.andExpect(jsonPath("$.followId", is("1")))
 				.andExpect(jsonPath("$.followStatus", is(FollowStatus.ACCEPTED.toString())));
 		
 		

@@ -26,7 +26,7 @@ public class ResPublicatedImage implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	
-	private Long id;
+	private String id;
 	
 	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss Z")
 	private ZonedDateTime  createdAt;

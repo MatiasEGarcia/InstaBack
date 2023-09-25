@@ -243,6 +243,7 @@ class FollowServiceImplTest {
 		assertThrows(IllegalArgumentException.class,
 				() -> followService.getFollowStatusByFollowedId(null));
 	}
+	@SuppressWarnings("unchecked")
 	@Test 
 	void getFollowStatusByFollowedIdUserNoExistThrow(){
 		when(userService.getById(1L)).thenReturn(Optional.empty());
@@ -250,6 +251,7 @@ class FollowServiceImplTest {
 				() -> followService.getFollowStatusByFollowedId(1L));
 		verify(followDao,never()).findOne(any(Specification.class));
 	}
+	@SuppressWarnings("unchecked")
 	@Test
 	void getFollowStatusByFollowedIdUserVisibleReturnAccepted() {
 		User user = User.builder().visible(true).build();
@@ -258,6 +260,7 @@ class FollowServiceImplTest {
 		if(!followStatus.equals(FollowStatus.ACCEPTED)) fail("if the user is visible/public true then should return accepted");
 		verify(followDao,never()).findOne(any(Specification.class));
 	}
+	@SuppressWarnings("unchecked")
 	@Test
 	void getFollowStatusByFollowedIdUserNoVisibleFollowedRecordNoExistReturnNotAsked() {
 		User userWhoAuth= User.builder().userId(2L).visible(false).build();
@@ -274,6 +277,7 @@ class FollowServiceImplTest {
 		FollowStatus followStatus = followService.getFollowStatusByFollowedId(1L);
 		if(!followStatus.equals(FollowStatus.NOT_ASKED)) fail("if the follower record no exist should return followStatus NOT_ASKED");
 	}
+	@SuppressWarnings("unchecked")
 	@Test
 	void getFollowStatusByFollowedIdUserNoVisibleFollowedRecordExistReturnNotNull() {
 		User userWhoAuth= User.builder().userId(2L).visible(false).build();

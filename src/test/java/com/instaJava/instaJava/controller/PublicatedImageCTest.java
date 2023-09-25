@@ -127,7 +127,7 @@ class PublicatedImageCTest {
 				.header("authorization", "Bearer " + token)
 				.param("description", description))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id",is(2)))
+				.andExpect(jsonPath("$.id",is("2")))
 				.andExpect(jsonPath("$.createdAt",instanceOf(String.class)))
 				.andExpect(jsonPath("$.image", is(imgBase64)))
 				.andExpect(jsonPath("$.description",is(description)))

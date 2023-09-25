@@ -27,11 +27,11 @@ public class ResLike implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 
-	private Long likeId;
+	private String likeId;
 	
 	private TypeItemLikedEnum itemType;
 	
-	private Long itemId;
+	private String itemId;
 	
 	private boolean decision;
 	

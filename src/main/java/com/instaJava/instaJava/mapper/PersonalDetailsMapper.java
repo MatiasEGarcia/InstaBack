@@ -15,5 +15,6 @@ public interface PersonalDetailsMapper {
 	PersonalDetails personalDetailsDtoToPersonalDetails(PersonalDetailsDto per);
 	
 	@Mapping(target="user", source="user")
+	@Mapping(target="perDetId", source="user.personalDetails.perDetId")
 	PersonalDetails personalDetailsDtoAndUserToPersonalDetails(PersonalDetailsDto per, User user);
 }

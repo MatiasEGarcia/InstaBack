@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ResFollow implements Serializable{
 	private static final long serialVersionUID = 1L;
-	private Long followId;
+	private String followId;
 	private FollowStatus followStatus;
 	private ResUser followed;
 	private ResUser follower;
