@@ -115,7 +115,9 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		ReqSearch reqSearchPubliImaByOwnerEqual = ReqSearch.builder().column("userId")
 				.dateValue(false).value(authUser.getUserId().toString()).joinTable("userOwner")
 				.operation(OperationEnum.EQUAL).build();
-		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchPubliImaByOwnerEqual), pagUtils.getPageable(pageInfoDto));
+		
+		Page<PublicatedImage> EX = publicatedImagesDao.findAll(specService.getSpecification(reqSearchPubliImaByOwnerEqual), pagUtils.getPageable(pageInfoDto));
+		return EX;
 	};
 
 	/**

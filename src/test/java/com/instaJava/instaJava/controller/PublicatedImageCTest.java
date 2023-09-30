@@ -123,7 +123,7 @@ class PublicatedImageCTest {
 		String description = "description";
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/publicatedImages/save")
 				.file(img)
-				.contentType(APPLICATION_JSON_UTF8)
+				.contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
 				.header("authorization", "Bearer " + token)
 				.param("description", description))
 				.andExpect(status().isOk())
@@ -131,7 +131,7 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.createdAt",instanceOf(String.class)))
 				.andExpect(jsonPath("$.image", is(imgBase64)))
 				.andExpect(jsonPath("$.description",is(description)))
-				.andExpect(jsonPath("$.userOwner",is(userAuthMati.getUsername())));
+				.andExpect(jsonPath("$.userOwner.userId",is(userAuthMati.getUserId().toString())));
 		assertNotNull(publicatedImagesDao.findById(1L));
 	}
 	@Test
@@ -144,7 +144,7 @@ class PublicatedImageCTest {
 		String description = "description";
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/publicatedImages/save")
 				.file(img)
-				.contentType(APPLICATION_JSON_UTF8)
+				.contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
 				.header("authorization", "Bearer " + token)
 				.param("description", description))
 				.andExpect(status().isBadRequest())
@@ -158,7 +158,7 @@ class PublicatedImageCTest {
 		String token = jwtService.generateToken(userAuthMati);
 		String description = "description";
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/publicatedImages/save")
-				.contentType(APPLICATION_JSON_UTF8)
+				.contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
 				.header("authorization", "Bearer " + token)
 				.param("description", description))
 				.andExpect(status().isBadRequest())

@@ -19,13 +19,13 @@ public interface PublicatedImageMapper {
 	
 	@Mapping(target="id", source="publicatedImage.pubImaId")
 	@Mapping(target="image" , source = "publicatedImage.image")
-	@Mapping(target="userOwner", source="user.username")
+	@Mapping(target="userOwner", source="user")
 	ResPublicatedImage publicatedImageAndUserToResPublicatedImage(PublicatedImage publicatedImage,User user);
 	
 	
 	@Mapping(target="id", source="publicatedImage.pubImaId")
 	@Mapping(target="image" , source = "publicatedImage.image")
-	@Mapping(target="userOwner", source="publicatedImage.userOwner.username")
+	@Mapping(target="userOwner", source="publicatedImage.userOwner")
 	ResPublicatedImage publicatedImageToResPublicatedImage(PublicatedImage publicatedImage);
 	
 	List<ResPublicatedImage> listPublicatedImageToListResPublicatedImage(List<PublicatedImage> publicatedImages);

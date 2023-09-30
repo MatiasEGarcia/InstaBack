@@ -15,6 +15,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.instaJava.instaJava.config.filter.JwtAuthenticationFilter;
+import com.instaJava.instaJava.config.filter.TimeZoneFilter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
 	private final JwtAuthenticationFilter jwtAuthFilter;
+	private final TimeZoneFilter timeZoneFilter;
 	private final AuthenticationProvider authenticationProvider;
 
 	@Bean
@@ -44,7 +46,8 @@ public class SecurityConfig {
 			.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 			.and()
 			.authenticationProvider(authenticationProvider)
-			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(timeZoneFilter, JwtAuthenticationFilter.class);
 		return http.build();
 	}
 	

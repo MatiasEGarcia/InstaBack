@@ -28,12 +28,12 @@ public class ResPublicatedImage implements Serializable{
 	
 	private String id;
 	
-	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss Z")
+	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 	private ZonedDateTime  createdAt;
 	
 	private String image;
 	
 	private String description;
 	
-	private String userOwner;
+	private ResUser userOwner;
 }
