@@ -20,9 +20,8 @@ public class PageableUtils {
 		Sort sort = pageInfoDto.getSortDir().equals(Sort.Direction.ASC)
 				? Sort.by(pageInfoDto.getSortField()).ascending()
 				: Sort.by(pageInfoDto.getSortField()).descending();
-		// first page for the most people is 1 , but for us is 0
 		 return  PageRequest.of(
-				pageInfoDto.getPageNo() == 0 ? pageInfoDto.getPageNo() : pageInfoDto.getPageNo() - 1,
+				pageInfoDto.getPageNo(),
 				pageInfoDto.getPageSize(), sort);
 	}
 
