@@ -1,5 +1,6 @@
 package com.instaJava.instaJava.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -36,6 +37,7 @@ import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
+import com.instaJava.instaJava.exception.AlreadyExistsException;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
@@ -65,7 +67,34 @@ class FollowServiceImplTest {
 				() -> followService.save(followedId));
 	}
 	@Test
-	void save() {
+	void saveFollowRecordAlreadyExistsThrow() {
+		User userFollower = User.builder() //who is authenticated and wants to create follow record.
+				.userId(2L)
+				.build();
+		User userFollowed = User.builder()
+				.userId(1L)
+				.visible(true)
+				.build();
+		Follow followRecordThatAlreadyExists = new Follow();
+		
+		FollowServiceImpl followServiceSpy = spy(followService);
+		
+		when(userService.getById(userFollowed.getUserId())).thenReturn(Optional.of(userFollowed));
+		//setting authenticated user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.thenReturn(userFollower);
+		
+		doReturn(Optional.of(followRecordThatAlreadyExists)).when(followServiceSpy).findByFollowedAndFollower(userFollowed.getUserId());
+		assertThrows(AlreadyExistsException.class, () -> followServiceSpy.save(userFollowed.getUserId()));
+		
+		verify(userService).getById(userFollowed.getUserId());
+		verify(followDao,never()).save(any(Follow.class));
+	}
+	@Test
+	void saveFollow() {
+		//who is authenticated and wants to create follow record.
 		User userFollower = User.builder()
 				.userId(2L)
 				.build();
@@ -73,22 +102,29 @@ class FollowServiceImplTest {
 				.userId(1L)
 				.visible(true)
 				.build();
+		//follow saved and returned by followDao.
 		Follow follow = Follow.builder()
-				.followed(userFollowed)
 				.follower(userFollower)
+				.followed(userFollowed)
 				.followStatus(FollowStatus.ACCEPTED)
 				.build();
+		FollowServiceImpl followServiceSpy = spy(followService);
+		
+		when(userService.getById(userFollowed.getUserId())).thenReturn(Optional.of(userFollowed));
+		//setting authenticated user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 				.thenReturn(userFollower);
-		when(userService.getById(userFollowed.getUserId())).thenReturn(Optional.of(userFollowed));
-		when(userService.getById(userFollower.getUserId())).thenReturn(Optional.of(userFollower));
+		doReturn(Optional.empty()).when(followServiceSpy).findByFollowedAndFollower(userFollowed.getUserId());
 		when(followDao.save(follow)).thenReturn(follow);
-		assertNotNull(followService.save(userFollowed.getUserId()));
-		verify(followDao).save(follow);
 		
+		assertEquals(follow, followServiceSpy.save(userFollowed.getUserId()));
+		
+		verify(userService).getById(userFollowed.getUserId());
+		verify(followDao).save(follow);
 	}
+	
 	
 	
 	@Test
@@ -203,6 +239,44 @@ class FollowServiceImplTest {
 		when(followDao.findById(1L)).thenReturn(Optional.of(new Follow()));
 		assertNotNull(followService.findById(1L));
 	}
+	
+	
+	@Test
+	void findByFollowedAndFollowerFollowedIdNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> followService.findByFollowedAndFollower(null));
+	}
+	@SuppressWarnings("unchecked")
+	@Test
+	void findByFollowedAndFollowerFollowedIdNotNullRecordNoExistReturnOptionalEmpty() {
+		User userWhoAuth= User.builder().userId(2L).visible(false).build();
+		//spec not match, is noly for example
+		Specification<Follow> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("followedId"), 2L);
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
+		when(specService.getSpecification(any(List.class), eq(GlobalOperationEnum.AND))).thenReturn(spec);
+		when(followDao.findOne(spec)).thenReturn(Optional.empty());
+		
+		Optional<Follow> follow = followService.findByFollowedAndFollower(1L);
+		if(follow.isPresent()) fail("returned optional should be empty");
+	}
+	@SuppressWarnings("unchecked")
+	@Test
+	void findByFollowedAndFollowerFollowedIdNotNullRecordExistReturnOptionalPresent() {
+		User userWhoAuth= User.builder().userId(2L).visible(false).build();
+		//spec not match, is noly for example
+		Specification<Follow> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("followedId"), 2L);
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
+		when(specService.getSpecification(any(List.class), eq(GlobalOperationEnum.AND))).thenReturn(spec);
+		when(followDao.findOne(spec)).thenReturn(Optional.of(new Follow()));
+		
+		Optional<Follow> follow = followService.findByFollowedAndFollower(1L);
+		if(follow.isEmpty()) fail("returned optional should be present");
+	}
+	
+	
 	
 	
 	@Test

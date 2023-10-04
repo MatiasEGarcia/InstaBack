@@ -20,6 +20,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import com.instaJava.instaJava.dto.response.ResErrorMessage;
+import com.instaJava.instaJava.exception.AlreadyExistsException;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.exception.TokenException;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -225,6 +226,18 @@ public class ExceptionHandlerController {
 				.message(messUtils.getMessage("exception.incorrect-property"))
 				.details(Map.of(e.getPropertyName(),e.getMessage()))
 				.build());
+	}
+	
+	@ExceptionHandler(value = {AlreadyExistsException.class})
+	public ResponseEntity<ResErrorMessage> handlerAlreadyExistsException(AlreadyExistsException e){
+		LOGGER.error("There was some AlreadyExistsException: " , e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+				ResErrorMessage.builder()
+				.error(HttpStatus.BAD_REQUEST.toString())
+				.message(messUtils.getMessage("mess.record-already.exists"))
+				.details(Map.of("Exception Message", e.getMessage()))
+				.build()
+				);
 	}
 	
 }

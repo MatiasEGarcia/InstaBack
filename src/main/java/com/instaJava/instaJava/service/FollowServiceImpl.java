@@ -18,6 +18,7 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.enums.OperationEnum;
+import com.instaJava.instaJava.exception.AlreadyExistsException;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
@@ -46,20 +47,29 @@ public class FollowServiceImpl implements FollowService{
 	 */
 	@Override
 	@Transactional
-	public Follow save(Long FollowedId) {
-		if(FollowedId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
-		Follow follower = Follow.builder().build();
-		Optional<User> optUserFollowed = userService.getById(FollowedId);
+	public Follow save(Long followedId) {
+		if(followedId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
+		User userFollower;
+		Follow follow;
+		Optional<Follow> optionalFollow;
+		//check if the user wanted to follow exists.
+		Optional<User> optUserFollowed = userService.getById(followedId);
 		if(optUserFollowed.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.followed-no-exist"));
-		User userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		follower.setFollowed(optUserFollowed.get());
-		follower.setFollower((userService.getById(userFollower.getUserId()).get()));//persistence context?If I don't do this user is detached
+		//check if the follow record already exists.
+		userFollower = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		optionalFollow = findByFollowedAndFollower(followedId);
+		if(optionalFollow.isPresent()) throw new AlreadyExistsException(messUtils.getMessage("exception.follow-already-exists"));
+		follow = Follow.builder()
+				.followed(optUserFollowed.get())
+				.follower(userFollower)
+				.build();
+		//set follow status by visible state of the user wanted to follow
 		if(optUserFollowed.get().isVisible()) {
-			follower.setFollowStatus(FollowStatus.ACCEPTED);
+			follow.setFollowStatus(FollowStatus.ACCEPTED);
 		}else {
-			follower.setFollowStatus(FollowStatus.IN_PROCESS);
+			follow.setFollowStatus(FollowStatus.IN_PROCESS);
 		}
-		return followDao.save(follower);
+		return followDao.save(follow);
 	}
 
 	
@@ -120,6 +130,33 @@ public class FollowServiceImpl implements FollowService{
 		if(followerOpt.isEmpty()) throw new InvalidException(messUtils.getMessage("exception.follow-id-not-found"));
 		return followerOpt.get();
 	}
+	
+	//FALTA TESTEAR
+	/**
+	 * To see if a follow exists by followed and current user authenticated(follower).
+	 * @param followedId - id of the user followed.
+	 * @return Optional with Follow object if exists, if not optional empty.
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<Follow> findByFollowedAndFollower(Long followedId){
+		if(followedId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		User follower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		ReqSearch equalFollowed = ReqSearch.builder()
+			.column("followed")
+			.value(followedId.toString())
+			.dateValue(false)
+			.operation(OperationEnum.EQUAL)
+			.build();
+		ReqSearch equalFollower = ReqSearch.builder()
+				.column("follower")
+				.value(follower.getUserId().toString())
+				.dateValue(false)
+				.operation(OperationEnum.EQUAL)
+				.build();
+		return followDao.findOne(specService.getSpecification(List.of(equalFollowed,equalFollower), GlobalOperationEnum.AND));
+	}//TENGO QUE PROBAR ESTO CON TESTSSS
+	
 
 	/**
 	 * Get Follow record by id and compare the owner with the user authenticated, 

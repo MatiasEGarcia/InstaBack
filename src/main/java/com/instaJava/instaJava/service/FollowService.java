@@ -1,5 +1,7 @@
 package com.instaJava.instaJava.service;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 
 import com.instaJava.instaJava.dto.PageInfoDto;
@@ -16,6 +18,8 @@ public interface FollowService {
 	Follow updateFollowStatusById(Long id, FollowStatus newStatus);
 	
 	Follow findById(Long id);
+	
+	Optional<Follow> findByFollowedAndFollower(Long followedId);//follower is the current user authenticated
 	
 	void deleteById(Long id);
 	
