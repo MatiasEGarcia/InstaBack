@@ -131,7 +131,6 @@ public class FollowServiceImpl implements FollowService{
 		return followerOpt.get();
 	}
 	
-	//FALTA TESTEAR
 	/**
 	 * To see if a follow exists by followed and current user authenticated(follower).
 	 * @param followedId - id of the user followed.
@@ -155,7 +154,7 @@ public class FollowServiceImpl implements FollowService{
 				.operation(OperationEnum.EQUAL)
 				.build();
 		return followDao.findOne(specService.getSpecification(List.of(equalFollowed,equalFollower), GlobalOperationEnum.AND));
-	}//TENGO QUE PROBAR ESTO CON TESTSSS
+	}
 	
 
 	/**

@@ -1,5 +1,7 @@
 package com.instaJava.instaJava.controller;
 
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
@@ -22,9 +24,7 @@ import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.dto.response.ResPublicatedImage;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
-import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.mapper.PublicatedImageMapper;
-import com.instaJava.instaJava.service.FollowService;
 import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class PublicatedImageC {
 
-	private final FollowService followService;
 	private final PublicatedImageMapper publicImaMapper;
 	private final PublicatedImageService publicatedImageService;
 	private final MessagesUtils messUtils;
@@ -45,11 +44,11 @@ public class PublicatedImageC {
 	/**
 	 * Save a PublicatedImage record.
 	 * 
-	 * @param file. image to save
+	 * @param file.        image to save
 	 * @param description. A just text to save with the image
-	 * @return  publicatedImage saved
+	 * @return publicatedImage saved
 	 */
-	@PostMapping(value="/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
+	@PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
 	public ResponseEntity<ResPublicatedImage> save(@RequestPart("img") @Image MultipartFile file,
 			@RequestParam("description") String description) {
 		ResPublicatedImage resPublicatedImage = publicImaMapper.publicatedImageAndUserToResPublicatedImage(
@@ -65,52 +64,26 @@ public class PublicatedImageC {
 	 * @param id. id of the PublicatedImage record.
 	 * @return a message telling that was successfully deleted
 	 */
-	@DeleteMapping(value="/{id}", produces = "application/json")
+	@DeleteMapping(value = "/{id}", produces = "application/json")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id) {
 		publicatedImageService.deleteById(id);
 		return ResponseEntity.ok()
 				.body(ResMessage.builder().message(messUtils.getMessage("mess.publi-image-deleted")).build());
 	}
-	
-	/**
-	 * 
-	 * Search authenticated user publicated images, that is why don't have a value, only with /api/v1/publicatedImages works
-	 * I don't use ReqSearch with postMapping because we already know that is by user equal to authenticated user.
-	 * 
-	 * @param pageNo. For pagination, number of the page.
-	 * @param pageSize. For pagination, size of the elements in the same page.
-	 * @param sortField. For pagination, sorted by..
-	 * @param sortDir. In what direction is sorted, asc or desc.
-	 * @return a pagination collection with the PublicatedImages records, else a message that there are not records.
-	 */
-	@GetMapping(produces = "application/json")
-	public ResponseEntity<ResPaginationG<ResPublicatedImage>> searchByUser(
-			@RequestParam(name = "page", defaultValue = "0") String pageNo,
-			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue = "pubImaId") String sortField,
-			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		Page<PublicatedImage> pagePubliImages = publicatedImageService.getAllByUser(pageInfoDto);
-		if (pagePubliImages.getContent().isEmpty()) {
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.not-publi-image")).build();
-		}
-		return ResponseEntity.ok()
-				.body(publicImaMapper.pageAndPageInfoDtoToResPaginationG(pagePubliImages, pageInfoDto));
-	}
 
-	
 	/**
 	 * Get PublicatedImages from any user with User.visible = true.(public account)
-	 * I don't use ReqSearch with postMapping because I already know that is for onwer visible.
+	 * I don't use ReqSearch with postMapping because I already know that is for
+	 * onwer visible.
 	 * 
-	 * @param pageNo. For pagination, number of the page.
-	 * @param pageSize. For pagination, size of the elements in the same page.
+	 * @param pageNo.    For pagination, number of the page.
+	 * @param pageSize.  For pagination, size of the elements in the same page.
 	 * @param sortField. For pagination, sorted by..
-	 * @param sortDir. In what direction is sorted, asc or desc.
-	 * @return pagination collection  with the PublicatedImages records, else a message that there are not records.
+	 * @param sortDir.   In what direction is sorted, asc or desc.
+	 * @return pagination collection with the PublicatedImages records, else a
+	 *         message that there are not records.
 	 */
-	@GetMapping(value="/byVisiblesOwners", produces = "application/json")
+	@GetMapping(value = "/byVisiblesOwners", produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwnerVisible(
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
@@ -125,51 +98,44 @@ public class PublicatedImageC {
 		return ResponseEntity.ok()
 				.body(publicImaMapper.pageAndPageInfoDtoToResPaginationG(pagePubliImages, pageInfoDto));
 	}
-
 	/**
 	 * 
 	 * Get all PublicatedImages by owner id of the record.
-	 * I don't use ReqSearch with postMapping because I already know that is owner id.
 	 * 
-	 * @param ownerId
-	 * @param pageNo. For pagination, number of the page.
-	 * @param pageSize. For pagination, size of the elements in the same page.
-	 * @param sortField. For pagination, sorted by..
-	 * @param sortDir. In what direction is sorted, asc or desc.
-	 * @return If followStatus is any of these : NOT_ASKED, IN_PROCESS, REJECTED then a message explaining why cannot be
-	 * possible to see the records, if is ACCEPTED and there is records a pagination collection with PublicatedImages records, 
-	 * else a message that there are not records.
-	 * @throws IllegalArgumentException if follow status no exists.
+	 * @param ownerId   - id of the publications owner.
+	 * @param pageNo    - For pagination, number of the page.
+	 * @param pageSize  - For pagination, size of the elements in the same page.
+	 * @param sortField - For pagination, sorted by..
+	 * @param sortDir   - In what direction is sorted, asc or desc.
+	 * @return status ok if there is publications and can be accedidas, status no content if there is no publications to show,
+	 * status noContent if the user that did the request don't have the correct followStatus.
 	 */
-	@GetMapping(value="/byOwnerId/{ownerId}", produces = "application/json")
-	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwnerId(@PathVariable("ownerId") Long ownerId,
+	@SuppressWarnings("unchecked")
+	@GetMapping(value = "/byOwnerId/{ownerId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwner(@PathVariable("ownerId") Long ownerId,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "pubImaId") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
-		FollowStatus followStatus = followService.getFollowStatusByFollowedId(ownerId);
-		switch (followStatus) {
-		case NOT_ASKED:
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.followStatus-not-asked"))
-					.build();
-		case IN_PROCESS:
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.followStatus-in-process"))
-					.build();
-		case REJECTED:
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.followStatus-rejected"))
-					.build();
-		case ACCEPTED:
-			PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-					.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-			Page<PublicatedImage> pagePubliImages = publicatedImageService.getAllByOwnerId(pageInfoDto, ownerId);
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
+				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
+		Map<String, Object> mapp = publicatedImageService.getAllByOnwer(ownerId, pageInfoDto);
+		Page<PublicatedImage> pagePubliImages;
+		String headerMessage;
+
+		if (mapp.containsKey("publications")) {
+			pagePubliImages = (Page<PublicatedImage>) mapp.get("publications");
 			if (pagePubliImages.getContent().isEmpty()) {
 				return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.not-publi-image"))
 						.build();
 			}
 			return ResponseEntity.ok()
 					.body(publicImaMapper.pageAndPageInfoDtoToResPaginationG(pagePubliImages, pageInfoDto));
-		default:
-			throw new IllegalArgumentException("Unexpected follow status: " + followStatus);
+		} else {
+			// if there is not publication key, then means that publications cannot be
+			// displayed by some reason
+			headerMessage = (String) mapp.get("moreInfo");
+			return ResponseEntity.noContent().header("moreInfo", headerMessage).build();
 		}
 	}
 

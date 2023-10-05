@@ -1,5 +1,6 @@
 package com.instaJava.instaJava.service;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -16,9 +17,7 @@ public interface PublicatedImageService {
 	
 	Optional<PublicatedImage> getById(Long id);
 	
-	Page<PublicatedImage> getAllByUser(PageInfoDto pageInfoDto);
-	
 	Page<PublicatedImage> getAllByOwnersVisibles(PageInfoDto pageInfoDto);
 	
-	Page<PublicatedImage> getAllByOwnerId(PageInfoDto pageInfoDto, Long OwnerId);
+	Map<String, Object> getAllByOnwer(Long ownerId, PageInfoDto pageInfoDto);
 }

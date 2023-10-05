@@ -3,6 +3,8 @@ package com.instaJava.instaJava.service;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -16,12 +18,14 @@ import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.OperationEnum;
 import com.instaJava.instaJava.exception.IllegalActionException;
 import com.instaJava.instaJava.exception.ImageException;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -33,15 +37,19 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	private final MessagesUtils messUtils;
 	private final SpecificationService<PublicatedImage> specService;
 	private final PageableUtils pagUtils;
+	private final FollowService followService;
+	private final UserService userService;
 
 	/**
-	 * Convert MuliparFile to Base64 and try to save a PublicatedImage in the database
+	 * Convert MuliparFile to Base64 and try to save a PublicatedImage in the
+	 * database
 	 * 
 	 * @param description. Description of the image.
-	 * @param file. Image to save.
+	 * @param file.        Image to save.
 	 * @return PublicatedImage record that was saved.
 	 * @throws IllegalArgumentException if @param file is null or empty.
-	 * @throws ImageException if there was an error when was tried to encode the image to Base64
+	 * @throws ImageException           if there was an error when was tried to
+	 *                                  encode the image to Base64
 	 */
 	@Override
 	@Transactional
@@ -62,11 +70,13 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	}
 
 	/**
-	 * Delete a PublicatedImage record by its id(pubImaId). If PublicatedImage none record will be deleted.
+	 * Delete a PublicatedImage record by its id(pubImaId). If PublicatedImage none
+	 * record will be deleted.
 	 * 
 	 * @param id. is the pubImaId of the PublicatedImage record wanted to delete.
 	 * @throws IllegalArgumentException if @param id is null.
-	 * @throws IllegalActionException if the user authenticated is not the same owner of the PublicatedImage record.
+	 * @throws IllegalActionException   if the user authenticated is not the same
+	 *                                  owner of the PublicatedImage record.
 	 */
 	@Override
 	@Transactional
@@ -96,35 +106,14 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		return publicatedImagesDao.findById(id);
 	}
-	
 	/**
-	 * Create a ReqSearch to get a specification object and 
-	 * then search PublicatedImages records by User authenticated.
+	 * Create a ReqSearch to get a specification object and then search
+	 * PublicatedImages records by User.visible = true.
 	 * 
 	 * @param pageInfoDto. It has pagination info.
 	 * @return Page of PublicatedImages.
-	 * @throws IllegalArgumentException if PageInfoDto or pageInfoDto.getSortDir or pageInfoDto.sortField are null.
-	 */
-	@Override
-	@Transactional(readOnly = true)
-	public Page<PublicatedImage> getAllByUser(PageInfoDto pageInfoDto){
-		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
-		}
-		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		ReqSearch reqSearchPubliImaByOwnerEqual = ReqSearch.builder().column("userId")
-				.dateValue(false).value(authUser.getUserId().toString()).joinTable("userOwner")
-				.operation(OperationEnum.EQUAL).build();
-		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchPubliImaByOwnerEqual), pagUtils.getPageable(pageInfoDto));
-	};
-
-	/**
-	 * Create a ReqSearch to get a specification object and then 
-	 * search PublicatedImages records by User.visible = true.
-	 * 
-	 * @param pageInfoDto. It has pagination info.
-	 * @return Page of PublicatedImages.
-	 * @throws IllegalArgumentException if PageInfoDto or pageInfoDto.getSortDir or pageInfoDto.sortField are null.
+	 * @throws IllegalArgumentException if PageInfoDto or pageInfoDto.getSortDir or
+	 *                                  pageInfoDto.sortField are null.
 	 */
 	@Override
 	@Transactional(readOnly = true)
@@ -132,28 +121,70 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		}
-		ReqSearch reqSearchuserOwnersVisibleTrue = ReqSearch.builder().column("visible")
-				.value("true").joinTable("userOwner").operation(OperationEnum.IS_TRUE).build();
-		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchuserOwnersVisibleTrue),pagUtils.getPageable(pageInfoDto));
+		ReqSearch reqSearchuserOwnersVisibleTrue = ReqSearch.builder().column("visible").value("true")
+				.joinTable("userOwner").operation(OperationEnum.IS_TRUE).build();
+		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchuserOwnersVisibleTrue),
+				pagUtils.getPageable(pageInfoDto));
 	}
 
 	/**
-	 * Create a ReqSearch to get a specification object and then 
-	 * search PublicatedImages records by ownerId.
+	 * Create a ReqSearch to get a specification object and then search
+	 * PublicatedImages records by ownerId.
 	 * 
-	 * @param pageInfoDto. It has pagination info.
-	 * @param ownerId. Id of the owner who will have his PublicatedImages records fetched.
-	 * @throws IllegalArgumentException if ownerId or PageInfoDto or pageInfoDto.getSortDir or pageInfoDto.sortField are null.
-	 * @return Page of PublicatedImages.
+	 * @param pageInfoDto - It has pagination info.
+	 * @param ownerId   -   Id of the owner who will have his PublicatedImages
+	 *                     records fetched.
+	 * @throws IllegalArgumentException - if ownerId or PageInfoDto or
+	 *                                  pageInfoDto.getSortDir or
+	 *                                  pageInfoDto.sortField are null.
+	 * @return Page of PublicatedImages
 	 */
 	@Override
 	@Transactional(readOnly = true)
-	public Page<PublicatedImage> getAllByOwnerId(PageInfoDto pageInfoDto, Long ownerId) {
-		if (pageInfoDto == null || ownerId == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
+	public Map<String, Object> getAllByOnwer(Long ownerId, PageInfoDto pageInfoDto) {
+		if (ownerId == null || pageInfoDto == null || pageInfoDto.getSortDir() == null
+				|| pageInfoDto.getSortField() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		}
-		ReqSearch reqSearchuserOwnerIdEqual = ReqSearch.builder().column("userId").dateValue(false)
+		Page<PublicatedImage> publicatedImagePage;
+		Optional<User> ownerUser;
+		Map<String, Object> mapp = new HashMap<>();
+		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		if (authUser.getUserId() != ownerId) {
+			ownerUser = userService.getById(ownerId);
+			if (ownerUser.isEmpty())
+				throw new EntityNotFoundException(messUtils.getMessage("excepcion.record-by-id-not-found"));
+			//if the owner user is not visible we need to check the followStatus
+			if (!ownerUser.get().isVisible()) {
+				// in case that the publications requests are not from the authenticated user.
+				FollowStatus followStatus = followService.getFollowStatusByFollowedId(ownerId);
+				switch (followStatus) {
+				case NOT_ASKED:
+					mapp.put("moreInfo", messUtils.getMessage("mess.followStatus-not-asked"));
+					return mapp;
+				case IN_PROCESS:
+					mapp.put("moreInfo", messUtils.getMessage("mess.followStatus-in-process"));
+					return mapp;
+				case REJECTED:
+					mapp.put("moreInfo", messUtils.getMessage("mess.followStatus-rejected"));
+					return mapp;
+				case ACCEPTED:
+					break;
+				default:
+					throw new IllegalArgumentException("Unexpected value: " + followStatus);
+				}
+			}
+
+		}
+
+		// if owner is the same than the user is auth then we return publications, and
+		// if the user is visible or follow status is Accepted too.
+		ReqSearch reSearchUserOwnerIdEqual = ReqSearch.builder().column("userId").dateValue(false)
 				.value(ownerId.toString()).joinTable("userOwner").operation(OperationEnum.EQUAL).build();
-		return publicatedImagesDao.findAll(specService.getSpecification(reqSearchuserOwnerIdEqual),pagUtils.getPageable(pageInfoDto));
-	}	
+		publicatedImagePage = publicatedImagesDao.findAll(specService.getSpecification(reSearchUserOwnerIdEqual),
+				pagUtils.getPageable(pageInfoDto));
+		mapp.put("publications", publicatedImagePage);
+		return mapp;
+	}
+
 }
