@@ -187,4 +187,13 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		return mapp;
 	}
 
+	@Override
+	@Transactional(readOnly=true)
+	public Long countPublicationsByOwnerId(Long id) {
+		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		ReqSearch reqSearchOwnerUserIdEqual = ReqSearch.builder().column("userId").dateValue(false)
+				.value(id.toString()).joinTable("userOwner").operation(OperationEnum.EQUAL).build();
+		return publicatedImagesDao.count(specService.getSpecification(reqSearchOwnerUserIdEqual));
+	}
+
 }

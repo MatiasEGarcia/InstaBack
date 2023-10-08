@@ -25,8 +25,8 @@ public interface FollowService {
 	
 	FollowStatus getFollowStatusByFollowedId(Long followedId);
 	
-	Long countFollowedByUserId(Long id);
+	Long countAcceptedFollowedByUserId(Long id);
 	
-	Long countFollowerByUserId(Long id);
+	Long countAcceptedFollowerByUserId(Long id);
 	
 }

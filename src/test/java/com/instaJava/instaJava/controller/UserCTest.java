@@ -43,6 +43,7 @@ import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.enums.OperationEnum;
 import com.instaJava.instaJava.enums.RolesEnum;
@@ -78,8 +79,16 @@ class UserCTest {
 	private String sqlAddUser1;
 	@Value("${sql.script.create.user.2}")
 	private String sqlAddUser2;
+	@Value("${sql.script.create.publicatedImage.2}")
+	private String sqlAddPublicatedImage2;
+	@Value("${sql.script.create.follow}")
+	private String sqlAddFollow;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
+	@Value("${sql.script.truncate.follow}")
+	private String sqlTruncateFollow;
+	@Value("${sql.script.truncate.publicatedImages}")
+	private String sqlTruncatePublicatedImages;
 	@Value("${sql.script.truncate.personalDetails}")
 	private String sqlTruncatePersonalDetails;
 	@Value("${sql.script.ref.integrity.false}")
@@ -106,6 +115,8 @@ class UserCTest {
 	void dbbSetUp() {
 		jdbc.update(sqlAddUser1);
 		jdbc.update(sqlAddUser2);
+		jdbc.update(sqlAddPublicatedImage2);
+		jdbc.update(sqlAddFollow);
 	}
 
 	@Test
@@ -549,10 +560,36 @@ class UserCTest {
 				.andExpect(jsonPath("$.details.globalOperator", is(messUtils.getMessage("vali.globalOperator-not-null"))));
 	}
 	
+	@Test
+	void getGetUserGeneralInfoByIdBadRequestUserNoExists() throws Exception{
+		String token = jwtService.generateToken(matiAuth);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/generalInfoById/{id}",100)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.entity-not-exists"))));
+	}
+	
+	@Test
+	void getGetUserGeneralInfoByIdOk() throws Exception{
+		String token = jwtService.generateToken(matiAuth);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/generalInfoById/{id}",2)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.user.userId", is("2")))
+				.andExpect(jsonPath("$.social.numberPublications", is("1")))
+				.andExpect(jsonPath("$.social.numberFollowers", is("0")))
+				.andExpect(jsonPath("$.social.numberFollowed", is("0")))// is in IN_PROCESS status , so is 0 followed
+				.andExpect(jsonPath("$.social.followStatus", is(FollowStatus.NOT_ASKED.toString())));
+	}
+	
 	@AfterEach
 	void setUpAfterTransaction() {
 		jdbc.execute(sqlRefIntegrityFalse);
 		jdbc.execute(sqlTruncateUsers);
+		jdbc.execute(sqlTruncateFollow);
+		jdbc.execute(sqlTruncatePublicatedImages);
 		jdbc.execute(sqlTruncatePersonalDetails);
 		jdbc.execute(sqlRefIntegrityTrue);
 	}

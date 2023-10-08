@@ -176,7 +176,6 @@ class PublicatedImagesServiceImplTest {
 		verify(publicatedImagesDao).findById(id);
 	}
 
-
 	@Test
 	void getAllByOwnersVisiblesArgNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getAllByOwnersVisibles(null));
@@ -208,7 +207,6 @@ class PublicatedImagesServiceImplTest {
 		verify(specService).getSpecification(any(ReqSearch.class));
 		verify(publicatedImagesDao).findAll(eq(spec), any(Pageable.class));
 	}
-	
 
 	@Test
 	void getAllByOwnerOwnerIdNullThrow() {
@@ -403,6 +401,30 @@ class PublicatedImagesServiceImplTest {
 		verify(followService).getFollowStatusByFollowedId(idDifferentFromAuthUser);
 		verify(specService).getSpecification(any(ReqSearch.class));
 		verify(publicatedImagesDao).findAll(eq(spec), any(Pageable.class));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	void countPublicationsByOwnerIdNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.countPublicationsByOwnerId(null));
+		verify(specService,never()).getSpecification(any(ReqSearch.class));
+		verify(publicatedImagesDao,never()).count(any(Specification.class));
+	}
+
+	@Test
+	void countPublicationsByOwnerIdReturnEquals() {
+		Long count = 1L;
+		// spec for example only, does not match reqSearch
+		Specification<PublicatedImage> spec = (root, query, criteriaBuilder) -> criteriaBuilder
+				.equal(root.get("random"), "someRandom");
+		
+		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
+		when(publicatedImagesDao.count(spec)).thenReturn(count);
+		
+		assertEquals(count, publicatedImagesService.countPublicationsByOwnerId(any(Long.class)));
+		
+		verify(specService).getSpecification(any(ReqSearch.class));
+		verify(publicatedImagesDao).count(spec);
 	}
 
 }

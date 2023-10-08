@@ -20,4 +20,6 @@ public interface PublicatedImageService {
 	Page<PublicatedImage> getAllByOwnersVisibles(PageInfoDto pageInfoDto);
 	
 	Map<String, Object> getAllByOnwer(Long ownerId, PageInfoDto pageInfoDto);
+	
+	Long countPublicationsByOwnerId(Long id);
 }

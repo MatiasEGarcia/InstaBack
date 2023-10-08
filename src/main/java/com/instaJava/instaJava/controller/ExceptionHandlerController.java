@@ -25,6 +25,7 @@ import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.exception.TokenException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
@@ -235,7 +236,19 @@ public class ExceptionHandlerController {
 				ResErrorMessage.builder()
 				.error(HttpStatus.BAD_REQUEST.toString())
 				.message(messUtils.getMessage("mess.record-already.exists"))
-				.details(Map.of("Exception Message", e.getMessage()))
+				.details(Map.of("detail", e.getMessage()))
+				.build()
+				);
+	}
+	
+	@ExceptionHandler(value = {EntityNotFoundException.class})
+	public ResponseEntity<ResErrorMessage> handlerEntityNotFoundException(EntityNotFoundException e){
+		LOGGER.error("There was some EntityNotFoundException: " , e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+				ResErrorMessage.builder()
+				.error(HttpStatus.BAD_REQUEST.toString())
+				.message(messUtils.getMessage("mess.entity-not-exists"))
+				.details(Map.of("detail", e.getMessage()))
 				.build()
 				);
 	}

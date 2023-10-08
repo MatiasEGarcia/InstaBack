@@ -368,32 +368,35 @@ class FollowServiceImplTest {
 		assertNotNull(followService.getFollowStatusByFollowedId(1L));
 	}
 	
-	
 	@Test
 	void countFollowedByUserIdArgNull() {
 		assertThrows(IllegalArgumentException.class,
-				()-> followService.countFollowedByUserId(null));
+				()-> followService.countAcceptedFollowedByUserId(null));
 	}
+	
+	@SuppressWarnings("unchecked")
 	@Test
 	void countFollowedByUserIdReturnNotNull() {
 		Specification<Follow> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("follower"), 1L);
-		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
+		when(specService.getSpecification(any(List.class), eq(GlobalOperationEnum.AND))).thenReturn(spec);
 		when(followDao.count(spec)).thenReturn(1L);
-		assertNotNull(followService.countFollowedByUserId(1L));
+		assertNotNull(followService.countAcceptedFollowedByUserId(1L));
 	}
 	
 	
 	@Test
 	void countFollowerByUserIdArgNull() {
 		assertThrows(IllegalArgumentException.class,
-				()-> followService.countFollowerByUserId(null));
+				()-> followService.countAcceptedFollowerByUserId(null));
 	}
+	
+	@SuppressWarnings("unchecked")
 	@Test
 	void countFollowerByUserIdReturnNotNull() {
 		Specification<Follow> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("followed"), 1L);
-		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
+		when(specService.getSpecification(any(List.class), eq(GlobalOperationEnum.AND))).thenReturn(spec);
 		when(followDao.count(spec)).thenReturn(1L);
-		assertNotNull(followService.countFollowerByUserId(1L));
+		assertNotNull(followService.countAcceptedFollowerByUserId(1L));
 	}
 	
 	

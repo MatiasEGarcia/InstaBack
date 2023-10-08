@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,16 +28,22 @@ import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResImageString;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.dto.response.ResSocialInfo;
 import com.instaJava.instaJava.dto.response.ResUser;
+import com.instaJava.instaJava.dto.response.ResUserGeneralInfo;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
+import com.instaJava.instaJava.service.FollowService;
 import com.instaJava.instaJava.service.InvTokenService;
+import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.service.UserService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +59,8 @@ public class UserC {
 	private final MessagesUtils messUtils;
 	private final PersonalDetailsMapper personalDetailsMapper;
 	private final UserMapper userMapper;
+	private final PublicatedImageService publicatedImageService;
+	private final FollowService followService;
 
 	/**
 	 * Get basic user info from the authenticated user.
@@ -216,4 +225,47 @@ public class UserC {
 		return ResponseEntity.ok().body(userMapper.pageAndPageInfoDtoToResPaginationG(pageUsers, pageInfoDto));
 	}
 
+	
+	@GetMapping(value="/generalInfoById/{id}")
+	public ResponseEntity<ResUserGeneralInfo> getUserGeneralInfoById(@PathVariable("id") Long id){
+		Long nPublications;
+		Long nFollowers;
+		Long nFollowed;
+		FollowStatus followStatus;
+		Optional<User> optUser = userService.getById(id);
+		if(optUser.isEmpty()) {
+			throw new EntityNotFoundException(messUtils.getMessage("excepcion.record-by-id-not-found"));
+		}
+		nPublications = publicatedImageService.countPublicationsByOwnerId(id);
+		nFollowers = followService.countAcceptedFollowerByUserId(id);
+		nFollowed = followService.countAcceptedFollowedByUserId(id);
+		followStatus = followService.getFollowStatusByFollowedId(id);
+		ResSocialInfo social = ResSocialInfo.builder()
+			.followStatus(followStatus)
+			.numberPublications(nPublications.toString())
+			.numberFollowed(nFollowed.toString())
+			.numberFollowers(nFollowers.toString())
+			.build();
+		
+	return ResponseEntity.ok().body(ResUserGeneralInfo.builder()
+			.user(userMapper.UserToResUser(optUser.get()))
+			.social(social)
+			.build());	
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
