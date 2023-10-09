@@ -63,7 +63,7 @@ public class FollowC {
 	@PostMapping(value="/findAllBy", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResPaginationG<ResFollow>> getAllFollowBy(
 			@Valid @RequestBody ReqSearchList reqSearchList,
-			@RequestParam(name ="page", defaultValue = "1") String pageNo,
+			@RequestParam(name ="page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue="followId") String sortField,
 			@RequestParam(name = "sortDir" , defaultValue = "ASC")Direction sortDir){
@@ -72,7 +72,7 @@ public class FollowC {
 		HttpHeaders headers;
 		Page<Follow> followPage = follService.search(pageInfoDto,reqSearchList);
 		
-		if(!followPage.isEmpty()) {
+		if(!followPage.getContent().isEmpty()) {
 			return ResponseEntity.ok().body(follMapper
 					.pageAndPageInfoDtoToResPaginationG(followPage, pageInfoDto));
 		}
