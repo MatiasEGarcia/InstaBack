@@ -11,6 +11,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -31,22 +34,21 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf()
-			.disable()
-			.cors()
-			.configurationSource(corsConfigurationSource())
-			.and()
-			.authorizeHttpRequests()
-			.requestMatchers("/api/v1/auth/**")
-			.permitAll()
-			.anyRequest()
-			.authenticated()
-			.and()
-			.sessionManagement()
-			.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			.and()
-			.authenticationProvider(authenticationProvider)
-			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+		http.csrf().disable();
+		http.cors().configurationSource(corsConfigurationSource());
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		
+		//Matchers permitAll
+		RequestMatcher webSocketPermitAllMatcher = new AntPathRequestMatcher("/ws/connect/**");
+		RequestMatcher authPermitAllMatcher = new AntPathRequestMatcher("/api/v1/auth/**");
+		//Matchers config
+		http.authorizeHttpRequests()
+			.requestMatchers(new OrRequestMatcher(webSocketPermitAllMatcher,authPermitAllMatcher)).permitAll()
+			.anyRequest().authenticated(); //now web socket connect won't have to pass through JwtAuthenticationFilter.	
+		
+		//Authentication config
+		http.authenticationProvider(authenticationProvider);
+		http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(timeZoneFilter, JwtAuthenticationFilter.class);
 		return http.build();
 	}
@@ -59,10 +61,11 @@ public class SecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 		return request -> {
 			CorsConfiguration  corsConf =  new CorsConfiguration();
-			corsConf.setAllowedOrigins(Arrays.asList("*"));
+			corsConf.setAllowedOriginPatterns(Arrays.asList("http://127.0.0.1:5173"));//react app origin
 			corsConf.setAllowedMethods(Arrays.asList("*"));
-			corsConf.addExposedHeader("moreInfo"); // With this now the frontend can get the moreInfo header.
+			corsConf.setExposedHeaders(Arrays.asList("moreInfo","X-Unauthorized-Reason"));// With this now the client can get these headers.
 			corsConf.setAllowedHeaders(Arrays.asList("*"));
+			corsConf.setAllowCredentials(true);
 			return corsConf;
 		};
 	}

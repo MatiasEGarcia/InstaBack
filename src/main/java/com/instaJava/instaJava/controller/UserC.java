@@ -20,8 +20,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
+import com.instaJava.instaJava.dto.WebSocketAuthInfoDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
@@ -31,15 +33,19 @@ import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.dto.response.ResSocialInfo;
 import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.dto.response.ResUserGeneralInfo;
+import com.instaJava.instaJava.entity.Notification;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
+import com.instaJava.instaJava.mapper.NotificationMapper;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
 import com.instaJava.instaJava.service.FollowService;
 import com.instaJava.instaJava.service.InvTokenService;
+import com.instaJava.instaJava.service.NotificationService;
 import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.service.UserService;
+import com.instaJava.instaJava.service.WebSocketService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
 
@@ -56,11 +62,14 @@ public class UserC {
 
 	private final InvTokenService invTokenService;
 	private final UserService userService;
+	private final WebSocketService webSocketService;
 	private final MessagesUtils messUtils;
 	private final PersonalDetailsMapper personalDetailsMapper;
 	private final UserMapper userMapper;
+	private final NotificationMapper notificationMapper;
 	private final PublicatedImageService publicatedImageService;
 	private final FollowService followService;
+	private final NotificationService notiService;
 
 	/**
 	 * Get basic user info from the authenticated user.
@@ -199,6 +208,7 @@ public class UserC {
 		}
 		return ResponseEntity.ok().body(userMapper.pageAndPageInfoDtoToResPaginationG(pageUsers, pageInfoDto));
 	}
+	
 
 	/**
 	 * Is POST, but the client will use it as a GET to get many users by many conditions
@@ -255,9 +265,41 @@ public class UserC {
 	
 	
 	
+	/**
+	 * Handler to get all the notifications by the user that make the request.
+	 * 
+	 * @param pageNo - For pagination, number of the page.
+	 * @param pageSize - For pagination, size of the elements in the same page.
+	 * @param sortField - For pagination, sorted by..
+	 * @param sortDir - In what direction is sorted, asc or desc.
+	 * @return paginated notifications that were found,else a message that there wasn't any that meet the conditions.
+	 */
+	@GetMapping(value="/notifications", consumes = MediaType.ALL_VALUE , produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResPaginationG<NotificationDto>> getNotificationsByAuthUser(
+			@RequestParam(name = "page", defaultValue = "0")String pageNo,
+			@RequestParam(name ="pageSize", defaultValue ="20") String pageSize,
+			@RequestParam(name = "sortField", defaultValue = "notiId") String sortField,
+			@RequestParam(name ="sortDir", defaultValue = "ASC") Direction sortDir
+			){
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
+				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
+		Page<Notification> pageNotifs = notiService.getNotificationsByAuthUser(pageInfoDto);
+		if(pageNotifs.getContent().isEmpty()) {
+			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.no-notifications")).build();
+		}
+		return ResponseEntity.ok().body(notificationMapper.pageAndPageInfoDtoToResPaginationG(pageNotifs, pageInfoDto));
+	}
 	
 	
-	
+	/*
+	 * FALTA TESTEAR
+	 * Handler to get webSocket uuidToken.
+	 */
+	@GetMapping(value="/webSocketToken", consumes = MediaType.ALL_VALUE , produces = MediaType.APPLICATION_JSON_VALUE )
+	public ResponseEntity<WebSocketAuthInfoDto> getWebSocketToken(){
+		WebSocketAuthInfoDto webSocketAuthInfoDto = webSocketService.getWebSocketToken();
+		return ResponseEntity.ok().body(webSocketAuthInfoDto);
+	}
 	
 	
 	

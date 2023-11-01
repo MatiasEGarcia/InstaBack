@@ -1,6 +1,8 @@
 package com.instaJava.instaJava.config.filter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,28 +57,25 @@ class JwtAuthenticationFilterTest {
     void isRegisterPathFreeAuthentication() throws Exception {
     	request.setMethod("POST");
     	request.setRequestURI("/api/v1/auth/register");
+    	boolean isFree = filter.shouldNotFilter(request);
+    	assertTrue(isFree,"register request should be free of authentication an return true");
     	
-    	filter.doFilterInternal(request, response, filterChain);
-    	
-    	assertEquals(HttpServletResponse.SC_OK, response.getStatus());
     }
     @Test
     void isAuthenticatePathFreeAuthentication() throws Exception {
     	request.setMethod("POST");
     	request.setRequestURI("/api/v1/auth/authenticate");
     	
-    	filter.doFilterInternal(request, response, filterChain);
-    	
-    	assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+    	boolean isFree = filter.shouldNotFilter(request);
+    	assertTrue(isFree,"authenticate request should be free of authentication an return true");
     }
     @Test
     void isRefreshTokenPathFreeAuthentication() throws Exception {
     	request.setMethod("GET");
     	request.setRequestURI("/api/v1/auth/refreshToken");
     	
-    	filter.doFilterInternal(request, response, filterChain);
-    	
-    	assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+    	boolean isFree = filter.shouldNotFilter(request);
+    	assertTrue(isFree, "refreshToken request should be free of authentication an return true");
     }
     
     
@@ -85,9 +84,8 @@ class JwtAuthenticationFilterTest {
     	request.setMethod("GET");
     	request.setRequestURI("/api/v1/users/image");//for this endpoint the client needs to authenticate
     	
-    	filter.doFilterInternal(request, response, filterChain);
-    	
-    	assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
+    	boolean isNotFree = filter.shouldNotFilter(request);
+    	assertFalse(isNotFree, "This request needs to be authenticated");
     }
     
     @Test

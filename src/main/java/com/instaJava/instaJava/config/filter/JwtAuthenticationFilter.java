@@ -3,6 +3,8 @@ package com.instaJava.instaJava.config.filter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,8 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final JwtService jwtService;
 	private final UserDetailsService userDetailsService;
 	private final InvTokenService invTokenService;
-	private final String[] pathThatNotNeedAuthentication = { "/api/v1/auth/register", "/api/v1/auth/authenticate",
-			"/api/v1/auth/refreshToken"};
+    private final List<String> excludedEndpoints = Arrays.asList("/ws/connect/**", "/api/v1/auth/**");
 
 	/**
 	 * 
@@ -60,76 +62,61 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		final String jwt;
 		final String username;
 		
-		if (isPathAuthFree(request.getRequestURI())) {
-			filterChain.doFilter(request, response); // request continues
-			return;
-		} else {
-			authHeader = request.getHeader("Authorization");
-			if (authHeader != null && authHeader.startsWith("Bearer ")) {
-				jwt = authHeader.substring(7);
-				// Now I have to check if this token is invalidated from a logout user
-				if (invTokenService.existByToken(jwt)) {
-					response.setStatus(HttpStatus.UNAUTHORIZED.value());
-					response.setContentType(APPLICATION_JSON_VALUE);
-					new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-							.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-invalid")).build());
-				}
-
-				try {
-					username = jwtService.extractUsername(jwt);
-					if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {//my app is stateless so there shouldn't be any auth before the request
-						// we need to autenticate
-						UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-						//if token is not valid because is expired, then return a forbidden status
-						if (jwtService.isTokenValid(jwt, userDetails)) {
-							UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-									userDetails, null, userDetails.getAuthorities());
-							authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-							SecurityContextHolder.getContext().setAuthentication(authToken);
-						}else {
-							response.setStatus(HttpStatus.UNAUTHORIZED.value());
-							response.setContentType(APPLICATION_JSON_VALUE);
-							new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-									.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-expired"))
-									.build());
-						}
-
-					}
-					filterChain.doFilter(request, response);
-				} catch (ExpiredJwtException e) {
-					response.setStatus(HttpStatus.UNAUTHORIZED.value());
-					response.setContentType(APPLICATION_JSON_VALUE);
-					new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-							.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-expired"))
-							.details(Map.of("exception_message", e.getMessage()))
-							.build());
-				}
-				
-			} else {
+		authHeader = request.getHeader("Authorization");
+		if (authHeader != null && authHeader.startsWith("Bearer ")) {
+			jwt = authHeader.substring(7);
+			// Now I have to check if this token is invalidated from a logout user
+			if (invTokenService.existByToken(jwt)) {
 				response.setStatus(HttpStatus.UNAUTHORIZED.value());
 				response.setContentType(APPLICATION_JSON_VALUE);
 				new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-						.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.client-not-authenticated")).build());
+						.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-invalid")).build());
 			}
+
+			try {
+				username = jwtService.extractUsername(jwt);
+				if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {//my app is stateless so there shouldn't be any auth before the request
+					// we need to autenticate
+					UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+					//if token is not valid because is expired, then return a forbidden status
+					if (jwtService.isTokenValid(jwt, userDetails)) {
+						UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+								userDetails, null, userDetails.getAuthorities());
+						authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+						SecurityContextHolder.getContext().setAuthentication(authToken);
+					}else {
+						response.setStatus(HttpStatus.UNAUTHORIZED.value());
+						response.setContentType(APPLICATION_JSON_VALUE);
+						new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
+								.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-expired"))
+								.build());
+					}
+
+				}
+				filterChain.doFilter(request, response);
+			} catch (ExpiredJwtException e) {
+				response.setStatus(HttpStatus.UNAUTHORIZED.value());
+				response.setContentType(APPLICATION_JSON_VALUE);
+				new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
+						.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-expired"))
+						.details(Map.of("exception_message", e.getMessage()))
+						.build());
+			}
+			
+		} else {
+			response.setStatus(HttpStatus.UNAUTHORIZED.value());
+			response.setContentType(APPLICATION_JSON_VALUE);
+			new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
+					.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.client-not-authenticated")).build());
 		}
 	}
 
-	/**
-	 * Method to check if the request servlet path is one of the paths that not need
-	 * authentication.
-	 * 
-	 * @param path. request servlet path
-	 * @return false if path need to have authentication token, if not, true
-	 */
-	private boolean isPathAuthFree(String path) {
-		boolean flag = false;
-		for (String servletPath : pathThatNotNeedAuthentication) {
-			if (servletPath.equals(path)) {
-				flag = true;
-				break;
-			}
-		}
-		return flag;
+    /**
+    *To check if the request path is one of the paths that not need authentication.
+    */
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+		String requestUrl = request.getRequestURI();
+		return excludedEndpoints.stream().anyMatch(url -> new AntPathMatcher().match(url, requestUrl));
 	}
-
 }

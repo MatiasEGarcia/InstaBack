@@ -2,6 +2,7 @@ package com.instaJava.instaJava.controller;
 
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -583,6 +584,18 @@ class UserCTest {
 				.andExpect(jsonPath("$.social.numberFollowed", is("0")))// is in IN_PROCESS status , so is 0 followed
 				.andExpect(jsonPath("$.social.followStatus", is(FollowStatus.NOT_ASKED.toString())));
 	}
+	
+	@Test
+	void getWebSocketToken() throws Exception{
+		String token = jwtService.generateToken(matiAuth);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/webSocketToken")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.webSocketAuthToken", instanceOf(String.class)));
+		
+	}
+	
 	
 	@AfterEach
 	void setUpAfterTransaction() {

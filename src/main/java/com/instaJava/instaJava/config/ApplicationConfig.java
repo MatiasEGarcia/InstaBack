@@ -1,7 +1,13 @@
 package com.instaJava.instaJava.config;
 
 import java.time.Clock;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,11 +17,13 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.instaJava.instaJava.service.UserServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 
 @Configuration
+@EnableCaching
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
@@ -63,5 +71,18 @@ public class ApplicationConfig {
 	@Bean
 	public Clock clock() {
 		return Clock.systemUTC();
+	}
+
+
+	@Bean//needs EnableCaching class annotation
+	public CacheManager cacheManager() {
+		//implementation of spring cache
+		CaffeineCache webSocketCache = new CaffeineCache("webSocketCache",
+				Caffeine.newBuilder().expireAfterWrite(30,TimeUnit.SECONDS).build());
+		
+		//interface provided by the Spring Framework that serves as a central point for managing caches in an application
+		SimpleCacheManager cacheManager = new SimpleCacheManager();
+		cacheManager.setCaches(Collections.singletonList(webSocketCache));
+		return cacheManager;
 	}
 }

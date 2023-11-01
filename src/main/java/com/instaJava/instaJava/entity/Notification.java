@@ -2,8 +2,12 @@ package com.instaJava.instaJava.entity;
 
 import java.time.ZonedDateTime;
 
+import com.instaJava.instaJava.enums.NotificationType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -28,17 +32,21 @@ public class Notification {
 	@Column(name="id")
 	private Long notiId;
 	
-	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "from_who")
 	private User fromWho;
 	
+	@Enumerated(EnumType.STRING)
+	@Column(name= "type")
+	private NotificationType type;
 	
 	@ManyToOne(fetch =FetchType.LAZY)//normally this user will want the notifications, so we won't really need this one
 	@JoinColumn(name = "to_who")
 	private User toWho;
 	
-	
+	@Column(name="created_at")
 	private ZonedDateTime createdAt;
 	
+	@Column(name = "watched")
+	private boolean watched;
 }

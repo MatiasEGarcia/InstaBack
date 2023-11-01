@@ -8,7 +8,7 @@ import lombok.Data;
 /**
  * 
  * @author matia
- *	Dto to send token and refrehs token to client.
+ *	Dto to send auth token for httpRequest and refrehs token to client.
  *
  */
 @Data
