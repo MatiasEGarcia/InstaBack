@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserDetailsService,UserService{
 	}
 	
 	/**
-	 * 
+	 * Will be used by the authProvider to authenticate .
 	 * Get user by User.username.
 	 * 
 	 * @param username. value of the User record to search.

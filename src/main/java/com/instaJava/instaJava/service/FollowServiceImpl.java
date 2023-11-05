@@ -34,7 +34,9 @@ public class FollowServiceImpl implements FollowService {
 	private final MessagesUtils messUtils;
 	private final SpecificationService<Follow> specService;
 	private final PageableUtils pagUtils;
+	private final NotificationService notificationService;
 
+	//testear con el notificationService
 	/**
 	 * 
 	 * Get the user wanted to follow, set as follower the autheticated user and save
@@ -53,6 +55,7 @@ public class FollowServiceImpl implements FollowService {
 		User userFollower;
 		Follow follow;
 		Optional<Follow> optionalFollow;
+		String customMessage;
 		// check if the user wanted to follow exists.
 		Optional<User> optUserFollowed = userService.getById(followedId);
 		if (optUserFollowed.isEmpty())
@@ -66,9 +69,13 @@ public class FollowServiceImpl implements FollowService {
 		// set follow status by visible state of the user wanted to follow
 		if (optUserFollowed.get().isVisible()) {
 			follow.setFollowStatus(FollowStatus.ACCEPTED);
+			customMessage = "A new user is following you";
 		} else {
 			follow.setFollowStatus(FollowStatus.IN_PROCESS);
+			customMessage = "A new user wants to follow you";
 		}
+		//save notification for the followed user
+		notificationService.saveNotificationOfFollow(follow, customMessage);
 		return followDao.save(follow);
 	}
 

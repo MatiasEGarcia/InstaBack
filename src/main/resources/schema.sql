@@ -90,3 +90,15 @@ CREATE TABLE invalid_tokens(
     token varchar(300),
     invalidate_date timestamp not null
 );
+
+CREATE TABLE IF NOT EXISTS notifications(
+	id int primary key auto_increment,
+    from_who int not null,
+    to_who int not null,
+    type ENUM('FOLLOW','MESSAGE','LIKE','COMMENT','PUBLICATION'),
+    noti_Message varchar(50), -- to make more especific notifications
+    created_at datetime not null,
+    watched boolean DEFAULT 0,  -- false 
+    foreign key(from_who) references users(id) on delete cascade,
+    foreign key(to_who) references users(id) on delete cascade
+);

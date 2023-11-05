@@ -25,6 +25,8 @@ public class NotificationDto implements Serializable {
 	
 	private NotificationType notificationType;
 	
+	private String notiMessage;
+	
 	private boolean watched;
 	
 	private ResUser fromWho;

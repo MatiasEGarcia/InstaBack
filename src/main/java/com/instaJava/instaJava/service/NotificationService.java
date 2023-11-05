@@ -8,7 +8,7 @@ import com.instaJava.instaJava.entity.Notification;
 
 public interface NotificationService {
 	
-	void saveNotificationOfFollow(Follow follow);
+	void saveNotificationOfFollow(Follow follow, String customMessage);
 
 	Page<Notification> getNotificationsByAuthUser(PageInfoDto pageInfoDto);
 	

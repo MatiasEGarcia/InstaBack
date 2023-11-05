@@ -3,10 +3,10 @@ package com.instaJava.instaJava.service;
 import java.util.Optional;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +70,7 @@ public class AuthService {
 	 * @param reqLogin. object that contain data for the login of the user
 	 * @return ResAuthToken object which contains tokens for later requests.
 	 * @throws IllegalArgumentException  if @param reqLogin is null.
-	 * @throws UsernameNotFoundException if user no exists.
+	 * @throws BadCredentialsException if userName o password are incorrect.
 	 */
 	@Transactional(readOnly = true)
 	public ResAuthToken authenticate(ReqLogin reqLogin) {
@@ -78,11 +78,10 @@ public class AuthService {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		String token;
 		String refreshToken;
-		Optional<User> user = userService.getByUsername(reqLogin.getUsername());
-		if (user.isEmpty())
-			throw new UsernameNotFoundException(messUtils.getMessage("excepcion.username-not-found"));
+		//check user credentials, if there is something wrong then throw BadCredentialsException.
 		authenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(reqLogin.getUsername(), reqLogin.getPassword()));
+		Optional<User> user = userService.getByUsername(reqLogin.getUsername());
 		token = jwtService.generateToken(user.get());
 		refreshToken = jwtService.generateRefreshToken(user.get());
 		return ResAuthToken.builder().token(token).refreshToken(refreshToken).build();

@@ -14,9 +14,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.instaJava.instaJava.dto.request.ReqLogin;
@@ -118,10 +118,11 @@ class AuthServiceTest {
 				.username("random")
 				.password("random")
 				.build();
-		when(userService.getByUsername(reqLogin.getUsername())).thenReturn(Optional.empty());
-		assertThrows(UsernameNotFoundException.class,() -> authService.authenticate(reqLogin));
-		verify(authenticationManager,never()).authenticate(
-				new UsernamePasswordAuthenticationToken(reqLogin.getUsername(),reqLogin.getPassword()));
+		UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(reqLogin.getUsername(),reqLogin.getPassword());
+		when(authenticationManager.authenticate(authToken)).thenThrow(BadCredentialsException.class);
+		assertThrows(BadCredentialsException.class,() -> authService.authenticate(reqLogin));
+		verify(authenticationManager).authenticate(authToken);
+		verify(userService,never()).getByUsername(reqLogin.getUsername());
 		verify(jwtService,never()).generateToken(null);
 		verify(jwtService,never()).generateRefreshToken(null);
 	}

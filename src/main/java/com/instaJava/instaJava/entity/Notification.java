@@ -40,6 +40,9 @@ public class Notification {
 	@Column(name= "type")
 	private NotificationType type;
 	
+	@Column(name = "noti_Message")
+	private String notiMessage; //to make more especific notifications
+	
 	@ManyToOne(fetch =FetchType.LAZY)//normally this user will want the notifications, so we won't really need this one
 	@JoinColumn(name = "to_who")
 	private User toWho;
@@ -48,5 +51,5 @@ public class Notification {
 	private ZonedDateTime createdAt;
 	
 	@Column(name = "watched")
-	private boolean watched;
+	private boolean watched; //by default in bdd false
 }

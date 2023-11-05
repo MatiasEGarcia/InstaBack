@@ -48,6 +48,7 @@ class FollowServiceImplTest {
 	@Mock private Authentication auth;
 	@Mock private SecurityContext securityContext;
 	@Mock private UserService userService;
+	@Mock private NotificationService notificationService;
 	@Mock private FollowDao followDao;
 	@Mock private SpecificationService<Follow> specService;
 	@Mock private MessagesUtils messUtils;

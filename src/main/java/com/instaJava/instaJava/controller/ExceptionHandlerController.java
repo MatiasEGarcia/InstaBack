@@ -11,6 +11,8 @@ import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -251,6 +253,28 @@ public class ExceptionHandlerController {
 				.details(Map.of("detail", e.getMessage()))
 				.build()
 				);
+	}
+	
+	@ExceptionHandler(value = {UsernameNotFoundException.class})
+	public ResponseEntity<ResErrorMessage> handlerUsernameNotFoundException(UsernameNotFoundException e){
+		LOGGER.error("There was some UsernameNotFoundException: " , e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+				ResErrorMessage.builder()
+				.error(HttpStatus.BAD_REQUEST.toString())
+				.message(e.getMessage())
+				.details(null)
+				.build());
+	}
+	
+	@ExceptionHandler(value= {BadCredentialsException.class})
+	public ResponseEntity<ResErrorMessage> handlerBadCredentialsException(BadCredentialsException e){
+		LOGGER.error("There was some BadCredentialsException: " , e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+				ResErrorMessage.builder()
+				.error(HttpStatus.BAD_REQUEST.toString())
+				.message(e.getMessage())
+				.details(null)
+				.build());		
 	}
 	
 }
