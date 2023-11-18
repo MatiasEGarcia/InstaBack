@@ -205,7 +205,7 @@ class FollowerCTest {
 	void putUpdateFollowStatusOk() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
-		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/followStatus")
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/updateFollowStatus")
 				.header("Authorization", "Bearer " + token)
 				.param("followStatus", FollowStatus.ACCEPTED.toString())
 				.param("followId", "1"))
@@ -221,7 +221,7 @@ class FollowerCTest {
 	void putUpdateFollowStatusBadRequest() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
-		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/followStatus")
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/updateFollowStatus")
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))

@@ -71,6 +71,7 @@ public class FollowC {
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
 		HttpHeaders headers;
 		Page<Follow> followPage = follService.search(pageInfoDto,reqSearchList);
+	  
 		
 		if(!followPage.getContent().isEmpty()) {
 			return ResponseEntity.ok().body(follMapper
@@ -88,7 +89,7 @@ public class FollowC {
 	 * @param id. follow id from the record to updated.
 	 * @return follow record updated
 	 */
-	@PutMapping(value="/followStatus", produces = "application/json")
+	@PutMapping(value="/updateFollowStatus", produces = "application/json")
 	public ResponseEntity<ResFollow> updateFollowStatus(@RequestParam(name = "followStatus") FollowStatus followStatus,
 			@RequestParam(name = "followId")Long id){
 		Follow fol  = follService.updateFollowStatusById(id, followStatus);

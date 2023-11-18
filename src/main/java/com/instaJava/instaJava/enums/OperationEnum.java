@@ -7,7 +7,8 @@ package com.instaJava.instaJava.enums;
  */
 public enum OperationEnum {
 	EQUAL("equal"),
-	LIKE("like"), 
+	NOT_EQUAL("notEqual"),
+	LIKE("like"),
 	IN("in"),
 	IN_DATES("inDates"),
 	GREATER_THAN("greaterThan"), 

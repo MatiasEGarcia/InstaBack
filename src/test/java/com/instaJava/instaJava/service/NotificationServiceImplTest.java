@@ -79,10 +79,12 @@ class NotificationServiceImplTest {
 	void saveNotificationOfFollow() {
 		User followerUser = User.builder().userId(1L).build();
 		User followedUser = User.builder().userId(2L).build();
+		Notification notiSaved = Notification.builder().notiId(1L).build();
 		Follow follow = Follow.builder().followed(followedUser).follower(followerUser).build();
 		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
 		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
 		when(userMapper.UserToResUser(followerUser)).thenReturn(new ResUser());
+		when(notiDao.save(any(Notification.class))).thenReturn(notiSaved);
 
 		service.saveNotificationOfFollow(follow, "some message");
 

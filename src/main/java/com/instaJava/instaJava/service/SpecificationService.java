@@ -19,11 +19,13 @@ import com.instaJava.instaJava.specification.operation.OpIsFalse;
 import com.instaJava.instaJava.specification.operation.OpIsTrue;
 import com.instaJava.instaJava.specification.operation.OpLessThan;
 import com.instaJava.instaJava.specification.operation.OpLike;
+import com.instaJava.instaJava.specification.operation.OpNotEqual;
 
 public interface SpecificationService<T> {
 	
 	Map<String,OpI> OPERATIONS = Map.ofEntries(
 			entry("equal", new OpEqual()),
+			entry("notEqual", new OpNotEqual()),
 			entry("like" , new OpLike()),
 			entry("in", new OpIn()),
 			entry("inDates", new OpInZonedDateTime()),

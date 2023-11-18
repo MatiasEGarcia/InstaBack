@@ -36,7 +36,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private final PageableUtils pagUtils;
 	private final MessagesUtils messUtils;
 	private final SpecificationService<Notification> specService;
-
+	
 	/**
 	 * Method to save a notification about the follow request of an user to another,
 	 * plus doing a websocket message to the user followed , in the case that is
@@ -56,10 +56,11 @@ public class NotificationServiceImpl implements NotificationService {
 		ZonedDateTime znDate = ZonedDateTime.now(clock);
 		Notification newNoti = Notification.builder().fromWho(follow.getFollower()).toWho(follow.getFollowed())
 				.type(NotificationType.FOLLOW).createdAt(znDate).notiMessage(customMessage).build();
-		notiDao.save(newNoti);
+		newNoti = notiDao.save(newNoti);
 
 		// web socket event message.
-		notiDto = NotificationDto.builder().notificationType(NotificationType.FOLLOW).createdAt(znDate)
+		notiDto = NotificationDto.builder().notiId(newNoti.getNotiId().toString())
+				.notificationType(NotificationType.FOLLOW).createdAt(znDate)
 				.watched(newNoti.isWatched()).fromWho(userMapper.UserToResUser(follow.getFollower()))
 				.notiMessage(customMessage).build();
 		messTemplate.convertAndSendToUser(follow.getFollowed().getUserId().toString(), "/private", notiDto);

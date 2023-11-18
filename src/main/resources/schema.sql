@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS notifications(
     from_who int not null,
     to_who int not null,
     type ENUM('FOLLOW','MESSAGE','LIKE','COMMENT','PUBLICATION'),
-    noti_Message varchar(50), -- to make more especific notifications
+    noti_message varchar(50), -- to make more especific notifications
     created_at datetime not null,
     watched boolean DEFAULT 0,  -- false 
     foreign key(from_who) references users(id) on delete cascade,

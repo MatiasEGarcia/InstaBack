@@ -10,6 +10,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -28,7 +29,7 @@ import lombok.NoArgsConstructor;
 public class Notification {
 
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="id")
 	private Long notiId;
 	
@@ -40,7 +41,7 @@ public class Notification {
 	@Column(name= "type")
 	private NotificationType type;
 	
-	@Column(name = "noti_Message")
+	@Column(name = "noti_message")
 	private String notiMessage; //to make more especific notifications
 	
 	@ManyToOne(fetch =FetchType.LAZY)//normally this user will want the notifications, so we won't really need this one
