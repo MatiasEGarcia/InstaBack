@@ -2,6 +2,7 @@ package com.instaJava.instaJava.service;
 
 import java.time.Clock;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -66,6 +67,13 @@ public class NotificationServiceImpl implements NotificationService {
 		messTemplate.convertAndSendToUser(follow.getFollowed().getUserId().toString(), "/private", notiDto);
 	}
 
+	/**
+	 * Method to get notifications with toWho atribute equal to the auth user.
+	 * 
+	 * @param pageInfoDto pagination details.
+	 * @return Page of Notification.
+	 * @throws IllegalArgumentException if pageInfoDto is null, pageInfoDto.sortDir is null or pageInfoDto.sortField is null.
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Page<Notification> getNotificationsByAuthUser(PageInfoDto pageInfoDto) {
@@ -79,4 +87,44 @@ public class NotificationServiceImpl implements NotificationService {
 		return notiDao.findAll(specService.getSpecification(search), pag);
 	}
 
-}
+
+	/**
+	 * Method to delete a notification record by its id.
+	 * @param notiId notification id.
+	 * @return void.
+	 * @throws IllegalArgumentException if notiId is null.
+	 * @throws IllegalArgumentException if notification attribute toWho doesn't have the same user information 
+	 * than the authenticated user.
+	 */
+	@Override
+	@Transactional
+	public void deleteNotificationById(Long notiId) {
+		if(notiId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		User authUser;
+		Notification notiToDelete = getNotificationById(notiId);
+		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		if(!notiToDelete.getToWho().equals(authUser)) {
+			throw new IllegalArgumentException(messUtils.getMessage("exception.notif-owner-not-same")); 
+		}
+		notiDao.delete(notiToDelete);
+	}
+
+	/**
+	 * Method to get notification record by id.
+	 * @param notiId notification id.
+	 * @throws IllegalArgumentException if notiId is null
+	 * @throws IllegalArgumentException if there wasn't any record with given id.
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public Notification getNotificationById(Long notiId) {
+		if(notiId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		Optional<Notification> notiToDelete = notiDao.findById(notiId);
+		if(notiToDelete.isEmpty()) {
+			throw new IllegalArgumentException(messUtils.getMessage("excepcion.record-by-id-not-found"));
+		}
+		return notiToDelete.get();
+	}	
+	
+}	
+	

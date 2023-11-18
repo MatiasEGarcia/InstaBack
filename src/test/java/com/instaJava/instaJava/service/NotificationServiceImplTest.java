@@ -4,12 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -114,8 +118,8 @@ class NotificationServiceImplTest {
 	void getNotificationsByAuthUser() {
 		PageInfoDto pag = PageInfoDto.builder().sortDir(Direction.ASC).sortField("random").build();
 		// spec for example only, does not match reqSearch
-		Specification<Notification> spec = (root, query, criteriaBuilder) -> criteriaBuilder
-				.equal(root.get("random"), "someRandom");
+		Specification<Notification> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("random"),
+				"someRandom");
 
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -123,9 +127,62 @@ class NotificationServiceImplTest {
 		when(pageUtils.getPageable(pag)).thenReturn(Pageable.unpaged());
 		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
 		when(notiDao.findAll(eq(spec), any(Pageable.class))).thenReturn(Page.empty());
-		
+
 		assertNotNull(service.getNotificationsByAuthUser(pag));
-		
+
+	}
+
+	@Test
+	void deleteNotificationByIdNotiIdParamNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> service.deleteNotificationById(null));
+	}
+
+	@Test
+	void deleteNotificationByIdNotSameReceptorAndAuthUserThrow() {
+		Notification notiToDelete = Notification.builder().toWho(new User()).build();//different user.
+
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		NotificationServiceImpl serviceSpy = spy(service);
+
+		doReturn(notiToDelete).when(serviceSpy).getNotificationById(any(Long.class));
+
+		assertThrows(IllegalArgumentException.class, () -> serviceSpy.deleteNotificationById(1L));
+		verify(notiDao, never()).delete(notiToDelete);
+	}
+
+	@Test
+	void deleteNotificationById() {
+		Notification notiToDelete = Notification.builder().toWho(user).build();
+
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		NotificationServiceImpl serviceSpy = spy(service);
+
+		doReturn(notiToDelete).when(serviceSpy).getNotificationById(any(Long.class));
+
+		serviceSpy.deleteNotificationById(1L);
+		verify(notiDao).delete(notiToDelete);
+	}
+
+	@Test
+	void getNotificationByIdNotiIdParamNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> service.getNotificationById(null));
+	}
+
+	@Test
+	void getNotificationByIdNotFoundThrow() {
+		when(notiDao.findById(any(Long.class))).thenReturn(Optional.empty());
+		assertThrows(IllegalArgumentException.class, () -> service.getNotificationById(1L));
+	}
+
+	@Test
+	void getNotificationById() {
+		Notification notiFounded = new Notification();
+		when(notiDao.findById(any(Long.class))).thenReturn(Optional.of(notiFounded));
+		assertNotNull(service.getNotificationById(1L));
 	}
 
 }

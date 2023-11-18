@@ -585,6 +585,8 @@ class UserCTest {
 				.andExpect(jsonPath("$.social.followStatus", is(FollowStatus.NOT_ASKED.toString())));
 	}
 	
+	
+	
 	@Test
 	void getWebSocketToken() throws Exception{
 		String token = jwtService.generateToken(matiAuth);

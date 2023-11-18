@@ -12,4 +12,8 @@ public interface NotificationService {
 
 	Page<Notification> getNotificationsByAuthUser(PageInfoDto pageInfoDto);
 	
+	void deleteNotificationById(Long notiId);
+	
+	Notification getNotificationById(Long notiId);
+	
 }
