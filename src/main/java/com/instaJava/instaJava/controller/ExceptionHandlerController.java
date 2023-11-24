@@ -25,6 +25,7 @@ import com.instaJava.instaJava.dto.response.ResErrorMessage;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.exception.TokenException;
+import com.instaJava.instaJava.exception.UserNotApplicableForChatException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -104,7 +105,7 @@ public class ExceptionHandlerController {
 	}
 
 	/**
-	 * This exception occurs for example I try to save a file incorrect , save in
+	 * This exception occurs for example I try to save a file with a incorrect type, save in
 	 * PublicatedImageC.
 	 * 
 	 * @param e. exception that we need to handle.
@@ -275,6 +276,22 @@ public class ExceptionHandlerController {
 				.message(e.getMessage())
 				.details(null)
 				.build());		
+	}
+	
+	@ExceptionHandler(value= {UserNotApplicableForChatException.class})
+	public ResponseEntity<ResErrorMessage> handlerUserNotApplicableForChatException(UserNotApplicableForChatException e){
+		LOGGER.error("There was some UserNotApplicableForChatException: " , e.getMessage());
+		Map<String, String> usersNotApplicable = new HashMap<>();
+		e.getUsernameList().forEach(username -> {
+			usersNotApplicable.put("userNotApplicable", username);
+		});
+		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+				ResErrorMessage.builder()
+				.error(HttpStatus.BAD_REQUEST.toString())
+				.message(e.getMessage())
+				.details(usersNotApplicable)
+				.build());
 	}
 	
 }

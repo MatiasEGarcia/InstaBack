@@ -28,8 +28,8 @@ CREATE TABLE publicated_images(
 CREATE TABLE chats(
 	id int primary key auto_increment not null,
     name varchar(20),
-    image blob,
-    type varchar(20) not null -- can be group or private
+    image mediumblob,
+    type ENUM('GROUP','PRIVATE') not null
 );
 CREATE TABLE messages(
 	id int primary key auto_increment not null,
@@ -44,8 +44,8 @@ CREATE TABLE chats_users(
 	id int not null auto_increment primary key,
 	associate_user int not null,
     chat int not null,
-	foreign key (associate_user) references users(id) on delete cascade,
-	foreign key (chat) references chats(id) on delete cascade
+	foreign key (associate_user) references users(id)  ON DELETE CASCADE,
+	foreign key (chat) references chats(id)  ON DELETE CASCADE
 );
 
 CREATE TABLE comments(
@@ -62,8 +62,8 @@ CREATE TABLE chats_admins(
 	id int not null auto_increment primary key,
 	associate_user int not null,
     chat int not null,
-	foreign key (associate_user) references users(id) on delete cascade,
-	foreign key (chat) references chats(id) on delete cascade
+	foreign key (associate_user) references users(id)  ON DELETE CASCADE,
+	foreign key (chat) references chats(id)  ON DELETE CASCADE
 );
 
 CREATE TABLE follow(

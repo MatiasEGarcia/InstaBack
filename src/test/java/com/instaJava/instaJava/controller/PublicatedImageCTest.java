@@ -61,7 +61,7 @@ class PublicatedImageCTest {
 	private String sqlAddUser2;
 	@Value("${sql.script.create.publicatedImage}")
 	private String sqlAddPublicatedImage;
-	@Value("${sql.script.create.follow}")
+	@Value("${sql.script.create.follow.statusInProcess}")
 	private String sqlAddFollow;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;

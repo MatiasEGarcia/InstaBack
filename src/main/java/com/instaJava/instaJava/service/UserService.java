@@ -1,5 +1,6 @@
 package com.instaJava.instaJava.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -29,6 +30,8 @@ public interface UserService {
 	User getByPrincipal();
 	
 	Optional<User> getById(Long id);
+	
+	List<User> getByUsernameIn(List<String> usernameList);
 	
 	Optional<User> getByUsername(String username);
 	

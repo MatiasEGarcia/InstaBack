@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -484,7 +485,28 @@ class UserServiceImplTest {
 		verify(userDao).exists(spec);
 	}
 	
+	//getByUsernameIn
+	@Test
+	void getByUsernameInParamUsernamelistNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> userService.getByUsernameIn(null),
+				"if usernameList is null an Exception should be throw");
+		verify(userDao,never()).findByUsernameIn(null);
+	}
 	
+	@Test
+	void getByUsernameInParamUsernameListEmptyReturnNotNull() {
+		assertNotNull(userService.getByUsernameIn(Collections.emptyList()));
+		verify(userDao,never()).findByUsernameIn(Collections.emptyList());
+	}
+	
+	@Test
+	void getByUsernameInReturnsNotNull() {
+		List<String> usernameList = List.of("username1", "username2");
+		when(userDao.findByUsernameIn(usernameList)).thenReturn(Collections.emptyList());
+		
+		assertNotNull(userService.getByUsernameIn(usernameList));
+		verify(userDao).findByUsernameIn(usernameList);
+	}
 	
 	
 	

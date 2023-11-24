@@ -60,7 +60,7 @@ class FollowerCTest {
 	private String sqlAddUser1;
 	@Value("${sql.script.create.user.2}")
 	private String sqlAddUser2;
-	@Value("${sql.script.create.follow}")
+	@Value("${sql.script.create.follow.statusInProcess}")
 	private String sqlAddFollow;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
