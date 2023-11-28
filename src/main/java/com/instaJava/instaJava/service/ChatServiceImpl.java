@@ -9,25 +9,29 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dao.ChatDao;
+import com.instaJava.instaJava.dto.ChatDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqChat;
+import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.ChatTypeEnum;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.exception.ImageException;
 import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.exception.UserNotApplicableForChatException;
+import com.instaJava.instaJava.mapper.ChatMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -39,37 +43,32 @@ public class ChatServiceImpl implements ChatService {
 	private final MessagesUtils messUtils;
 	private final UserService userService;
 	private final FollowService followService;
+	private final ChatMapper chatMapper;
 
-	/**
-	 * Method to get all authenticated user's chats.
-	 * @param pageInfoDto, It has pagination info. (must not be null)
-	 * @Throw IllegalArgumentException if some parameter is null.
-	 */
+	
 	@Override
 	@Transactional(readOnly = true)
-	public Page<Chat> getAuthUserChats(PageInfoDto pageInfoDto) {
+	public ResPaginationG<ChatDto> getAuthUserChats(PageInfoDto pageInfoDto) {
 		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		}
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		return chatDao.findByUsersUserId(authUser.getUserId(), pageUtils.getPageable(pageInfoDto));
+		Page<Chat> pageChat = chatDao.findByUsersUserId(authUser.getUserId(), pageUtils.getPageable(pageInfoDto));
+		if(pageChat.getContent().isEmpty()) {
+			throw new RecordNotFoundException(messUtils.getMessage("mess.there-no-chats"), HttpStatus.NO_CONTENT);
+		}
+		return chatMapper.pageAndPageInfoDtoToResPaginationG(pageChat, pageInfoDto);
 	}
 
-	/**
-	 * Method to create a chat entity and save it in dbb.
-	 * @param reqChat - object with info to create chat entity (must not be null)
-	 * @Throws IllegalArgumentException if some parameter is null.
-	 * @throws UserNotApplicableForChatException if there one user that cannot be added to the chat.
-	 */
+	
 	@Override
 	@Transactional
-	public Chat create(ReqChat reqChat) {
-		if (reqChat == null || reqChat.getUsersToAdd() == null 
+	public ChatDto create(ReqChat reqChat) {
+		if (reqChat == null || reqChat.getUsersToAdd() == null || reqChat.getUsersToAdd().isEmpty()
 					 || reqChat.getType() == null ) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
 		}
 		Chat chatToCreate;
-		List<String> usersNotApplicable;
 		List<User> allUsers;
 		List<String> allUsersname = new ArrayList<>();
 		allUsersname.addAll(reqChat.getUsersToAdd());
@@ -78,22 +77,11 @@ public class ChatServiceImpl implements ChatService {
 			allUsersname.addAll(reqChat.getUsersToAddAsAdmins());			
 		}
 		allUsers = userService.getByUsernameIn(allUsersname);
-		// if none user was found.
-		if (allUsers.isEmpty()) {
-			throw new UserNotApplicableForChatException(messUtils.getMessage("expection.chat-users-not-applicable"),
-					allUsersname);
-		}
 		
 		//check if there was some user who couldn't be found.
 		checkAllFounded(allUsers, allUsersname);
-
-		// check if all users can be added to the chat.
-		usersNotApplicable = new ArrayList<>();
-		areNotApplicable(allUsers,usersNotApplicable);
-		if (!usersNotApplicable.isEmpty()) {
-			throw new UserNotApplicableForChatException(messUtils.getMessage("expection.chat-users-not-applicable"),
-					usersNotApplicable);
-		}
+		//check if the users requested are applicable
+		areNotApplicable(allUsers);
 
 		chatToCreate = new Chat();
 		
@@ -104,25 +92,22 @@ public class ChatServiceImpl implements ChatService {
 		}else {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.enum-type-incorrect"));
 		}
-		return chatDao.save(chatToCreate);
+		
+		Chat chatCreated = chatDao.save(chatToCreate);
+		return chatMapper.chatToChatDto(chatCreated);
 	}
 
-	/**
-	 * Method to set or update chat image in the case that is a group chat.
-	 * 
-	 * @param image - image to add to chat record.
-	 * @param chatId - chat's id to update.
-	 * @throws ImageException - if there was some error in image encode to base64.
-	 */
+	
 	@Override
 	@Transactional
-	public Chat setImage(MultipartFile image, Long chatId) {
+	public ChatDto setImage(MultipartFile image, Long chatId) {
 		if(image == null || chatId == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		}
 		Optional<Chat> chatToEdit = chatDao.findById(chatId);
 		if(chatToEdit.isEmpty()) {
-			throw new EntityNotFoundException(messUtils.getMessage("exception.chat-not-found"));
+			throw new RecordNotFoundException(messUtils.getMessage("exception.chat-not-found"),"chatId" ,
+					List.of(chatId.toString()),HttpStatus.NOT_FOUND);
 		}
 		//only group chat can edit image attribute.
 		if(chatToEdit.get().getType().equals(ChatTypeEnum.PRIVATE)) {
@@ -134,7 +119,8 @@ public class ChatServiceImpl implements ChatService {
 		}catch(Exception e) {
 			throw new ImageException(e);
 		}
-		return chatDao.save(chatToEdit.get());
+		Chat chatUpdated = chatDao.save(chatToEdit.get());
+		return chatMapper.chatToChatDto(chatUpdated);
 	}
 	
 	
@@ -143,10 +129,14 @@ public class ChatServiceImpl implements ChatService {
 	 * or not? the auth user follow it or not?
 	 * 
 	 * @param users - list off users to check if are applicable or not.
-	 * @param usersNotApplicable - list to add user's username when is not applicable.
 	 */
 	@Transactional(readOnly = true)
-	private void areNotApplicable(List<User> users, List<String> usersNotApplicable) {
+	private void areNotApplicable(List<User> users) {
+		if(users == null) {
+			throw new IllegalArgumentException("exception.argument-not-null");
+		}
+		List<String> usersNotApplicable = new ArrayList<>();
+		
 		users.forEach((user) -> {
 			if (!user.isVisible()) {
 				FollowStatus status = followService.getFollowStatusByFollowedId(user.getUserId());
@@ -157,6 +147,11 @@ public class ChatServiceImpl implements ChatService {
 				}
 			}
 		});
+		
+		if(!usersNotApplicable.isEmpty()) {
+			throw new UserNotApplicableForChatException(messUtils.getMessage("expection.chat-users-not-applicable"), HttpStatus.BAD_REQUEST 
+					,"username",usersNotApplicable);
+		}
 	}
 
 	/**
@@ -167,7 +162,9 @@ public class ChatServiceImpl implements ChatService {
 	 * @param userNotAuth - in private chat there will be only 2 users, auth user and the other, the userNotAuht, 
 	 */
 	private void createPrivateChate(ReqChat reqChat, Chat chatToCreate, User userNotAuth) {
-		chatToCreate.setUsers(List.of(userNotAuth));//in theory there should be only one user.
+		List<User> userList = new ArrayList<>();
+		userList.add(userNotAuth);
+		chatToCreate.setUsers(userList);//in theory there should be only one user.
 		chatToCreate.setType(reqChat.getType());
 		setAuthUserInChat(chatToCreate);
 	}
@@ -200,7 +197,7 @@ public class ChatServiceImpl implements ChatService {
 	 * @param usersFound - users who where found.
 	 * @param allUsersString -  list of usernames of the users provided by the request (there must be all the usernames that had been needed to be found).
 	 * @throws IllegalArgumentExeption if one parameter is null.
-	 * @throws UserNotApplicableForChatException if there was some user who couldn't be found
+	 * @throws RecordNotFoundException if there was some user who couldn't be found
 	 */
 	private void checkAllFounded(List<User> usersFound, List<String> allUsersString) {
 		if(usersFound == null || allUsersString == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
@@ -208,19 +205,21 @@ public class ChatServiceImpl implements ChatService {
 		
 		List<String> usersNotFound = allUsersString.stream().filter(username -> !usersFoundUsernames.contains(username)).toList();
 	
-		if(!usersNotFound.isEmpty()) {
-			throw new UserNotApplicableForChatException(messUtils.getMessage("expection.chat-users-not-applicable"), 
-					usersNotFound);
+		if(!usersNotFound.isEmpty()) {			
+			throw new RecordNotFoundException(messUtils.getMessage("mess.there-no-users"), "username",
+					usersNotFound, HttpStatus.NOT_FOUND);
 		}
 	}
 	
 	/**
-	 * Function to add auth user in Chat entity.
+	 * Function to add auth user in Chat entity as admin and user.
 	 * @param chatToCreate - chat entity which will be saved.
 	 * @throws IllegalArgumentExeption if one parameter is null.
 	 */
 	private void setAuthUserInChat(Chat chatToCreate) {
-		if(chatToCreate == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		if(chatToCreate == null || chatToCreate.getUsers() == null) { //there should be already a list of users.
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		}
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		//add auth user as admin, because is the one who created the chat.
 		if(chatToCreate.getAdmins() == null) {
@@ -228,6 +227,7 @@ public class ChatServiceImpl implements ChatService {
 		}else {
 			chatToCreate.getAdmins().add(authUser);
 		}
+		chatToCreate.getUsers().add(authUser);
 		
 	}
 }

@@ -38,15 +38,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private final MessagesUtils messUtils;
 	private final SpecificationService<Notification> specService;
 	
-	/**
-	 * Method to save a notification about the follow request of an user to another,
-	 * plus doing a websocket message to the user followed , in the case that is
-	 * connected, this way will know that it have a follow request.
-	 * 
-	 * @param follow - follow entity previously saved. (can't be null)
-	 * @param customMessage - specific message to this notification, makes this notification more specific. (can't be null)
-	 * @return void.
-	 */
+	
 	@Override
 	@Transactional
 	public void saveNotificationOfFollow(Follow follow, String customMessage) {
@@ -67,13 +59,7 @@ public class NotificationServiceImpl implements NotificationService {
 		messTemplate.convertAndSendToUser(follow.getFollowed().getUserId().toString(), "/private", notiDto);
 	}
 
-	/**
-	 * Method to get notifications with toWho atribute equal to the auth user.
-	 * 
-	 * @param pageInfoDto pagination details.
-	 * @return Page of Notification.
-	 * @throws IllegalArgumentException if pageInfoDto is null, pageInfoDto.sortDir is null or pageInfoDto.sortField is null.
-	 */
+	
 	@Override
 	@Transactional(readOnly = true)
 	public Page<Notification> getNotificationsByAuthUser(PageInfoDto pageInfoDto) {
@@ -88,14 +74,7 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 
-	/**
-	 * Method to delete a notification record by its id.
-	 * @param notiId notification id.
-	 * @return void.
-	 * @throws IllegalArgumentException if notiId is null.
-	 * @throws IllegalArgumentException if notification attribute toWho doesn't have the same user information 
-	 * than the authenticated user.
-	 */
+	
 	@Override
 	@Transactional
 	public void deleteNotificationById(Long notiId) {
@@ -109,12 +88,7 @@ public class NotificationServiceImpl implements NotificationService {
 		notiDao.delete(notiToDelete);
 	}
 
-	/**
-	 * Method to get notification record by id.
-	 * @param notiId notification id.
-	 * @throws IllegalArgumentException if notiId is null
-	 * @throws IllegalArgumentException if there wasn't any record with given id.
-	 */
+	
 	@Override
 	@Transactional(readOnly = true)
 	public Notification getNotificationById(Long notiId) {

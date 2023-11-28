@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.instaJava.instaJava.dto.FollowDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
-import com.instaJava.instaJava.dto.response.ResFollow;
 import com.instaJava.instaJava.dto.response.ResFollowStatus;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
@@ -61,7 +61,7 @@ public class FollowC {
 	 * @return
 	 */
 	@PostMapping(value="/findAllBy", consumes = "application/json", produces = "application/json")
-	public ResponseEntity<ResPaginationG<ResFollow>> getAllFollowBy(
+	public ResponseEntity<ResPaginationG<FollowDto>> getAllFollowBy(
 			@Valid @RequestBody ReqSearchList reqSearchList,
 			@RequestParam(name ="page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
@@ -90,10 +90,10 @@ public class FollowC {
 	 * @return follow record updated
 	 */
 	@PutMapping(value="/updateFollowStatus", produces = "application/json")
-	public ResponseEntity<ResFollow> updateFollowStatus(@RequestParam(name = "followStatus") FollowStatus followStatus,
+	public ResponseEntity<FollowDto> updateFollowStatus(@RequestParam(name = "followStatus") FollowStatus followStatus,
 			@RequestParam(name = "followId")Long id){
 		Follow fol  = follService.updateFollowStatusById(id, followStatus);
-		return ResponseEntity.ok().body(follMapper.followToResFollow(fol));
+		return ResponseEntity.ok().body(follMapper.followToFollowDto(fol));
 	}
 
 	/**

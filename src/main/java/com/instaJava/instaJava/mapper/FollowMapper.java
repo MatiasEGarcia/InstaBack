@@ -6,8 +6,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
 
+import com.instaJava.instaJava.dto.FollowDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.response.ResFollow;
 import com.instaJava.instaJava.dto.response.ResFollowStatus;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Follow;
@@ -18,9 +18,11 @@ public interface FollowMapper {
 	@Mapping(target = "followStatus", source= "followStatus" )
 	ResFollowStatus followToResFollowStatus(Follow follow);
 	
-	ResFollow followToResFollow(Follow follow);
+	FollowDto followToFollowDto(Follow follow);
 	
-	List<ResFollow> followListToResFollowList(List<Follow> followList); 
+	Follow followDtoToFollow(FollowDto followDto);
+	
+	List<FollowDto> followListToFollowDtoList(List<Follow> followList); 
 	
 	@Mapping(target ="list" , source = "page.content")
 	@Mapping(target ="pageInfoDto.pageNo", source = "pageInfoDto.pageNo")
@@ -29,7 +31,7 @@ public interface FollowMapper {
 	@Mapping(target ="pageInfoDto.sortDir", source = "pageInfoDto.sortDir") 
 	@Mapping(target ="pageInfoDto.totalPages" , source = "page.totalPages")
 	@Mapping(target ="pageInfoDto.totalElements" , source = "page.totalElements")
-	ResPaginationG<ResFollow> pageAndPageInfoDtoToResPaginationG(Page<Follow> page, PageInfoDto pageInfoDto);
+	ResPaginationG<FollowDto> pageAndPageInfoDtoToResPaginationG(Page<Follow> page, PageInfoDto pageInfoDto);
 	
 	
 }

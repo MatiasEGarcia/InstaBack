@@ -2,6 +2,8 @@ package com.instaJava.instaJava.exception;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+
 /**
  * 
  * @author matia
@@ -13,8 +15,13 @@ public class UserNotApplicableForChatException extends IllegalActionException{
 	
 	private static final long serialVersionUID = 1L;
 	
-	@SuppressWarnings("unused")
-	private List<String> usernameList; // having users username not applicable
+	/**
+	 * If the search or request was by user's id then here should be userId(it's
+	 * attribute)
+	 */
+	private String attributeSearched;
+	private List<String> notApplicableList; // having users username not applicable
+	private HttpStatus status;
 
 	
 	public UserNotApplicableForChatException(Exception e) {
@@ -26,20 +33,32 @@ public class UserNotApplicableForChatException extends IllegalActionException{
 		super(msg);
 	}
 	
-	/**
-	 * Constructor
-	 * @param msg message 
-	 * @param listOfUsersName list of users' username.
-	 */
-	public UserNotApplicableForChatException(String msg, List<String> listOfUsersName) {
+	public UserNotApplicableForChatException(String msg, List<String> notApplicableList) {
 		super(msg);
-		if(!listOfUsersName.isEmpty() || listOfUsersName != null) {
-			usernameList = listOfUsersName;
-		}
+		this.notApplicableList = notApplicableList;
 	}
 	
-	public List<String> getUsernameList() {
-		return usernameList;
+	public UserNotApplicableForChatException(String msg, HttpStatus status, String attributeSearched, List<String> notApplicableList) {
+		super(msg);
+		this.status = status;
+		this.attributeSearched = attributeSearched;
+		this.notApplicableList = notApplicableList;
+		this.notApplicableList = notApplicableList;
 	}
+
+	public String getAttributeSearched() {
+		return attributeSearched;
+	}
+
+	public List<String> getNotApplicableList() {
+		return notApplicableList;
+	}
+
+	public HttpStatus getStatus() {
+		return status;
+	}
+
+
+	
 	
 }

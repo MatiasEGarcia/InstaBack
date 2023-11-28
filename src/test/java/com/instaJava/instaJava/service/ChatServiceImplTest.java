@@ -20,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.mock.web.MockMultipartFile;
@@ -29,19 +30,21 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dao.ChatDao;
+import com.instaJava.instaJava.dto.ChatDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqChat;
+import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.ChatTypeEnum;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.exception.UserNotApplicableForChatException;
+import com.instaJava.instaJava.mapper.ChatMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class ChatServiceImplTest {
@@ -58,6 +61,8 @@ class ChatServiceImplTest {
 	private MessagesUtils messUtils;
 	@Mock
 	private PageableUtils pageUtils;
+	@Mock 
+	private ChatMapper chatMapper;
 	@Mock
 	private ChatDao chatDao;
 	@InjectMocks
@@ -69,33 +74,54 @@ class ChatServiceImplTest {
 	@Test
 	void getAuthUserChatsParamPageInfoDtoNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> chatService.getAuthUserChats(null));
+		verify(chatDao,never()).findByUsersUserId(eq(1L), any(Pageable.class));
 	}
 
 	@Test
 	void getAuthUserChatsParamPageInfoDtoSortDirNullThrow() {
 		PageInfoDto page = PageInfoDto.builder().sortField("random").build();
-
 		assertThrows(IllegalArgumentException.class, () -> chatService.getAuthUserChats(page));
+		verify(chatDao,never()).findByUsersUserId(eq(1L), any(Pageable.class));
 	}
 
 	@Test
 	void getAuthUserChatsParamPageInfoDtoSortFieldNullThrow() {
 		PageInfoDto page = PageInfoDto.builder().sortDir(Direction.ASC).build();
-
 		assertThrows(IllegalArgumentException.class, () -> chatService.getAuthUserChats(page));
+		verify(chatDao,never()).findByUsersUserId(eq(1L), any(Pageable.class));
 	}
 
 	@Test
-	void getAuthUserChatsReturnsNotNull() {
+	void getAuthUserChatsNotFoundAnyEmptyPageThrow() {
 		PageInfoDto page = PageInfoDto.builder().sortField("random").sortDir(Direction.ASC).build();
-
+		
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		when(pageUtils.getPageable(page)).thenReturn(Pageable.unpaged());
 		when(chatDao.findByUsersUserId(eq(user.getUserId()), any(Pageable.class))).thenReturn(Page.empty());
+		
+		assertThrows(RecordNotFoundException.class, () -> chatService.getAuthUserChats(page));
 
-		assertNotNull(chatService.getAuthUserChats(page));
+		verify(chatDao).findByUsersUserId(eq(user.getUserId()), any(Pageable.class));
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	void getAuthUserChatsReturnsNotNull() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("random").sortDir(Direction.ASC).build();
+		ResPaginationG<ChatDto> resPag= new ResPaginationG<ChatDto>();
+		Chat newChat = new Chat();
+		Page<Chat> page = new PageImpl<>(List.of(newChat));
+		
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
+		when(chatDao.findByUsersUserId(eq(user.getUserId()), any(Pageable.class))).thenReturn(page);
+		when(chatMapper.pageAndPageInfoDtoToResPaginationG(any(Page.class), eq(pageInfoDto))).thenReturn(resPag);
+		
+		assertNotNull(chatService.getAuthUserChats(pageInfoDto));
 
 		verify(chatDao).findByUsersUserId(eq(user.getUserId()), any(Pageable.class));
 	}
@@ -116,28 +142,38 @@ class ChatServiceImplTest {
 	}
 
 	@Test
+	void createParamReqChatUsersToAddEmptyThrow() {
+		ReqChat reqChat = ReqChat.builder().usersToAdd(Collections.emptyList()).
+				usersToAddAsAdmins(Collections.emptyList()).type(ChatTypeEnum.PRIVATE)
+				.build();
+		assertThrows(IllegalArgumentException.class, () -> chatService.create(reqChat));
+		verify(chatDao, never()).save(any(Chat.class));
+	}
+	
+	@Test
 	void createParamReqChatTypeNullThrow() {
-		List<String> emptyList = Collections.emptyList();
+		List<String> emptyList = List.of("random");
 		ReqChat reqChat = ReqChat.builder().usersToAdd(emptyList).usersToAddAsAdmins(emptyList).build();
 		assertThrows(IllegalArgumentException.class, () -> chatService.create(reqChat));
 		verify(chatDao, never()).save(any(Chat.class));
 	}
+	
 
 	@Test
 	void createNoneUsersFoundByUsernameThrow() {
-		List<String> emptyList = Collections.emptyList();
-		ReqChat reqChat = ReqChat.builder().usersToAdd(emptyList).usersToAddAsAdmins(emptyList)
+		List<String> stringUsernameList = List.of("random1");
+		ReqChat reqChat = ReqChat.builder().usersToAdd(stringUsernameList).usersToAddAsAdmins(Collections.emptyList())
 				.type(ChatTypeEnum.PRIVATE).build();
-		when(userService.getByUsernameIn(emptyList)).thenReturn(Collections.emptyList());
+		when(userService.getByUsernameIn(stringUsernameList)).thenThrow(RecordNotFoundException.class);
 
-		assertThrows(UserNotApplicableForChatException.class, () -> chatService.create(reqChat));
+		assertThrows(RecordNotFoundException.class, () -> chatService.create(reqChat));
 
-		verify(userService).getByUsernameIn(emptyList);
+		verify(userService).getByUsernameIn(stringUsernameList);
 		verify(chatDao, never()).save(any(Chat.class));
 	}
 
 	@Test
-	void createAllUsersWasntFoundThrow() {
+	void createNoneAllUsersWereFoundThrow() {
 		// users' username to find.
 		List<String> usersToAddComplete = List.of("username1", "username2");
 		List<String> usersToAddAsAdminsComplete = List.of("username3", "username4");
@@ -152,7 +188,7 @@ class ChatServiceImplTest {
 				.usersToAddAsAdmins(usersToAddAsAdminsComplete).type(ChatTypeEnum.PRIVATE).build();
 		when(userService.getByUsernameIn(allUsersToFind)).thenReturn(List.of(user1, user2));
 
-		assertThrows(UserNotApplicableForChatException.class, () -> chatService.create(reqChat),
+		assertThrows(RecordNotFoundException.class, () -> chatService.create(reqChat),
 				"if one user wasn't found , should throw UserNotApplicableForChatException");
 
 		verify(userService).getByUsernameIn(allUsersToFind);
@@ -252,7 +288,7 @@ class ChatServiceImplTest {
 		// two users who where found.
 		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
 		User user2 = User.builder().username("username2").userId(3L).visible(true).build();
-
+		ChatDto chatDto = new ChatDto();
 		// chat which will be save.
 		Chat chat = Chat.builder().build();
 
@@ -266,7 +302,8 @@ class ChatServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		when(chatDao.save(any(Chat.class))).thenReturn(chat);
-
+		when(chatMapper.chatToChatDto(any(Chat.class))).thenReturn(chatDto);
+		
 		assertNotNull(chatService.create(reqChat));
 
 		verify(userService).getByUsernameIn(allUsersToFind);
@@ -286,7 +323,7 @@ class ChatServiceImplTest {
 		// two users who where found.
 		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
 		User user2 = User.builder().username("username2").userId(3L).visible(true).build();
-
+		ChatDto chatDto = new ChatDto();
 		// chat which will be save.
 		Chat chat = Chat.builder().build();
 
@@ -300,7 +337,8 @@ class ChatServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		when(chatDao.save(any(Chat.class))).thenReturn(chat);
-
+		when(chatMapper.chatToChatDto(any(Chat.class))).thenReturn(chatDto);
+		
 		assertNotNull(chatService.create(reqChat));
 
 		verify(userService).getByUsernameIn(allUsersToFind);
@@ -329,7 +367,7 @@ class ChatServiceImplTest {
 		// just as mock
 		MultipartFile multipartFile = new MockMultipartFile("file", "test.txt", "text/plain", "testing".getBytes());
 		when(chatDao.findById(anyLong())).thenReturn(Optional.empty());
-		assertThrows(EntityNotFoundException.class, () -> chatService.setImage(multipartFile, anyLong()));
+		assertThrows(RecordNotFoundException.class, () -> chatService.setImage(multipartFile, anyLong()));
 		verify(chatDao,never()).save(any(Chat.class));
 	}
 
@@ -350,9 +388,12 @@ class ChatServiceImplTest {
 		Chat chat = Chat.builder()
 				.type(ChatTypeEnum.GROUP)
 				.build();
+		ChatDto chatDto = new ChatDto();
 		MultipartFile multipartFile = new MockMultipartFile("file", "test.txt", "text/plain", "testing".getBytes());
 		when(chatDao.findById(anyLong())).thenReturn(Optional.of(chat));
 		when(chatDao.save(chat)).thenReturn(chat);
+		when(chatMapper.chatToChatDto(any(Chat.class))).thenReturn(chatDto);
+		
 		assertNotNull(chatService.setImage(multipartFile, anyLong()));
 		verify(chatDao).save(any(Chat.class));
 	}

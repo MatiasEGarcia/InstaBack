@@ -39,12 +39,7 @@ public class LikeServiceImpl implements LikeService {
 	private final SpecificationService<Like> likeSpecService;
 	// cuando agrege los comentarios tengo que agregar su service
 
-	/**
-	 * Check if Like record exist and Delete a Like record by likeId.
-	 * @param likeId. id of the Like record.
-	 * @throws IllegalArgumentException if @param likeId is null.
-	 * @return 0 if Like record no exist, else 1. 
-	 */
+	
 	@Override
 	@Transactional
 	public int deleteById(Long likeId) {
@@ -61,16 +56,7 @@ public class LikeServiceImpl implements LikeService {
 		return 1;
 	}
 
-	/**
-	 * 
-	 * To check if a Like record exist by type, item and owner id.
-	 * 
-	 * @param type. type of the item that was liked, ej : COMMENT.
-	 * @param itemId. id of the item
-	 * @param ownerLikeId. id of the user owner of the Like record.
-	 * @return true if the Like record already exists, else false.
-	 * @throws IllegalArgumentException if anyone of the params are null.
-	 */
+	
 	@Override
 	@Transactional(readOnly = true)
 	public boolean exist(TypeItemLikedEnum type, Long itemId, Long ownerLikeId) {
@@ -88,15 +74,7 @@ public class LikeServiceImpl implements LikeService {
 		return likeDao.exists(spec);
 	}
 
-	/**
-	 * 
-	 * Save a Like collection in the database if the ReqLike was valid.
-	 * 
-	 * @param reqLikeList. Collection with ReqLike objects.
-	 * @return Empty collection if reqLikeList is empty or none ReqLike was valid, 
-	 * else a Like collection with the records saved
-	 * @throws IllegalArgumentException if @param reqLikeList is null
-	 */
+	
 	@Override
 	@Transactional
 	public List<Like> saveAll(List<ReqLike> reqLikeList) {
@@ -116,13 +94,7 @@ public class LikeServiceImpl implements LikeService {
 		return likeDao.saveAll(likeListToSave);
 	}
 
-	/**
-	 * Save a like object in the database.
-	 * 
-	 * @param reqLike. object with the data of the Like to be saved.
-	 * @throws IllegalArgumentException if the param is null.
-	 * @return Empty optional if the reqLike is not valid, else Like optional.
-	 */
+	
 	@Override
 	@Transactional
 	public Optional<Like> save(ReqLike reqLike) {

@@ -20,16 +20,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 
 	private final MessagesUtils messUtils;
 
-	/**
-	 * 
-	 * Method to get a specification and then search data that match the requirements
-	 * 
-	 * @param reqSearchList. Collection of ReqSearch.
-	 * @param globalOperator. GLobal operator to unite all the individual queries 
-	 * @return Specification with all the queries together.
-	 * @throws IllegalArgumentException if @param reqSearchList or @param globalOperator are null
-	 * @throws IllegalArgumentException if globalOperator no exists
-	 */
+	
 	@Override
 	public Specification<T> getSpecification(List<ReqSearch> reqSearchList, GlobalOperationEnum globalOperator) {
 		if (reqSearchList == null || globalOperator == null)
@@ -60,9 +51,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 		};
 	}
 
-	/**
-	 * @see {@link #getSpecification(List<ReqSearch>,GlobalOperationEnum) getSpecification} method
-	 */
+	
 	@Override
 	public Specification<T> getSpecification(ReqSearch reqSearch) {
 		return this.getSpecification(List.of(reqSearch), GlobalOperationEnum.NONE);

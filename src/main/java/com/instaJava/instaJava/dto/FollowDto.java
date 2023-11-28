@@ -1,7 +1,8 @@
-package com.instaJava.instaJava.dto.response;
+package com.instaJava.instaJava.dto;
 
 import java.io.Serializable;
 
+import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.enums.FollowStatus;
 
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class ResFollow implements Serializable{
+public class FollowDto implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private String followId;
 	private FollowStatus followStatus;

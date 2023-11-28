@@ -1,6 +1,5 @@
 package com.instaJava.instaJava.controller;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +18,7 @@ import com.instaJava.instaJava.dto.ChatDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqChat;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.entity.Chat;
-import com.instaJava.instaJava.mapper.ChatMapper;
 import com.instaJava.instaJava.service.ChatService;
-import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
 
 import jakarta.validation.Valid;
@@ -36,8 +32,6 @@ import lombok.RequiredArgsConstructor;
 public class ChatC {
 
 	private final ChatService chatService;
-	private final ChatMapper chatMapper;
-	private final MessagesUtils messUtils;
 	
 	/**
 	 * Get method to get Auth user's chats.
@@ -56,11 +50,7 @@ public class ChatC {
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		Page<Chat> pageChats = chatService.getAuthUserChats(pageInfoDto);
-		if (pageChats.getContent().isEmpty()) {
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.there-no-chats")).build();
-		}
-		return ResponseEntity.ok(chatMapper.pageAndPageInfoDtoToResPaginationG(pageChats, pageInfoDto));
+		return ResponseEntity.ok(chatService.getAuthUserChats(pageInfoDto));
 	}
 	
 	/**
@@ -70,8 +60,7 @@ public class ChatC {
 	 */
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ChatDto> create(@Valid @RequestBody ReqChat reqChat){
-		Chat chat = chatService.create(reqChat);
-		return ResponseEntity.ok(chatMapper.chatToChatDto(chat));
+		return ResponseEntity.ok(chatService.create(reqChat));
 	}
 	
 	/**
@@ -83,8 +72,7 @@ public class ChatC {
 	@PostMapping(value = "/image/{chatId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ChatDto> setImage(@RequestPart("img") @NotNull @Image MultipartFile file,
 			@PathVariable("chatId") Long chatId){
-		Chat chat = chatService.setImage(file, chatId);
-		return ResponseEntity.ok(chatMapper.chatToChatDto(chat));
+		return ResponseEntity.ok(chatService.setImage(file, chatId));
 	}
 	
 }

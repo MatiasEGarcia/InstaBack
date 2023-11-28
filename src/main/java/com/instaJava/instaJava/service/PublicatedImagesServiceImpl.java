@@ -40,17 +40,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	private final FollowService followService;
 	private final UserService userService;
 
-	/**
-	 * Convert MuliparFile to Base64 and try to save a PublicatedImage in the
-	 * database
-	 * 
-	 * @param description. Description of the image.
-	 * @param file.        Image to save.
-	 * @return PublicatedImage record that was saved.
-	 * @throws IllegalArgumentException if @param file is null or empty.
-	 * @throws ImageException           if there was an error when was tried to
-	 *                                  encode the image to Base64
-	 */
+	
 	@Override
 	@Transactional
 	public PublicatedImage save(String description, MultipartFile file) {
@@ -69,15 +59,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		return publicatedImagesDao.save(publicatedImage);
 	}
 
-	/**
-	 * Delete a PublicatedImage record by its id(pubImaId). If PublicatedImage none
-	 * record will be deleted.
-	 * 
-	 * @param id. is the pubImaId of the PublicatedImage record wanted to delete.
-	 * @throws IllegalArgumentException if @param id is null.
-	 * @throws IllegalActionException   if the user authenticated is not the same
-	 *                                  owner of the PublicatedImage record.
-	 */
+	
 	@Override
 	@Transactional
 	public void deleteById(Long id) {
@@ -93,12 +75,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		publicatedImagesDao.deleteById(id);
 	}
 
-	/**
-	 * Find PublicatedImage by its id(pubImaId)
-	 * 
-	 * @return Optional of PublicatedImage
-	 * @throws IllegalArgumentException if @param id is null.
-	 */
+	
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<PublicatedImage> getById(Long id) {
@@ -106,15 +83,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		return publicatedImagesDao.findById(id);
 	}
-	/**
-	 * Create a ReqSearch to get a specification object and then search
-	 * PublicatedImages records by User.visible = true.
-	 * 
-	 * @param pageInfoDto. It has pagination info.
-	 * @return Page of PublicatedImages.
-	 * @throws IllegalArgumentException if PageInfoDto or pageInfoDto.getSortDir or
-	 *                                  pageInfoDto.sortField are null.
-	 */
+	
 	@Override
 	@Transactional(readOnly = true)
 	public Page<PublicatedImage> getAllByOwnersVisibles(PageInfoDto pageInfoDto) {
@@ -127,18 +96,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 				pagUtils.getPageable(pageInfoDto));
 	}
 
-	/**
-	 * Create a ReqSearch to get a specification object and then search
-	 * PublicatedImages records by ownerId.
-	 * 
-	 * @param pageInfoDto - It has pagination info.
-	 * @param ownerId   -   Id of the owner who will have his PublicatedImages
-	 *                     records fetched.
-	 * @throws IllegalArgumentException - if ownerId or PageInfoDto or
-	 *                                  pageInfoDto.getSortDir or
-	 *                                  pageInfoDto.sortField are null.
-	 * @return Page of PublicatedImages
-	 */
+	
 	@Override
 	@Transactional(readOnly = true)
 	public Map<String, Object> getAllByOnwer(Long ownerId, PageInfoDto pageInfoDto) {

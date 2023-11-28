@@ -36,8 +36,23 @@ public interface SpecificationService<T> {
 			entry("isFalse", new OpIsFalse())
 			);
 	
+	/**
+	 * 
+	 * Method to get a specification and then search data that match the requirements
+	 * 
+	 * @param reqSearchList. Collection of ReqSearch.
+	 * @param globalOperator. GLobal operator to unite all the individual queries 
+	 * @return Specification with all the queries together.
+	 * @throws IllegalArgumentException if @param reqSearchList or @param globalOperator are null
+	 * @throws IllegalArgumentException if globalOperator no exists
+	 */
 	public Specification<T> getSpecification (List<ReqSearch> reqSearchList,
 			GlobalOperationEnum globalOperator);
 	
+	/**
+	 * 
+	 * 
+	 * @see {@link #getSpecification(List<ReqSearch>,GlobalOperationEnum) getSpecification} method
+	 */
 	public Specification<T> getSpecification (ReqSearch reqSearch);
 }
