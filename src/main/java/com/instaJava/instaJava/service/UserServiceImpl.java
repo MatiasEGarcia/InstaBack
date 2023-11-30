@@ -18,6 +18,7 @@ import com.instaJava.instaJava.dao.PersonalDetailsDao;
 import com.instaJava.instaJava.dao.UserDao;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
+import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.entity.PersonalDetails;
@@ -25,6 +26,7 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
+import com.instaJava.instaJava.mapper.UserMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
 
@@ -38,6 +40,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	private final PersonalDetailsDao personalDetailsDao;
 	private final MessagesUtils messUtils;
 	private final PersonalDetailsMapper personalDetailsMapper;
+	private final UserMapper userMapper;
 	private final SpecificationService<User> specService;
 	private final PageableUtils pagUtils;
 
@@ -123,10 +126,15 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	
 	@Override
 	@Transactional(readOnly = true)
-	public Optional<User> getById(Long id) {
+	public UserDto getById(Long id) {
 		if (id == null)
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
-		return userDao.findById(id);
+		Optional<User> optUser = userDao.findById(id);
+		if(optUser.isEmpty()) {//tengo que testear este if
+			throw new RecordNotFoundException(messUtils.getMessage("excepcion.record-by-id-not-found"),
+					"userId" , List.of(id.toString()),HttpStatus.NOT_FOUND);
+		}
+		return userMapper.userToUserDto(optUser.get());
 	}
 
 	

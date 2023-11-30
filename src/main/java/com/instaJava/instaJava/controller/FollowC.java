@@ -1,9 +1,6 @@
 package com.instaJava.instaJava.controller;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,12 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.instaJava.instaJava.dto.FollowDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
-import com.instaJava.instaJava.dto.response.ResFollowStatus;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.enums.FollowStatus;
-import com.instaJava.instaJava.mapper.FollowMapper;
 import com.instaJava.instaJava.service.FollowService;
 import com.instaJava.instaJava.util.MessagesUtils;
 
@@ -35,7 +29,6 @@ import lombok.RequiredArgsConstructor;
 public class FollowC {
 	
 	private final FollowService follService;
-	private final FollowMapper follMapper;
 	private final MessagesUtils messUtils;
 
 	/**
@@ -45,9 +38,8 @@ public class FollowC {
 	 * @return followStatus.
 	 */
 	@PostMapping(produces = "application/json")
-	public ResponseEntity<ResFollowStatus> save(@RequestParam(name = "followed") Long followed){
-		Follow fol = follService.save(followed);
-		return ResponseEntity.ok().body(follMapper.followToResFollowStatus(fol));
+	public ResponseEntity<FollowDto> save(@RequestParam(name = "followed") Long followed){
+		return ResponseEntity.ok().body(follService.save(followed));
 	}
 	
 	/**
@@ -69,17 +61,7 @@ public class FollowC {
 			@RequestParam(name = "sortDir" , defaultValue = "ASC")Direction sortDir){
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		HttpHeaders headers;
-		Page<Follow> followPage = follService.search(pageInfoDto,reqSearchList);
-	  
-		
-		if(!followPage.getContent().isEmpty()) {
-			return ResponseEntity.ok().body(follMapper
-					.pageAndPageInfoDtoToResPaginationG(followPage, pageInfoDto));
-		}
-		headers = new HttpHeaders();
-		headers.add("Info-header", messUtils.getMessage("mess.not-follow"));		
-		return new ResponseEntity<> (headers, HttpStatus.NO_CONTENT);
+		return ResponseEntity.ok().body(follService.search(pageInfoDto,reqSearchList));
 	}
 	
 	/**
@@ -92,8 +74,7 @@ public class FollowC {
 	@PutMapping(value="/updateFollowStatus", produces = "application/json")
 	public ResponseEntity<FollowDto> updateFollowStatus(@RequestParam(name = "followStatus") FollowStatus followStatus,
 			@RequestParam(name = "followId")Long id){
-		Follow fol  = follService.updateFollowStatusById(id, followStatus);
-		return ResponseEntity.ok().body(follMapper.followToFollowDto(fol));
+		return ResponseEntity.ok().body(follService.updateFollowStatusById(id, followStatus));
 	}
 
 	/**

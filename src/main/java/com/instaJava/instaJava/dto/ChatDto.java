@@ -3,7 +3,6 @@ package com.instaJava.instaJava.dto;
 import java.io.Serializable;
 import java.util.List;
 
-import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.enums.ChatTypeEnum;
 
 import lombok.AllArgsConstructor;
@@ -27,7 +26,7 @@ public class ChatDto implements Serializable{
 	
 	private String image;
 	
-	private List<ResUser> users;
+	private List<UserDto> users;
 	
-	private List<ResUser> admins;
+	private List<UserDto> admins;
 }

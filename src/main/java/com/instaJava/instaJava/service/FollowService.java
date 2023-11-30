@@ -1,13 +1,13 @@
 package com.instaJava.instaJava.service;
 
-import java.util.Optional;
-
 import com.instaJava.instaJava.dto.FollowDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.enums.FollowStatus;
+import com.instaJava.instaJava.exception.AlreadyExistsException;
+
+import jakarta.persistence.EntityNotFoundException;
 
 public interface FollowService {
 
@@ -65,9 +65,10 @@ public interface FollowService {
 	 * authenticated(follower).
 	 * 
 	 * @param followedId - id of the user followed.
-	 * @return Optional with Follow object if exists, if not optional empty.
+	 * @return true if exist, otherwise false;
+	 * @throws IllegalArgumentException if followedId param is null.
 	 */
-	Optional<Follow> findByFollowedAndFollower(Long followedId);// follower is the current user authenticated
+	boolean existsByFollowedAndFollower(Long followedId);// follower is the current user authenticated
 
 	/**
 	 * Get Follow record by id and compare the owner with the user authenticated, if
@@ -84,31 +85,28 @@ public interface FollowService {
 	 * user.
 	 * 
 	 * @throws IllegalArgumentException if @param id is null;
-	 * @throws IllegalArgumentException if followed user no exists
-	 * @return FollowStatus.ACCEPTED if followed user.Visible is true. Else if
-	 *         followed user.Visible is false and there is not a follow record
-	 *         return. And if none of the others condition is met return the current
-	 *         FollowStatus.
+	 * @return FollowStatus between authUser and user onwer of id given.
 	 */
 	FollowStatus getFollowStatusByFollowedId(Long followedId);
 
 	/**
-	 * How many users a user follow, by id. (only if the followed accept the follow)
+	 * Count how many follow records there are by followed user and follow status.
 	 * 
-	 * @param id. id of the user that want to know how many users it follow
-	 * @return the number of users that are followed by the user searched
-	 * @throws IllegalArgumentException if @param id is null
+	 * @param id - id of the user that want to know how many users it follow.
+	 * @param followStatus - follow status to use as param to search.
+	 * @return number of follow records
+	 * @throws IllegalArgumentException if one param is null
 	 */
-	Long countAcceptedFollowedByUserId(Long id);
+	Long countByFollowStatusAndFollowed(FollowStatus followStatus,Long followedId);
 
 	/**
-	 * How many users follow another user by id.(only if the followed accept the
-	 * follow)
+	 * Count how many follow records there are by follower user and follow status.
 	 * 
-	 * @param id. id of the user wanted to know how many followers have
-	 * @return the number of users that follow the user searched
-	 * @throws IllegalArgumentException if @param id is null
+	 * @param id -  id of the user wanted to know how many followers have
+	 * @param followStatus - follow status to use as param to search.
+	 * @return number of follow records
+	 * @throws IllegalArgumentException  if one param is null
 	 */
-	Long countAcceptedFollowerByUserId(Long id);
+	Long countByFollowStatusAndFollower(FollowStatus followStatus, Long followerId);
 
 }

@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
+import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.WebSocketAuthInfoDto;
 import com.instaJava.instaJava.dto.request.ReqLogout;
 import com.instaJava.instaJava.dto.request.ReqSearch;
@@ -30,7 +31,6 @@ import com.instaJava.instaJava.dto.response.ResImageString;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.dto.response.ResSocialInfo;
-import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.dto.response.ResUserGeneralInfo;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
@@ -70,8 +70,8 @@ public class UserC {
 	 * @return ResponseEntity with basic user info.
 	 */
 	@GetMapping(value="/userBasicInfo", produces = "application/json")
-	public ResponseEntity<ResUser> getAuthBasicUserInfo(){
-		return ResponseEntity.ok(userMapper.UserToResUser(userService.getByPrincipal()));
+	public ResponseEntity<UserDto> getAuthBasicUserInfo(){
+		return ResponseEntity.ok(userMapper.userToUserDto(userService.getByPrincipal()));
 	}
 	
 	/**
@@ -130,8 +130,8 @@ public class UserC {
 	 * @return user information updated.
 	 */
 	@PutMapping(value="/visible", produces = "application/json")
-	public ResponseEntity<ResUser> setVisible() {
-		return ResponseEntity.ok().body(userMapper.UserToResUser(userService.changeVisible()));
+	public ResponseEntity<UserDto> setVisible() {
+		return ResponseEntity.ok().body(userMapper.userToUserDto(userService.changeVisible()));
 	}
 
 	/**
@@ -158,10 +158,10 @@ public class UserC {
 	 * @return user that was found,else a message that there wasn't any that meet the conditions.
 	 */
 	@PostMapping(value="/searchOne/oneCondition", consumes = "application/json", produces = "application/json")
-	public ResponseEntity<ResUser> searchUserWithOneCondition(@Valid @RequestBody ReqSearch reqSearch) {
+	public ResponseEntity<UserDto> searchUserWithOneCondition(@Valid @RequestBody ReqSearch reqSearch) {
 		Optional<User> optUser = userService.getOneUserOneCondition(reqSearch);
 		if (optUser.isEmpty())return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.there-no-users")).build();
-		return ResponseEntity.ok().body(userMapper.UserToResUser(optUser.get()));
+		return ResponseEntity.ok().body(userMapper.userToUserDto(optUser.get()));
 	}
 	
 	/**
@@ -171,11 +171,11 @@ public class UserC {
 	 * @return user that was found,else a message that there wasn't any that meet the conditions.
 	 */
 	@PostMapping(value="searchOne/manyConditions", consumes = "application/json", produces = "application/json")
-	public ResponseEntity<ResUser> searchUserWithManyConditions(@Valid @RequestBody ReqSearchList reqSearchList) {
+	public ResponseEntity<UserDto> searchUserWithManyConditions(@Valid @RequestBody ReqSearchList reqSearchList) {
 		Optional<User> optUser = userService.getOneUserManyConditions(reqSearchList);
 		if (optUser.isEmpty())
 			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.there-no-users")).build();
-		return ResponseEntity.ok().body(userMapper.UserToResUser(optUser.get()));
+		return ResponseEntity.ok().body(userMapper.userToUserDto(optUser.get()));
 	}
 
 	/**
@@ -189,7 +189,7 @@ public class UserC {
 	 * @return paginated users that were found,else a message that there wasn't any that meet the conditions.
 	 */
 	@PostMapping(value="/searchAll/oneCondition", consumes = "application/json", produces = "application/json")
-	public ResponseEntity<ResPaginationG<ResUser>> searchUsersWithOneCondition(@Valid @RequestBody ReqSearch reqSearch,
+	public ResponseEntity<ResPaginationG<UserDto>> searchUsersWithOneCondition(@Valid @RequestBody ReqSearch reqSearch,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "userId") String sortField,
@@ -215,7 +215,7 @@ public class UserC {
 	 * @return paginated users that were found,else a message that there wasn't any that meet the conditions.
 	 */
 	@PostMapping(value="/searchAll/manyConditions", consumes = "application/json", produces = "application/json")
-	public ResponseEntity<ResPaginationG<ResUser>> searchUsersWithManyConditions(@Valid @RequestBody ReqSearchList reqSearchList,
+	public ResponseEntity<ResPaginationG<UserDto>> searchUsersWithManyConditions(@Valid @RequestBody ReqSearchList reqSearchList,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "userId") String sortField,
@@ -241,8 +241,8 @@ public class UserC {
 			throw new EntityNotFoundException(messUtils.getMessage("excepcion.record-by-id-not-found"));
 		}
 		nPublications = publicatedImageService.countPublicationsByOwnerId(id);
-		nFollowers = followService.countAcceptedFollowerByUserId(id);
-		nFollowed = followService.countAcceptedFollowedByUserId(id);
+		nFollowers = followService.countByFollowStatusAndFollower(id);
+		nFollowed = followService.countByFollowStatusAndFollowed(id);
 		followStatus = followService.getFollowStatusByFollowedId(id);
 		ResSocialInfo social = ResSocialInfo.builder()
 			.followStatus(followStatus)
@@ -252,7 +252,7 @@ public class UserC {
 			.build();
 		
 	return ResponseEntity.ok().body(ResUserGeneralInfo.builder()
-			.user(userMapper.UserToResUser(optUser.get()))
+			.user(userMapper.userToUserDto(optUser.get()))
 			.social(social)
 			.build());	
 	}

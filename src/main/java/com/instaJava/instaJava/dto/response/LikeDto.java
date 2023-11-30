@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
 
 import lombok.AllArgsConstructor;
@@ -23,7 +24,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class ResLike implements Serializable{
+public class LikeDto implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 
@@ -35,7 +36,7 @@ public class ResLike implements Serializable{
 	
 	private boolean decision;
 	
-	private ResUser ownerLike;
+	private UserDto ownerLike;
 	
 	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss Z")
 	private ZonedDateTime likedAt;

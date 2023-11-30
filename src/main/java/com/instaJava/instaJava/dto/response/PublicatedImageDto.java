@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+import com.instaJava.instaJava.dto.UserDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class ResPublicatedImage implements Serializable{
+public class PublicatedImageDto implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	
@@ -35,5 +36,5 @@ public class ResPublicatedImage implements Serializable{
 	
 	private String description;
 	
-	private ResUser userOwner;
+	private UserDto userOwner;
 }

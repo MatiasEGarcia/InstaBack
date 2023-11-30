@@ -1,4 +1,4 @@
-package com.instaJava.instaJava.dto.response;
+package com.instaJava.instaJava.dto;
 
 import java.io.Serializable;
 
@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class ResUser implements Serializable{
+public class UserDto implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	private String userId;

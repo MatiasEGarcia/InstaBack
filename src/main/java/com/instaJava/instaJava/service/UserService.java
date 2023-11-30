@@ -8,11 +8,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.PersonalDetailsDto;
+import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.exception.RecordNotFoundException;
 
 public interface UserService {
 
@@ -74,10 +76,11 @@ public interface UserService {
 	 * Get a User record by id.
 	 * 
 	 * @param id. id of the user record wanted.
-	 * @return Optional user.
+	 * @return UserDto object with User record info.
 	 * @throws IllegalArgumentException if @param id is null.
+	 * @throws RecordNotFoundException if none user record was found.
 	 */
-	Optional<User> getById(Long id);
+	UserDto getById(Long id);
 
 	/**
 	 * Method to get a list of users by it's username.

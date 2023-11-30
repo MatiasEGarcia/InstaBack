@@ -32,8 +32,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.instaJava.instaJava.dao.NotificationDao;
 import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
+import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
-import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
 import com.instaJava.instaJava.entity.User;
@@ -87,7 +87,7 @@ class NotificationServiceImplTest {
 		Follow follow = Follow.builder().followed(followedUser).follower(followerUser).build();
 		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
 		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
-		when(userMapper.UserToResUser(followerUser)).thenReturn(new ResUser());
+		when(userMapper.userToUserDto(followerUser)).thenReturn(new UserDto());
 		when(notiDao.save(any(Notification.class))).thenReturn(notiSaved);
 
 		service.saveNotificationOfFollow(follow, "some message");

@@ -5,7 +5,6 @@ import java.time.ZonedDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
-import com.instaJava.instaJava.dto.response.ResUser;
 import com.instaJava.instaJava.enums.NotificationType;
 
 import lombok.AllArgsConstructor;
@@ -29,7 +28,7 @@ public class NotificationDto implements Serializable {
 	
 	private boolean watched;
 	
-	private ResUser fromWho;
+	private UserDto fromWho;
 	
 	@JsonFormat(shape = Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 	private ZonedDateTime createdAt;

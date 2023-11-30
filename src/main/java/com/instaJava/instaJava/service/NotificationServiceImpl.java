@@ -54,7 +54,7 @@ public class NotificationServiceImpl implements NotificationService {
 		// web socket event message.
 		notiDto = NotificationDto.builder().notiId(newNoti.getNotiId().toString())
 				.notificationType(NotificationType.FOLLOW).createdAt(znDate)
-				.watched(newNoti.isWatched()).fromWho(userMapper.UserToResUser(follow.getFollower()))
+				.watched(newNoti.isWatched()).fromWho(userMapper.userToUserDto(follow.getFollower()))
 				.notiMessage(customMessage).build();
 		messTemplate.convertAndSendToUser(follow.getFollowed().getUserId().toString(), "/private", notiDto);
 	}

@@ -1,12 +1,8 @@
 package com.instaJava.instaJava.controller;
 
-import java.util.Map;
-
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,12 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dto.PageInfoDto;
+import com.instaJava.instaJava.dto.response.PublicatedImageDto;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.dto.response.ResPublicatedImage;
-import com.instaJava.instaJava.entity.PublicatedImage;
-import com.instaJava.instaJava.entity.User;
-import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
@@ -37,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class PublicatedImageC {
 
-	private final PublicatedImageMapper publicImaMapper;
 	private final PublicatedImageService publicatedImageService;
 	private final MessagesUtils messUtils;
 
@@ -49,13 +41,9 @@ public class PublicatedImageC {
 	 * @return publicatedImage saved
 	 */
 	@PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
-	public ResponseEntity<ResPublicatedImage> save(@RequestPart("img") @Image MultipartFile file,
+	public ResponseEntity<PublicatedImageDto> save(@RequestPart("img") @Image MultipartFile file,
 			@RequestParam("description") String description) {
-		ResPublicatedImage resPublicatedImage = publicImaMapper.publicatedImageAndUserToResPublicatedImage(
-				publicatedImageService.save(description, file),
-				(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-
-		return ResponseEntity.ok().body(resPublicatedImage);
+		return ResponseEntity.ok().body(publicatedImageService.save(description, file));
 	}
 
 	/**
@@ -80,24 +68,21 @@ public class PublicatedImageC {
 	 * @param pageSize.  For pagination, size of the elements in the same page.
 	 * @param sortField. For pagination, sorted by..
 	 * @param sortDir.   In what direction is sorted, asc or desc.
-	 * @return pagination collection with the PublicatedImages records, else a
-	 *         message that there are not records.
+	 * @return ResPaginationG wiht PublicatedImages records info and Pagination info.
 	 */
 	@GetMapping(value = "/byVisiblesOwners", produces = "application/json")
-	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwnerVisible(
+	public ResponseEntity<ResPaginationG<PublicatedImageDto>> getAllByOwnerVisible(
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "pubImaId") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		Page<PublicatedImage> pagePubliImages = publicatedImageService.getAllByOwnersVisibles(pageInfoDto);
-		if (pagePubliImages.getContent().isEmpty()) {
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.not-publi-image")).build();
-		}
+		
 		return ResponseEntity.ok()
-				.body(publicImaMapper.pageAndPageInfoDtoToResPaginationG(pagePubliImages, pageInfoDto));
+				.body(publicatedImageService.getAllByOwnersVisibles(pageInfoDto));
 	}
+
 	/**
 	 * 
 	 * Get all PublicatedImages by owner id of the record.
@@ -107,36 +92,18 @@ public class PublicatedImageC {
 	 * @param pageSize  - For pagination, size of the elements in the same page.
 	 * @param sortField - For pagination, sorted by..
 	 * @param sortDir   - In what direction is sorted, asc or desc.
-	 * @return status ok if there is publications and can be accedidas, status no content if there is no publications to show,
-	 * status noContent if the user that did the request don't have the correct followStatus.
+	 * @return ResPaginationG wiht PublicatedImages records info and Pagination info.
 	 */
-	@SuppressWarnings("unchecked")
 	@GetMapping(value = "/byOwnerId/{ownerId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResPaginationG<ResPublicatedImage>> getAllByOwner(@PathVariable("ownerId") Long ownerId,
+	public ResponseEntity<ResPaginationG<PublicatedImageDto>> getAllByOwner(@PathVariable("ownerId") Long ownerId,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "pubImaId") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		Map<String, Object> mapp = publicatedImageService.getAllByOnwer(ownerId, pageInfoDto);
-		Page<PublicatedImage> pagePubliImages;
-		String headerMessage;
+		return ResponseEntity.ok().body(publicatedImageService.getAllByOnwer(ownerId, pageInfoDto));
 
-		if (mapp.containsKey("publications")) {
-			pagePubliImages = (Page<PublicatedImage>) mapp.get("publications");
-			if (pagePubliImages.getContent().isEmpty()) {
-				return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.not-publi-image"))
-						.build();
-			}
-			return ResponseEntity.ok()
-					.body(publicImaMapper.pageAndPageInfoDtoToResPaginationG(pagePubliImages, pageInfoDto));
-		} else {
-			// if there is not publication key, then means that publications cannot be
-			// displayed by some reason
-			headerMessage = (String) mapp.get("moreInfo");
-			return ResponseEntity.noContent().header("moreInfo", headerMessage).build();
-		}
 	}
 
 }
