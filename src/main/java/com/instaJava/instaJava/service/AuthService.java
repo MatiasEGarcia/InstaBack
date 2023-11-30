@@ -1,7 +1,5 @@
 package com.instaJava.instaJava.service;
 
-import java.util.Optional;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -81,9 +79,9 @@ public class AuthService {
 		//check user credentials, if there is something wrong then throw BadCredentialsException.
 		authenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(reqLogin.getUsername(), reqLogin.getPassword()));
-		Optional<User> user = userService.getByUsername(reqLogin.getUsername());
-		token = jwtService.generateToken(user.get());
-		refreshToken = jwtService.generateRefreshToken(user.get());
+		UserDetails user = userDetailsService.loadUserByUsername(reqLogin.getUsername());
+		token = jwtService.generateToken(user);
+		refreshToken = jwtService.generateRefreshToken(user);
 		return ResAuthToken.builder().token(token).refreshToken(refreshToken).build();
 	}
 

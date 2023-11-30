@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ResSocialInfo implements Serializable {
+public class SocialInfoDto implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 

@@ -21,8 +21,13 @@ import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
+import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.dto.response.SocialInfoDto;
+import com.instaJava.instaJava.dto.response.UserGeneralInfoDto;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.FollowStatus;
+import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.exception.ImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
@@ -42,9 +47,11 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	private final PersonalDetailsMapper personalDetailsMapper;
 	private final UserMapper userMapper;
 	private final SpecificationService<User> specService;
+	private final PublicatedImageService publicatedImageService;
+	private final FollowService followService;
 	private final PageableUtils pagUtils;
 
-	
+	// check test
 	@Override
 	@Transactional
 	public User save(User user) {
@@ -53,7 +60,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		return userDao.save(user);
 	}
 
-	
 	@Override
 	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -64,7 +70,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		return user;
 	}
 
-	
 	@Override
 	@Transactional
 	public void updateImage(MultipartFile file) {
@@ -77,7 +82,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		userDao.save(user);
 	}
 
-	
 	@Override
 	@Transactional(readOnly = true)
 	public String getImage() {
@@ -85,116 +89,109 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		return user.getImage();
 	}
 
-	
 	@Override
 	@Transactional(readOnly = true)
-	public Optional<PersonalDetails> getPersonalDetailsByUser() {
+	public PersonalDetailsDto getPersonalDetailsByUser() {
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		PersonalDetails perDet = user.getPersonalDetails();
 		if (perDet == null)
-			return Optional.empty();
-		return Optional.of(perDet);
+			throw new RecordNotFoundException(messUtils.getMessage("mess.perDet-not-found"), HttpStatus.NO_CONTENT);
+		return personalDetailsMapper.personalDetailsToPersonalDetailsDto(perDet);
 	}
-
-
+	
 	@Override
 	@Transactional
-	public PersonalDetails savePersonalDetails(PersonalDetailsDto personalDetailsDto) {
+	public PersonalDetailsDto savePersonalDetails(PersonalDetailsDto personalDetailsDto) {
 		if (personalDetailsDto == null)
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		PersonalDetails perDet = personalDetailsDao
 				.save(personalDetailsMapper.personalDetailsDtoAndUserToPersonalDetails(personalDetailsDto, user));
-		return perDet;
+		return personalDetailsMapper.personalDetailsToPersonalDetailsDto(perDet);
 	}
 
-	
 	@Override
 	@Transactional
-	public User changeVisible() {
+	public UserDto changeVisible() {
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		user.setVisible(user.isVisible() ? false : true);
-		return userDao.save(user);
+		user = userDao.save(user);
+		return userMapper.userToUserDto(user);
 	}
 
-	
 	@Override
-	public User getByPrincipal() {
-		return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+	public UserDto getByPrincipal() {
+		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		return userMapper.userToUserDto(user);
 	}
 
-	
 	@Override
 	@Transactional(readOnly = true)
 	public UserDto getById(Long id) {
 		if (id == null)
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
 		Optional<User> optUser = userDao.findById(id);
-		if(optUser.isEmpty()) {//tengo que testear este if
+		if (optUser.isEmpty()) {
 			throw new RecordNotFoundException(messUtils.getMessage("excepcion.record-by-id-not-found"),
-					"userId" , List.of(id.toString()),HttpStatus.NOT_FOUND);
+					HttpStatus.NOT_FOUND);
 		}
 		return userMapper.userToUserDto(optUser.get());
 	}
 
 	
 	@Override
-	@Transactional(readOnly = true)
-	public Optional<User> getByUsername(String username) {
-		if (username == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
-		User user = userDao.findByUsername(username);
-		if (user == null)
-			return Optional.empty();
-		return Optional.of(user);
-	}
-
-	
-	@Override
-	@Transactional(readOnly = true)
-	public Optional<User> getOneUserOneCondition(ReqSearch reqSearch) {
+	public UserDto getOneUserOneCondition(ReqSearch reqSearch) {
 		if (reqSearch == null)
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
-		this.passNotAvailableForSearch(reqSearch);
-		return userDao.findOne(specService.getSpecification(reqSearch));
+		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch))
+				.globalOperator(GlobalOperationEnum.NONE).build();
+		return this.getOneUserManyConditions(reqSearchList);
 	}
 
-	
 	@Override
 	@Transactional(readOnly = true)
-	public Optional<User> getOneUserManyConditions(ReqSearchList reqSearchList) {
+	public UserDto getOneUserManyConditions(ReqSearchList reqSearchList) {
 		if (reqSearchList == null)
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		this.passNotAvailableForSearch(reqSearchList.getReqSearchs());
-		return userDao.findOne(
+		Optional<User> userOpt = userDao.findOne(
 				specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()));
+		if (userOpt.isEmpty()) {
+			throw new RecordNotFoundException(messUtils.getMessage("exception.no-user-record-was-found"),
+					HttpStatus.NOT_FOUND);
+		}
+		return userMapper.userToUserDto(userOpt.get());
 	}
 
-	
 	@Override
-	@Transactional(readOnly = true)
-	public Page<User> getManyUsersOneCondition(PageInfoDto pageInfoDto, ReqSearch reqSearch) {
+	public ResPaginationG<UserDto> getManyUsersOneCondition(PageInfoDto pageInfoDto, ReqSearch reqSearch) {
 		if (reqSearch == null || pageInfoDto == null || pageInfoDto.getSortDir() == null
 				|| pageInfoDto.getSortField() == null)
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
-		this.passNotAvailableForSearch(reqSearch);
-		return userDao.findAll(specService.getSpecification(reqSearch), pagUtils.getPageable(pageInfoDto));
+		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch))
+				.globalOperator(GlobalOperationEnum.NONE).build();
+		return this.getManyUsersManyConditions(pageInfoDto, reqSearchList);
+
 	}
 
-	
 	@Override
 	@Transactional(readOnly = true)
-	public Page<User> getManyUsersManyConditions(PageInfoDto pageInfoDto, ReqSearchList reqSearchList) {
+	public ResPaginationG<UserDto> getManyUsersManyConditions(PageInfoDto pageInfoDto, ReqSearchList reqSearchList) {
 		if (reqSearchList == null || pageInfoDto == null || pageInfoDto.getSortDir() == null
 				|| pageInfoDto.getSortField() == null)
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
 		this.passNotAvailableForSearch(reqSearchList.getReqSearchs());
-		return userDao.findAll(
+		Page<User> page = userDao.findAll(
 				specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()),
 				pagUtils.getPageable(pageInfoDto));
+		if (!page.hasContent()) {
+			throw new RecordNotFoundException(messUtils.getMessage("exception.no-user-record-was-found"),
+					HttpStatus.NO_CONTENT);
+		}
+
+		return userMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto);
 	}
 
-	
 	@Override
 	@Transactional(readOnly = true)
 	public boolean existsByUsername(String username) {
@@ -203,7 +200,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		return userDao.existsByUsername(username);
 	}
 
-	
 	@Override
 	@Transactional(readOnly = true)
 	public boolean existsOneCondition(ReqSearch reqSearch) {
@@ -213,7 +209,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		return userDao.exists(specService.getSpecification(reqSearch));
 	}
 
-	
 	@Override
 	@Transactional(readOnly = true)
 	public boolean existsManyConditions(ReqSearchList reqSearchList) {
@@ -224,16 +219,40 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 				.exists(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()));
 	}
 
+	
 	@Override
 	@Transactional(readOnly = true)
 	public List<User> getByUsernameIn(List<String> usernameList) {
 		if (usernameList == null || usernameList.isEmpty())
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
 		List<User> userList = userDao.findByUsernameIn(usernameList);
-		if(userList.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("mess.there-no-users"), "username", usernameList, HttpStatus.NO_CONTENT);
+		if (userList.isEmpty()) {
+			throw new RecordNotFoundException(messUtils.getMessage("exception.no-user-record-was-found"),
+					HttpStatus.NO_CONTENT);
 		}
 		return userList;
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public UserGeneralInfoDto getGeneralUserInfoByUserId(Long userId) {
+		if(userId == null) {
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
+		}
+		SocialInfoDto socialDto;
+		Long nPublications;
+		Long nFollowers;
+		Long nFollowed;
+		FollowStatus followStatus;
+		UserDto userDto = this.getById(userId);
+		nPublications = publicatedImageService.countPublicationsByOwnerId(userId);
+		nFollowers = followService.countByFollowStatusAndFollower(FollowStatus.ACCEPTED, userId);
+		nFollowed = followService.countByFollowStatusAndFollowed(FollowStatus.ACCEPTED, userId);
+		followStatus = followService.getFollowStatusByFollowedId(userId);
+		
+		socialDto = new SocialInfoDto(nPublications.toString(), nFollowers.toString(), nFollowed.toString(), followStatus);
+
+		return new UserGeneralInfoDto(userDto, socialDto);
 	}
 
 	/**

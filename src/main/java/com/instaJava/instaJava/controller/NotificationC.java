@@ -1,6 +1,5 @@
 package com.instaJava.instaJava.controller;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +15,6 @@ import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.entity.Notification;
-import com.instaJava.instaJava.mapper.NotificationMapper;
 import com.instaJava.instaJava.service.NotificationService;
 import com.instaJava.instaJava.util.MessagesUtils;
 
@@ -30,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class NotificationC {
 
 	private final MessagesUtils messUtils;
-	private final NotificationMapper notificationMapper;
 	private final NotificationService notiService;
 
 	// tengo que testear
@@ -53,11 +49,7 @@ public class NotificationC {
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		Page<Notification> pageNotifs = notiService.getNotificationsByAuthUser(pageInfoDto);
-		if (pageNotifs.getContent().isEmpty()) {
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.no-notifications")).build();
-		}
-		return ResponseEntity.ok().body(notificationMapper.pageAndPageInfoDtoToResPaginationG(pageNotifs, pageInfoDto));
+		return ResponseEntity.ok().body(notiService.getNotificationsByAuthUser(pageInfoDto));
 	}
 
 	/**

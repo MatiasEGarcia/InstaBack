@@ -113,7 +113,7 @@ class LikeCTest {
 		String token = jwtService.generateToken(matiasUserAuth);
 		ReqLike req= ReqLike.builder()
 				.type(TypeItemLikedEnum.PULICATED_IMAGE)
-				.itemId(1)
+				.itemId(1L)
 				.decision(true)
 				.build(); 
 

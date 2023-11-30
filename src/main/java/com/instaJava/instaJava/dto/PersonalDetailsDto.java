@@ -25,6 +25,8 @@ import lombok.NoArgsConstructor;
 public class PersonalDetailsDto implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
+	
+	private String perDetId;
 
 	@NotBlank(message = "{vali.name-not-blank}")
 	private String name;

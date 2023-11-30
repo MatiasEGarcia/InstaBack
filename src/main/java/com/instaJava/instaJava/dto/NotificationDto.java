@@ -12,6 +12,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 
+ * @author matia
+ *	Notification data transfer object, it doesn't have to who user. Usually only the user receiver will get his notifications.
+ *	And he already knows who is the user in toWho.
+ *
+ */
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

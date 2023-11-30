@@ -6,8 +6,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -102,7 +100,7 @@ class AuthServiceTest {
 				.build();
 		when(jwtService.generateToken(user)).thenReturn(token);
 		when(jwtService.generateRefreshToken(user)).thenReturn(refreshToken);
-		when(userService.getByUsername(reqLogin.getUsername())).thenReturn(Optional.of(user));
+		when(userDetailsService.loadUserByUsername(reqLogin.getUsername())).thenReturn(user);
 		
 		assertNotNull(authService.authenticate(reqLogin));
 		
@@ -122,7 +120,7 @@ class AuthServiceTest {
 		when(authenticationManager.authenticate(authToken)).thenThrow(BadCredentialsException.class);
 		assertThrows(BadCredentialsException.class,() -> authService.authenticate(reqLogin));
 		verify(authenticationManager).authenticate(authToken);
-		verify(userService,never()).getByUsername(reqLogin.getUsername());
+		verify(userDetailsService,never()).loadUserByUsername(reqLogin.getUsername());
 		verify(jwtService,never()).generateToken(null);
 		verify(jwtService,never()).generateRefreshToken(null);
 	}

@@ -1,9 +1,7 @@
 package com.instaJava.instaJava.controller;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,22 +28,13 @@ import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResImageString;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.dto.response.ResSocialInfo;
-import com.instaJava.instaJava.dto.response.ResUserGeneralInfo;
-import com.instaJava.instaJava.entity.PersonalDetails;
-import com.instaJava.instaJava.entity.User;
-import com.instaJava.instaJava.enums.FollowStatus;
-import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
-import com.instaJava.instaJava.mapper.UserMapper;
-import com.instaJava.instaJava.service.FollowService;
+import com.instaJava.instaJava.dto.response.UserGeneralInfoDto;
 import com.instaJava.instaJava.service.InvTokenService;
-import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.service.UserService;
 import com.instaJava.instaJava.service.WebSocketService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -60,10 +49,6 @@ public class UserC {
 	private final UserService userService;
 	private final WebSocketService webSocketService;
 	private final MessagesUtils messUtils;
-	private final PersonalDetailsMapper personalDetailsMapper;
-	private final UserMapper userMapper;
-	private final PublicatedImageService publicatedImageService;
-	private final FollowService followService;
 
 	/**
 	 * Get basic user info from the authenticated user.
@@ -71,7 +56,7 @@ public class UserC {
 	 */
 	@GetMapping(value="/userBasicInfo", produces = "application/json")
 	public ResponseEntity<UserDto> getAuthBasicUserInfo(){
-		return ResponseEntity.ok(userMapper.userToUserDto(userService.getByPrincipal()));
+		return ResponseEntity.ok(userService.getByPrincipal());
 	}
 	
 	/**
@@ -119,9 +104,7 @@ public class UserC {
 	@PostMapping(value="/personalDetails", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<PersonalDetailsDto> savePersonalDetails(
 			@Valid @RequestBody PersonalDetailsDto personalDetailsDto) {
-		personalDetailsDto = personalDetailsMapper
-				.personalDetailsToPersonalDetailsDto(userService.savePersonalDetails(personalDetailsDto));
-		return ResponseEntity.ok().body(personalDetailsDto);
+		return ResponseEntity.ok().body(userService.savePersonalDetails(personalDetailsDto));
 	}
 
 	/**
@@ -131,7 +114,7 @@ public class UserC {
 	 */
 	@PutMapping(value="/visible", produces = "application/json")
 	public ResponseEntity<UserDto> setVisible() {
-		return ResponseEntity.ok().body(userMapper.userToUserDto(userService.changeVisible()));
+		return ResponseEntity.ok().body(userService.changeVisible());
 	}
 
 	/**
@@ -141,13 +124,7 @@ public class UserC {
 	 */
 	@GetMapping(value="/personalDetails", produces = "application/json")
 	public ResponseEntity<PersonalDetailsDto> getPersonalDetails() {
-		Optional<PersonalDetails> optPersDetails = userService.getPersonalDetailsByUser();
-		if (optPersDetails.isEmpty()) {
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.perDet-not-found")).build();
-		}
-		PersonalDetailsDto personalDetailsDto = personalDetailsMapper
-				.personalDetailsToPersonalDetailsDto(optPersDetails.get());
-		return ResponseEntity.ok().body(personalDetailsDto);
+		return ResponseEntity.ok().body(userService.getPersonalDetailsByUser());
 	}
 
 	
@@ -159,9 +136,7 @@ public class UserC {
 	 */
 	@PostMapping(value="/searchOne/oneCondition", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<UserDto> searchUserWithOneCondition(@Valid @RequestBody ReqSearch reqSearch) {
-		Optional<User> optUser = userService.getOneUserOneCondition(reqSearch);
-		if (optUser.isEmpty())return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.there-no-users")).build();
-		return ResponseEntity.ok().body(userMapper.userToUserDto(optUser.get()));
+		return ResponseEntity.ok().body(userService.getOneUserOneCondition(reqSearch));
 	}
 	
 	/**
@@ -172,10 +147,7 @@ public class UserC {
 	 */
 	@PostMapping(value="searchOne/manyConditions", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<UserDto> searchUserWithManyConditions(@Valid @RequestBody ReqSearchList reqSearchList) {
-		Optional<User> optUser = userService.getOneUserManyConditions(reqSearchList);
-		if (optUser.isEmpty())
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.there-no-users")).build();
-		return ResponseEntity.ok().body(userMapper.userToUserDto(optUser.get()));
+		return ResponseEntity.ok().body(userService.getOneUserManyConditions(reqSearchList));
 	}
 
 	/**
@@ -196,11 +168,7 @@ public class UserC {
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		Page<User> pageUsers = userService.getManyUsersOneCondition(pageInfoDto, reqSearch);
-		if (pageUsers.getContent().isEmpty()) {
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.there-no-users")).build();
-		}
-		return ResponseEntity.ok().body(userMapper.pageAndPageInfoDtoToResPaginationG(pageUsers, pageInfoDto));
+		return ResponseEntity.ok().body(userService.getManyUsersOneCondition(pageInfoDto, reqSearch));
 	}
 	
 
@@ -222,47 +190,14 @@ public class UserC {
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		Page<User> pageUsers = userService.getManyUsersManyConditions(pageInfoDto, reqSearchList);
-		if (pageUsers.getContent().isEmpty()) {
-			return ResponseEntity.noContent().header("moreInfo", messUtils.getMessage("mess.there-no-users")).build();
-		}
-		return ResponseEntity.ok().body(userMapper.pageAndPageInfoDtoToResPaginationG(pageUsers, pageInfoDto));
+		return ResponseEntity.ok().body(userService.getManyUsersManyConditions(pageInfoDto, reqSearchList));
 	}
 
 	
 	@GetMapping(value="/generalInfoById/{id}")
-	public ResponseEntity<ResUserGeneralInfo> getUserGeneralInfoById(@PathVariable("id") Long id){
-		Long nPublications;
-		Long nFollowers;
-		Long nFollowed;
-		FollowStatus followStatus;
-		Optional<User> optUser = userService.getById(id);
-		if(optUser.isEmpty()) {
-			throw new EntityNotFoundException(messUtils.getMessage("excepcion.record-by-id-not-found"));
-		}
-		nPublications = publicatedImageService.countPublicationsByOwnerId(id);
-		nFollowers = followService.countByFollowStatusAndFollower(id);
-		nFollowed = followService.countByFollowStatusAndFollowed(id);
-		followStatus = followService.getFollowStatusByFollowedId(id);
-		ResSocialInfo social = ResSocialInfo.builder()
-			.followStatus(followStatus)
-			.numberPublications(nPublications.toString())
-			.numberFollowed(nFollowed.toString())
-			.numberFollowers(nFollowers.toString())
-			.build();
-		
-	return ResponseEntity.ok().body(ResUserGeneralInfo.builder()
-			.user(userMapper.userToUserDto(optUser.get()))
-			.social(social)
-			.build());	
+	public ResponseEntity<UserGeneralInfoDto> getUserGeneralInfoById(@PathVariable("id") Long id){
+	return ResponseEntity.ok().body(userService.getGeneralUserInfoByUserId(id));	
 	}
-	
-	
-	
-	
-	
-	
-	
 	
 	/*
 	 * FALTA TESTEAR
@@ -270,8 +205,7 @@ public class UserC {
 	 */
 	@GetMapping(value="/webSocketToken", consumes = MediaType.ALL_VALUE , produces = MediaType.APPLICATION_JSON_VALUE )
 	public ResponseEntity<WebSocketAuthInfoDto> getWebSocketToken(){
-		WebSocketAuthInfoDto webSocketAuthInfoDto = webSocketService.getWebSocketToken();
-		return ResponseEntity.ok().body(webSocketAuthInfoDto);
+		return ResponseEntity.ok().body(webSocketService.getWebSocketToken());
 	}
 	
 	

@@ -13,11 +13,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ResUserGeneralInfo implements Serializable {
+public class UserGeneralInfoDto implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 
 	private UserDto user;
 	
-	private ResSocialInfo social;
+	private SocialInfoDto social;
 }

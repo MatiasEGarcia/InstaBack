@@ -2,6 +2,7 @@ package com.instaJava.instaJava.service;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -13,6 +14,7 @@ import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -21,9 +23,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -33,11 +35,14 @@ import com.instaJava.instaJava.dao.NotificationDao;
 import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.UserDto;
-import com.instaJava.instaJava.dto.request.ReqSearch;
+import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
+import com.instaJava.instaJava.exception.IllegalActionException;
+import com.instaJava.instaJava.exception.RecordNotFoundException;
+import com.instaJava.instaJava.mapper.NotificationMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
@@ -57,6 +62,8 @@ class NotificationServiceImplTest {
 	private SimpMessagingTemplate messTemplate;
 	@Mock
 	private UserMapper userMapper;
+	@Mock 
+	private NotificationMapper notiMapper;
 	@Mock
 	private PageableUtils pageUtils;
 	@Mock
@@ -97,6 +104,7 @@ class NotificationServiceImplTest {
 				any(NotificationDto.class));
 	}
 
+	//getNotificationByAuthUser
 	@Test
 	void getNotificationsByAuthUserParamPageInfoDtoNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> service.getNotificationsByAuthUser(null));
@@ -115,23 +123,46 @@ class NotificationServiceImplTest {
 	}
 
 	@Test
-	void getNotificationsByAuthUser() {
+	void getNotificationsByAuthUserPageEmptyThrow() {
 		PageInfoDto pag = PageInfoDto.builder().sortDir(Direction.ASC).sortField("random").build();
-		// spec for example only, does not match reqSearch
-		Specification<Notification> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("random"),
-				"someRandom");
+		Pageable pageable = Pageable.unpaged();
 
+		//auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		when(pageUtils.getPageable(pag)).thenReturn(Pageable.unpaged());
-		when(specService.getSpecification(any(ReqSearch.class))).thenReturn(spec);
-		when(notiDao.findAll(eq(spec), any(Pageable.class))).thenReturn(Page.empty());
+		//pageable
+		when(pageUtils.getPageable(pag)).thenReturn(pageable);
+		//dao
+		when(notiDao.findByToWho(user.getUserId(), pageable)).thenReturn(Page.empty());
 
-		assertNotNull(service.getNotificationsByAuthUser(pag));
-
+		assertThrows(RecordNotFoundException.class,() -> service.getNotificationsByAuthUser(pag));
 	}
 
+	@Test
+	void getNotificationsByAuthUserReturnsNotNull() {
+		PageInfoDto pag = PageInfoDto.builder().sortDir(Direction.ASC).sortField("random").build();
+		Pageable pageable = Pageable.unpaged();
+		Notification noti = new Notification();
+		Page<Notification> page = new PageImpl<>(List.of(noti));
+		ResPaginationG<NotificationDto> resPagG= new ResPaginationG<NotificationDto>(); 
+		
+		//auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		//pageable
+		when(pageUtils.getPageable(pag)).thenReturn(pageable);
+		//dao
+		when(notiDao.findByToWho(user.getUserId(), pageable)).thenReturn(page);
+		//mapper
+		when(notiMapper.pageAndPageInfoDtoToResPaginationG(page, pag)).thenReturn(resPagG);
+		
+		assertNotNull(service.getNotificationsByAuthUser(pag));
+	}
+	
+	
+	//deleteById
 	@Test
 	void deleteNotificationByIdNotiIdParamNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> service.deleteNotificationById(null));
@@ -146,9 +177,9 @@ class NotificationServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		NotificationServiceImpl serviceSpy = spy(service);
 
-		doReturn(notiToDelete).when(serviceSpy).getNotificationById(any(Long.class));
+		doReturn(Optional.of(notiToDelete)).when(serviceSpy).findNotificationById(any(Long.class));
 
-		assertThrows(IllegalArgumentException.class, () -> serviceSpy.deleteNotificationById(1L));
+		assertThrows(IllegalActionException.class, () -> serviceSpy.deleteNotificationById(1L));
 		verify(notiDao, never()).delete(notiToDelete);
 	}
 
@@ -161,28 +192,29 @@ class NotificationServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		NotificationServiceImpl serviceSpy = spy(service);
 
-		doReturn(notiToDelete).when(serviceSpy).getNotificationById(any(Long.class));
+		doReturn(Optional.of(notiToDelete)).when(serviceSpy).findNotificationById(any(Long.class));
 
 		serviceSpy.deleteNotificationById(1L);
 		verify(notiDao).delete(notiToDelete);
 	}
 
+	//getNotificationById
 	@Test
 	void getNotificationByIdNotiIdParamNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> service.getNotificationById(null));
+		assertThrows(IllegalArgumentException.class, () -> service.findNotificationById(null));
 	}
 
 	@Test
-	void getNotificationByIdNotFoundThrow() {
+	void getNotificationByIdEmptyOptional() {
 		when(notiDao.findById(any(Long.class))).thenReturn(Optional.empty());
-		assertThrows(IllegalArgumentException.class, () -> service.getNotificationById(1L));
+		assertTrue(service.findNotificationById(1L).isEmpty());
 	}
 
 	@Test
-	void getNotificationById() {
+	void getNotificationByIdOptionalPresent() {
 		Notification notiFounded = new Notification();
 		when(notiDao.findById(any(Long.class))).thenReturn(Optional.of(notiFounded));
-		assertNotNull(service.getNotificationById(1L));
+		assertTrue(service.findNotificationById(1L).isPresent());
 	}
 
 }

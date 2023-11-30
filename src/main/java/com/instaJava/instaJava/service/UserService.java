@@ -1,9 +1,7 @@
 package com.instaJava.instaJava.service;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dto.PageInfoDto;
@@ -11,7 +9,8 @@ import com.instaJava.instaJava.dto.PersonalDetailsDto;
 import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
-import com.instaJava.instaJava.entity.PersonalDetails;
+import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.dto.response.UserGeneralInfoDto;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.ImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
@@ -22,7 +21,7 @@ public interface UserService {
 	 * Save User.
 	 * 
 	 * @param user. User object to be saved
-	 * @return User object that was saved in database.
+	 * @return UserDto object with User which was saved in database info.
 	 * @throws IllegalArgumentException if @param user is null.
 	 */
 	User save(User user);
@@ -45,32 +44,31 @@ public interface UserService {
 
 	/**
 	 * Get personal details by authenticated user.
-	 *
-	 * @return PersonalDetails optional. empty if there is no PersonalDetails record
-	 *         associated with authenticated user.
+	 * @return PersonalDetailsDto with PersonalDetails info.
+	 * @throws RecordNotFoundException if there is not a PersonalDetails record associated with authentication user.
 	 */
-	Optional<PersonalDetails> getPersonalDetailsByUser();
+	PersonalDetailsDto getPersonalDetailsByUser();
 
 
 	/**
 	 * Save PersonalDetails record with authenticated user associated.
 	 * 
-	 * @return PersonalDetails record saved.
+	 * @return PersonalDetailsDto with PersonalDetial record saved info.
 	 * @throws IllegalArgumentException if personalDetailsDto is null.
 	 */
-	PersonalDetails savePersonalDetails(PersonalDetailsDto personalDetailsDto);
+	PersonalDetailsDto savePersonalDetails(PersonalDetailsDto personalDetailsDto);
 
 	/**
 	 * Change the visible state of the User. public or private / true or false
 	 * 
-	 * @return User already updated.
+	 * @return UserDto object with User info updated.
 	 */
-	User changeVisible();
+	UserDto changeVisible();
 
 	/**
 	 * Method to get authenticated user info.
 	 */
-	User getByPrincipal();
+	UserDto getByPrincipal();
 
 	/**
 	 * Get a User record by id.
@@ -87,18 +85,9 @@ public interface UserService {
 	 * @param usernameList - list of username
 	 * @throws IllegalArgumentException if usernameList is null
 	 * @throws RecordNotFoundException if none user was found.
-	 * @return List of users. can be empty.
+	 * @return List of users. 
 	 */
 	List<User> getByUsernameIn(List<String> usernameList);
-
-	/**
-	 * Get a User record by username.
-	 * 
-	 * @param username. username of the user record wanted.
-	 * @return Optional user.
-	 * @throws IllegalArgumentException if @param username is null.
-	 */
-	Optional<User> getByUsername(String username);
 
 	/**
 	 * 
@@ -106,10 +95,11 @@ public interface UserService {
 	 * 
 	 * @param reqSearch. Object necessary to get a specficiation and do the
 	 *                   research.
-	 * @return Optional user
+	 * @return UserDto object with User found info.
 	 * @throws IllegalArgumentException if @param reqSearch is null.
+	 * @throws RecordNotFoundException if no user was found.
 	 */
-	Optional<User> getOneUserOneCondition(ReqSearch reqSearch);
+	UserDto getOneUserOneCondition(ReqSearch reqSearch);
 
 	/**
 	 * Get only one User record by many conditions (can't be by password)
@@ -117,34 +107,37 @@ public interface UserService {
 	 * @param reqSearchList. Object that contain collection of ReqSearch objects and
 	 *                       a GlobalOperator to define how combine all the
 	 *                       conditions.
-	 * @return Optional user
+	 * @return UserDto object with User found info.
 	 * @throws IllegalArgumentException if @param reqSearchList is null
+	 * @throws RecordNotFoundException if no user was found.
 	 */
-	Optional<User> getOneUserManyConditions(ReqSearchList reqSearchList);
+	UserDto getOneUserManyConditions(ReqSearchList reqSearchList);
 
 	/**
 	 * Get many User records by one condition(can't be password).
 	 * 
 	 * @param pageInfoDto, It has pagination info.
 	 * @param reqSearch.   condition
-	 * @return page collection with User records.
+	 * @return ResPaginationG with all users info and pagination info.
 	 * @throws IllegalArgumentException if @param reqSearch or @param pageInfoDto or
 	 *                                  pageInfoDto.sortDir or pageInfoDto.sortField
 	 *                                  null.
+	 * @throws RecordNotFoundException if no user was found.
 	 */
-	Page<User> getManyUsersOneCondition(PageInfoDto pageInfoDto, ReqSearch reqSearch);
+	ResPaginationG<UserDto> getManyUsersOneCondition(PageInfoDto pageInfoDto, ReqSearch reqSearch);
 
 	/**
 	 * Get many User records by many conditions(can't be password).
 	 * 
 	 * @param pageInfoDto,   It has pagination info.
 	 * @param reqSearchList. Collection of conditions
-	 * @return page collection with User records.
+	 * @return ResPaginationG with all users info and pagination info.
 	 * @throws IllegalArgumentException if @param reqSearchList or @param
 	 *                                  pageInfoDto or pageInfoDto.sortDir or
 	 *                                  pageInfoDto.sortField null.
+	 * @throws RecordNotFoundException if no user was found.
 	 */
-	Page<User> getManyUsersManyConditions(PageInfoDto pageInfoDto, ReqSearchList reqSearchList);
+	ResPaginationG<UserDto> getManyUsersManyConditions(PageInfoDto pageInfoDto, ReqSearchList reqSearchList);
 
 	/**
 	 * Ask if exists User record by username.
@@ -172,4 +165,12 @@ public interface UserService {
 	 * @throws IllegalArgumentException if @param reqSearchList is null.
 	 */
 	boolean existsManyConditions(ReqSearchList reqSearchList);
+	
+	/**
+	 * Getting all general user info, like username, user's image, user's publication number , followers, followed, etc
+	 * @param userId
+	 * @return
+	 */
+	UserGeneralInfoDto getGeneralUserInfoByUserId(Long userId);
+	
 }

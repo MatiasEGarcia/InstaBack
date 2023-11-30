@@ -1,10 +1,13 @@
 package com.instaJava.instaJava.service;
 
-import org.springframework.data.domain.Page;
+import java.util.Optional;
 
+import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
+import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
+import com.instaJava.instaJava.exception.RecordNotFoundException;
 
 public interface NotificationService {
 	
@@ -23,17 +26,18 @@ public interface NotificationService {
 	 * Method to get notifications with toWho atribute equal to the auth user.
 	 * 
 	 * @param pageInfoDto pagination details.
-	 * @return Page of Notification.
+	 * @return ResPaginationG object with Notifications and pagination info.
 	 * @throws IllegalArgumentException if pageInfoDto is null, pageInfoDto.sortDir is null or pageInfoDto.sortField is null.
+	 * @throws RecordNotFoundException if none notification was found.
 	 */
-	Page<Notification> getNotificationsByAuthUser(PageInfoDto pageInfoDto);
+	ResPaginationG<NotificationDto> getNotificationsByAuthUser(PageInfoDto pageInfoDto);
 	
 	/**
 	 * Method to delete a notification record by its id.
 	 * @param notiId notification id.
 	 * @return void.
 	 * @throws IllegalArgumentException if notiId is null.
-	 * @throws IllegalArgumentException if notification attribute toWho doesn't have the same user information 
+	 * @throws IllegalActionException if notification attribute toWho doesn't have the same user information 
 	 * than the authenticated user.
 	 */
 	void deleteNotificationById(Long notiId);
@@ -41,9 +45,9 @@ public interface NotificationService {
 	/**
 	 * Method to get notification record by id.
 	 * @param notiId notification id.
-	 * @throws IllegalArgumentException if notiId is null
-	 * @throws IllegalArgumentException if there wasn't any record with given id.
+	 * @return Optional with notification if exists.
+	 * @throws IllegalArgumentException if notiId is null.
 	 */
-	Notification getNotificationById(Long notiId);
+	Optional<Notification> findNotificationById(Long notiId);
 	
 }
