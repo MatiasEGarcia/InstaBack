@@ -45,7 +45,7 @@ import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.RolesEnum;
-import com.instaJava.instaJava.exception.IllegalActionException;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -150,7 +150,7 @@ class PublicatedImagesServiceImplTest {
 
 		doReturn(publiImageDto).when(spyPublicatedImageService).getById(id);
 
-		assertThrows(IllegalActionException.class, () -> spyPublicatedImageService.deleteById(id));
+		assertThrows(InvalidActionException.class, () -> spyPublicatedImageService.deleteById(id));
 
 		verify(publicatedImagesDao, never()).deleteById(id);
 	}
@@ -361,7 +361,7 @@ class PublicatedImagesServiceImplTest {
 		// asking followService
 		when(followService.getFollowStatusByFollowedId(idDifferentFromAuthUser)).thenReturn(FollowStatus.NOT_ASKED);
 
-		assertThrows(IllegalActionException.class,
+		assertThrows(InvalidActionException.class,
 				() -> publicatedImagesService.getAllByOnwer(idDifferentFromAuthUser, pageInfoDto));
 
 		verify(userService).getById(idDifferentFromAuthUser);
@@ -386,7 +386,7 @@ class PublicatedImagesServiceImplTest {
 		// asking followService
 		when(followService.getFollowStatusByFollowedId(idDifferentFromAuthUser)).thenReturn(FollowStatus.IN_PROCESS);
 
-		assertThrows(IllegalActionException.class,
+		assertThrows(InvalidActionException.class,
 				() -> publicatedImagesService.getAllByOnwer(idDifferentFromAuthUser, pageInfoDto));
 
 		verify(userService).getById(idDifferentFromAuthUser);
@@ -411,7 +411,7 @@ class PublicatedImagesServiceImplTest {
 		// asking followService
 		when(followService.getFollowStatusByFollowedId(idDifferentFromAuthUser)).thenReturn(FollowStatus.REJECTED);
 
-		assertThrows(IllegalActionException.class,
+		assertThrows(InvalidActionException.class,
 				() -> publicatedImagesService.getAllByOnwer(idDifferentFromAuthUser, pageInfoDto));
 
 		verify(userService).getById(idDifferentFromAuthUser);

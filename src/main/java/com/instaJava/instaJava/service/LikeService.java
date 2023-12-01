@@ -3,7 +3,7 @@ package com.instaJava.instaJava.service;
 import com.instaJava.instaJava.dto.request.ReqLike;
 import com.instaJava.instaJava.dto.response.LikeDto;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
-import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 
 public interface LikeService {
@@ -13,7 +13,7 @@ public interface LikeService {
 	 * @param likeId. id of the Like record.
 	 * @throws IllegalArgumentException if @param likeId is null.
 	 * @throws RecordNotFoundException if record to delete was not found.
-	 * @throws InvalidException if auth user is not he owner of the like wanted to delete.
+	 * @throws InvalidActionException if auth user is not he owner of the like wanted to delete.
 	 */
 	void deleteById(Long likeId);
 	
@@ -34,6 +34,7 @@ public interface LikeService {
 	 * 
 	 * @param reqLike. object with the data of the Like to be saved.
 	 * @throws IllegalArgumentException if the param is null.
+	 * @Throws InvalidActionException if item trying to like no exist, or if like record already exist
 	 * @return LikeDto object with Like record info.
 	 */
 	LikeDto save(ReqLike reqLike);

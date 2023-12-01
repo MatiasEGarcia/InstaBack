@@ -7,8 +7,6 @@ import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
 
-import jakarta.persistence.EntityNotFoundException;
-
 public interface FollowService {
 
 	/**
@@ -18,7 +16,6 @@ public interface FollowService {
 	 * 
 	 * @param FollowedId. user id to follow.
 	 * @throws IllegalArgumentException - if @param FollowedId is null
-	 * @throws EntityNotFoundException - if user to follow not exist.
 	 * @throws AlreadyExistsException - if follow record already exists.
 	 * @return FollowDto object with Follow record created info.
 	 */
@@ -75,7 +72,8 @@ public interface FollowService {
 	 * are same user then delete the follow record.
 	 * 
 	 * @param id. Id of the Follow record to delete
-	 * @throws IllegalArgumentException if @param id is null
+	 * @throws IllegalArgumentException if @param id is null.
+	 * @throws InvalidActionException if follower != auth user
 	 */
 	void deleteById(Long id);
 

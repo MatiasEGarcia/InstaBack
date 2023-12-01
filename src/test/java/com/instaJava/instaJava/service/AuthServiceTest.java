@@ -23,7 +23,7 @@ import com.instaJava.instaJava.dto.request.ReqUserRegistration;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
-import com.instaJava.instaJava.exception.TokenException;
+import com.instaJava.instaJava.exception.InvalidTokenException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -143,7 +143,7 @@ class AuthServiceTest {
 		when(userDetailsService.loadUserByUsername("Mati")).thenReturn(user);
 		when(jwtService.isTokenValid(reqRefreshToken.getRefreshToken(), user)).thenReturn(false);
 		
-		assertThrows(TokenException.class
+		assertThrows(InvalidTokenException.class
 				,() -> authService.refreshToken(reqRefreshToken));
 		
 		verify(jwtService).extractUsername(reqRefreshToken.getRefreshToken());
@@ -165,7 +165,7 @@ class AuthServiceTest {
 		when(jwtService.isTokenValid(reqRefreshToken.getRefreshToken(), user)).thenReturn(true);
 		when(invTokenService.existByToken(reqRefreshToken.getRefreshToken())).thenReturn(true);
 		
-		assertThrows(TokenException.class
+		assertThrows(InvalidTokenException.class
 				,() -> authService.refreshToken(reqRefreshToken));
 		
 		verify(jwtService).extractUsername(reqRefreshToken.getRefreshToken());

@@ -19,7 +19,7 @@ import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.NotificationType;
-import com.instaJava.instaJava.exception.IllegalActionException;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.NotificationMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
@@ -87,7 +87,7 @@ public class NotificationServiceImpl implements NotificationService {
 		Optional<Notification> notiToDelete = findNotificationById(notiId);
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if(!notiToDelete.get().getToWho().equals(authUser)) {
-			throw new IllegalActionException(messUtils.getMessage("notif.owner-not-same"),HttpStatus.BAD_REQUEST); 
+			throw new InvalidActionException(messUtils.getMessage("notif.owner-not-same"),HttpStatus.BAD_REQUEST); 
 		}
 		notiDao.delete(notiToDelete.get());
 	}

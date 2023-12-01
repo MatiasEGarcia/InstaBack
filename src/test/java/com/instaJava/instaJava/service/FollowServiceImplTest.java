@@ -43,7 +43,7 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
-import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.FollowMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -328,7 +328,7 @@ class FollowServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
 		doReturn(followDto).when(follSerSpy).findById(anyLong());
-		assertThrows(InvalidException.class, () -> follSerSpy.deleteById(anyLong()),
+		assertThrows(InvalidActionException.class, () -> follSerSpy.deleteById(anyLong()),
 				"if followOwner is not the same than" + " the authenticated user , the follow cannot be deleted");
 	}
 

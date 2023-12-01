@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
  *throw this.
  *
  */
-public class UserNotApplicableForChatException extends IllegalActionException{
+public class UserNotApplicableForChatException extends InvalidActionException{
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -19,46 +19,19 @@ public class UserNotApplicableForChatException extends IllegalActionException{
 	 * If the search or request was by user's id then here should be userId(it's
 	 * attribute)
 	 */
-	private String attributeSearched;
 	private List<String> notApplicableList; // having users username not applicable
-	private HttpStatus status;
-
 	
-	public UserNotApplicableForChatException(Exception e) {
-		super(e);
-	}
-
-	
-	public UserNotApplicableForChatException(String msg) {
-		super(msg);
-	}
-	
-	public UserNotApplicableForChatException(String msg, List<String> notApplicableList) {
-		super(msg);
+	public UserNotApplicableForChatException(String msg,HttpStatus status, List<String> notApplicableList) {
+		super(msg, status);
 		this.notApplicableList = notApplicableList;
 	}
 	
-	public UserNotApplicableForChatException(String msg, HttpStatus status, String attributeSearched, List<String> notApplicableList) {
-		super(msg);
-		this.status = status;
-		this.attributeSearched = attributeSearched;
+	public UserNotApplicableForChatException(String msg,HttpStatus status, List<String> notApplicableList,Exception e) {
+		super(msg, status,e);
 		this.notApplicableList = notApplicableList;
-		this.notApplicableList = notApplicableList;
-	}
-
-	public String getAttributeSearched() {
-		return attributeSearched;
 	}
 
 	public List<String> getNotApplicableList() {
 		return notApplicableList;
 	}
-
-	public HttpStatus getStatus() {
-		return status;
-	}
-
-
-	
-	
 }

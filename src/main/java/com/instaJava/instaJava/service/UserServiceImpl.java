@@ -28,7 +28,7 @@ import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
-import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		try {
 			user.setImage(Base64.getEncoder().encodeToString(file.getBytes()));
 		} catch (Exception e) {
-			throw new ImageException(e);
+			throw new InvalidImageException(messUtils.getMessage("generic.image-base-64"),HttpStatus.BAD_REQUEST, e);
 		}
 		userDao.save(user);
 	}

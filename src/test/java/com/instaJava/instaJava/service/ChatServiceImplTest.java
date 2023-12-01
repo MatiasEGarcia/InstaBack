@@ -39,7 +39,7 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.ChatTypeEnum;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.RolesEnum;
-import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.exception.UserNotApplicableForChatException;
 import com.instaJava.instaJava.mapper.ChatMapper;
@@ -378,7 +378,7 @@ class ChatServiceImplTest {
 				.build();
 		MultipartFile multipartFile = new MockMultipartFile("file", "test.txt", "text/plain", "testing".getBytes());
 		when(chatDao.findById(anyLong())).thenReturn(Optional.of(chat));
-		assertThrows(InvalidException.class, () -> chatService.setImage(multipartFile, anyLong()),
+		assertThrows(InvalidActionException.class, () -> chatService.setImage(multipartFile, anyLong()),
 				"If chat is private then cannot set an image");
 		verify(chatDao,never()).save(any(Chat.class));
 	}

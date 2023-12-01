@@ -21,8 +21,8 @@ import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
-import com.instaJava.instaJava.exception.IllegalActionException;
-import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.exception.InvalidActionException;
+import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -55,7 +55,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 					.userOwner((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 					.createdAt(ZonedDateTime.now(clock)).build();
 		} catch (Exception e) {
-			throw new ImageException(e);
+			throw new InvalidImageException(messUtils.getMessage("generic.image-base-64"),HttpStatus.BAD_REQUEST, e);
 		}
 		
 		publicatedImage = publicatedImagesDao.save(publicatedImage);
@@ -73,7 +73,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		PublicatedImageDto publiImageDto = getById(id);
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (!publiImageDto.getUserOwner().getUserId().equals(authUser.getUserId().toString())) {
-			throw new IllegalActionException(messUtils.getMessage("generic.auth-user-no-owner"));
+			throw new InvalidActionException(messUtils.getMessage("generic.auth-user-no-owner"),HttpStatus.BAD_REQUEST);
 		}
 		publicatedImagesDao.deleteById(id);
 	}
@@ -86,7 +86,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		Optional<PublicatedImage> optPublicatedImage = publicatedImagesDao.findById(id);
 		if(optPublicatedImage.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"), "pubImaId", List.of(id.toString()), HttpStatus.NOT_FOUND);
+			throw new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"), List.of(id.toString()), HttpStatus.NOT_FOUND);
 		}
 		
 		return publicatedImageMapper.publicatedImageToPublicatedImageDto(optPublicatedImage.get());
@@ -132,11 +132,11 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 				FollowStatus followStatus = followService.getFollowStatusByFollowedId(ownerId);
 				switch (followStatus) {
 				case NOT_ASKED:
-					throw new IllegalActionException(messUtils.getMessage("follow.followStatus-not-asked"), HttpStatus.BAD_REQUEST);
+					throw new InvalidActionException(messUtils.getMessage("follow.followStatus-not-asked"), HttpStatus.BAD_REQUEST);
 				case REJECTED:
-					throw new IllegalActionException(messUtils.getMessage("follow.followStatus-rejected"), HttpStatus.BAD_REQUEST);
+					throw new InvalidActionException(messUtils.getMessage("follow.followStatus-rejected"), HttpStatus.BAD_REQUEST);
 				case IN_PROCESS:
-					throw new IllegalActionException(messUtils.getMessage("follow.followStatus-in-process"), HttpStatus.BAD_REQUEST);
+					throw new InvalidActionException(messUtils.getMessage("follow.followStatus-in-process"), HttpStatus.BAD_REQUEST);
 				case ACCEPTED:
 					break;
 				default:

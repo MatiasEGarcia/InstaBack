@@ -1,5 +1,7 @@
 package com.instaJava.instaJava.exception;
 
+import org.springframework.http.HttpStatus;
+
 /**
  * @author matia
  * Exception to throw when something is not found.
@@ -8,12 +10,20 @@ package com.instaJava.instaJava.exception;
 public class NotFoundException extends RuntimeException{
 	
 	private static final long serialVersionUID = 1L;
+	
+	private final HttpStatus status;
 
-	public NotFoundException(Exception e) {
-		super(e);
-	}
-
-	public NotFoundException(String msg) {
+	public NotFoundException(String msg, HttpStatus status) {
 		super(msg);
+		this.status = status;
+	}
+	
+	public NotFoundException(String msg, HttpStatus status,Exception e) {
+		super(msg,e);
+		this.status = status;
+	}
+	
+	public HttpStatus getStatus() {
+		return status;
 	}
 }

@@ -6,7 +6,7 @@ import com.instaJava.instaJava.dto.ChatDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqChat;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.UserNotApplicableForChatException;
 
 public interface ChatService {
@@ -36,7 +36,8 @@ public interface ChatService {
 	 * @param image - image to add to chat record.
 	 * @param chatId - chat's id to update.
 	 * @return ChatDto object with the updated Chat's info.
-	 * @throws ImageException - if there was some error in image encode to base64.
+	 * @throws InvalidImageException - if there was some error in image encode to base64.
+	 * @throws InvalidActionException - if chat is private.
 	 * @throws IllegalArgumentException - if image or chatId is null.
 	 * @throws RecordNotFoundException - if chat to update is not found.
 	 */

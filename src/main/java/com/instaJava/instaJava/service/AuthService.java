@@ -1,5 +1,6 @@
 package com.instaJava.instaJava.service;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,7 +17,7 @@ import com.instaJava.instaJava.dto.response.ResAuthToken;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
-import com.instaJava.instaJava.exception.TokenException;
+import com.instaJava.instaJava.exception.InvalidTokenException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -52,7 +53,7 @@ public class AuthService {
 		String token;
 		String refreshToken;
 		if (userService.existsByUsername(reqUserRegistration.getUsername()))
-			throw new AlreadyExistsException(messUtils.getMessage("user.username-already-exists"));
+			throw new AlreadyExistsException(messUtils.getMessage("user.username-already-exists"),HttpStatus.BAD_REQUEST);
 		user = User.builder().username(reqUserRegistration.getUsername())
 				.password(passwordEncoder.encode(reqUserRegistration.getPassword())).role(RolesEnum.ROLE_USER).build();
 		user = userService.save(user);
@@ -92,7 +93,7 @@ public class AuthService {
 	 * @param reqRefreshToken.-  contains old tokens expired or invalidated
 	 * @return ResAuthToken  - object with valid tokens.
 	 * @throws IllegalArgumentException - if @param reqRefreshToken is null.
-	 * @throws TokenException           - if the the refresh token is expired or
+	 * @throws InvalidTokenException           - if the the refresh token is expired or
 	 *                                  invalidated because was logout.
 	 */
 	@Transactional(readOnly = true)
@@ -104,7 +105,8 @@ public class AuthService {
 			userDetails = userDetailsService
 					.loadUserByUsername(jwtService.extractUsername(reqRefreshToken.getRefreshToken()));
 		} catch (ExpiredJwtException e) {
-			throw new TokenException(messUtils.getMessage("client-refreshToken-invalid"));
+			throw new InvalidTokenException(messUtils.getMessage("client-refreshToken-invalid"),
+					HttpStatus.BAD_REQUEST,e);
 		}
 		if (jwtService.isTokenValid(reqRefreshToken.getRefreshToken(), userDetails)
 				&& !invTokenService.existByToken(reqRefreshToken.getRefreshToken())) {
@@ -112,7 +114,8 @@ public class AuthService {
 					.refreshToken(reqRefreshToken.getRefreshToken()) // we return the same refreshToken
 					.build();
 		} else {
-			throw new TokenException(messUtils.getMessage("client-refreshToken-invalid"));
+			throw new InvalidTokenException(messUtils.getMessage("client-refreshToken-invalid"),
+					HttpStatus.BAD_REQUEST);
 		}
 	}
 

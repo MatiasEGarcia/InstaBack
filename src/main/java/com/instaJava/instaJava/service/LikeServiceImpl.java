@@ -16,7 +16,7 @@ import com.instaJava.instaJava.dto.response.LikeDto;
 import com.instaJava.instaJava.entity.Like;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
-import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.LikeMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -43,11 +43,11 @@ public class LikeServiceImpl implements LikeService {
 		User user;
 		Optional<Like> optLike = likeDao.findById(likeId);
 		if (optLike.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("like.not-found"), "likeId", List.of(likeId.toString()), HttpStatus.NOT_FOUND);
+			throw new RecordNotFoundException(messUtils.getMessage("like.not-found"), List.of(likeId.toString()), HttpStatus.NOT_FOUND);
 		}
 		user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (!user.equals(optLike.get().getOwnerLike()))
-			throw new InvalidException(messUtils.getMessage("generic.auth-user-no-owner"));
+			throw new InvalidActionException(messUtils.getMessage("generic.auth-user-no-owner"),HttpStatus.BAD_REQUEST);
 		likeDao.delete(optLike.get());
 	}
 
@@ -70,7 +70,7 @@ public class LikeServiceImpl implements LikeService {
 		User userOwner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		validateReqLike(reqLike, userOwner.getUserId());
 		if (!reqLike.isValid())
-			throw new InvalidException(messUtils.getMessage("like.not-valid"));
+			throw new InvalidActionException(messUtils.getMessage("like.not-valid"),HttpStatus.BAD_REQUEST);
 		
 		Like likeToSave = Like.builder()
 				.itemId(reqLike.getItemId())

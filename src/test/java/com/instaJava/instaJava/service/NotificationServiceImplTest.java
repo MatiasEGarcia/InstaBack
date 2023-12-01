@@ -40,7 +40,7 @@ import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
-import com.instaJava.instaJava.exception.IllegalActionException;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.NotificationMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
@@ -179,7 +179,7 @@ class NotificationServiceImplTest {
 
 		doReturn(Optional.of(notiToDelete)).when(serviceSpy).findNotificationById(any(Long.class));
 
-		assertThrows(IllegalActionException.class, () -> serviceSpy.deleteNotificationById(1L));
+		assertThrows(InvalidActionException.class, () -> serviceSpy.deleteNotificationById(1L));
 		verify(notiDao, never()).delete(notiToDelete);
 	}
 

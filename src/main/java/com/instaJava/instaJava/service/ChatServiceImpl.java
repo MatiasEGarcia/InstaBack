@@ -24,8 +24,8 @@ import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.ChatTypeEnum;
 import com.instaJava.instaJava.enums.FollowStatus;
-import com.instaJava.instaJava.exception.ImageException;
-import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.InvalidActionException;
+import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.exception.UserNotApplicableForChatException;
 import com.instaJava.instaJava.mapper.ChatMapper;
@@ -106,18 +106,18 @@ public class ChatServiceImpl implements ChatService {
 		}
 		Optional<Chat> chatToEdit = chatDao.findById(chatId);
 		if(chatToEdit.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("chat.not-found"),"chatId" ,
+			throw new RecordNotFoundException(messUtils.getMessage("chat.not-found") ,
 					List.of(chatId.toString()),HttpStatus.NOT_FOUND);
 		}
 		//only group chat can edit image attribute.
 		if(chatToEdit.get().getType().equals(ChatTypeEnum.PRIVATE)) {
-			throw new InvalidException(messUtils.getMessage("chat.private-no-image")); 
+			throw new InvalidActionException(messUtils.getMessage("chat.private-no-image"),HttpStatus.BAD_REQUEST); 
 		}
 		
 		try {
 			chatToEdit.get().setImage(Base64.getEncoder().encodeToString(image.getBytes()));
 		}catch(Exception e) {
-			throw new ImageException(e);
+			throw new InvalidImageException(messUtils.getMessage("generic.image-base-64"),HttpStatus.BAD_REQUEST,e);
 		}
 		Chat chatUpdated = chatDao.save(chatToEdit.get());
 		return chatMapper.chatToChatDto(chatUpdated);
@@ -149,8 +149,8 @@ public class ChatServiceImpl implements ChatService {
 		});
 		
 		if(!usersNotApplicable.isEmpty()) {
-			throw new UserNotApplicableForChatException(messUtils.getMessage("chat.users-not-applicable"), HttpStatus.BAD_REQUEST 
-					,"username",usersNotApplicable);
+			throw new UserNotApplicableForChatException(messUtils.getMessage("chat.users-not-applicable"),
+					HttpStatus.BAD_REQUEST,usersNotApplicable);
 		}
 	}
 
@@ -206,7 +206,7 @@ public class ChatServiceImpl implements ChatService {
 		List<String> usersNotFound = allUsersString.stream().filter(username -> !usersFoundUsernames.contains(username)).toList();
 	
 		if(!usersNotFound.isEmpty()) {			
-			throw new RecordNotFoundException(messUtils.getMessage("user.group-not-found"), "username",
+			throw new RecordNotFoundException(messUtils.getMessage("user.group-not-found"),
 					usersNotFound, HttpStatus.NOT_FOUND);
 		}
 	}

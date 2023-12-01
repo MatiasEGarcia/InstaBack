@@ -12,7 +12,7 @@ import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.dto.response.UserGeneralInfoDto;
 import com.instaJava.instaJava.entity.User;
-import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 
 public interface UserService {
@@ -30,7 +30,7 @@ public interface UserService {
 	 * Update image of the authenticated user.
 	 * 
 	 * @param file. Image to save.
-	 * @throws ImageException if there was an error getting bytes of the @param
+	 * @throws InvalidImageException if there was an error getting bytes of the @param
 	 *                        image.
 	 */
 	void updateImage(MultipartFile file);

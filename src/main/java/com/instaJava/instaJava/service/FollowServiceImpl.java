@@ -19,7 +19,7 @@ import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
-import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.FollowMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -53,7 +53,7 @@ public class FollowServiceImpl implements FollowService {
 		// check if the follow record already exists.
 		userFollower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (existsByFollowedAndFollower(followedId)) {
-			throw new AlreadyExistsException(messUtils.getMessage("generic.create-record-already.exists"));
+			throw new AlreadyExistsException(messUtils.getMessage("generic.create-record-already.exists"),HttpStatus.BAD_REQUEST);
 		}
 		userFollowed = User.builder()
 				.userId(Long.parseLong(userDtoFollowed.getUserId()))
@@ -109,7 +109,7 @@ public class FollowServiceImpl implements FollowService {
 		if(id == null) throw new IllegalArgumentException("generic.arg-not-null");
 		Optional<Follow> followerOpt = followDao.findById(id);
 		if (followerOpt.isEmpty())
-			throw new RecordNotFoundException(messUtils.getMessage("follow.not-found"));
+			throw new RecordNotFoundException(messUtils.getMessage("follow.not-found"),HttpStatus.NOT_FOUND);
 		Follow followFound = followerOpt.get();
 		return followMapper.followToFollowDto(followFound);
 	}
@@ -132,7 +132,7 @@ public class FollowServiceImpl implements FollowService {
 		FollowDto foll = findById(id);
 		User userFollower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (!foll.getFollower().getUserId().equalsIgnoreCase(userFollower.getUserId().toString()))
-			throw new InvalidException(messUtils.getMessage("follow.follower-not-same"));
+			throw new InvalidActionException(messUtils.getMessage("follow.follower-not-same"),HttpStatus.BAD_REQUEST);
 		followDao.delete(followMapper.followDtoToFollow(foll));
 	}
 

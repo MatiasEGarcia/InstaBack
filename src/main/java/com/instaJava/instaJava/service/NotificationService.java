@@ -37,7 +37,7 @@ public interface NotificationService {
 	 * @param notiId notification id.
 	 * @return void.
 	 * @throws IllegalArgumentException if notiId is null.
-	 * @throws IllegalActionException if notification attribute toWho doesn't have the same user information 
+	 * @throws InvalidActionException if notification attribute toWho doesn't have the same user information 
 	 * than the authenticated user.
 	 */
 	void deleteNotificationById(Long notiId);

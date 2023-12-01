@@ -24,11 +24,8 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import com.instaJava.instaJava.dto.response.ResErrorMessage;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
 import com.instaJava.instaJava.exception.InvalidException;
-import com.instaJava.instaJava.exception.TokenException;
-import com.instaJava.instaJava.exception.UserNotApplicableForChatException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
@@ -48,10 +45,9 @@ public class ExceptionHandlerController {
 	@ExceptionHandler(value = { Exception.class })
 	public ResponseEntity<ResErrorMessage> exceptionHandler(Exception e) {
 		LOGGER.error("There was some Exception: ", e.getMessage());
-		return ResponseEntity.internalServerError()
-				.body(ResErrorMessage.builder().error(HttpStatus.INTERNAL_SERVER_ERROR.toString())
-						.message(messUtils.getMessage("internal-server-error"))
-						.details(Map.of("message", e.getMessage())).build());
+		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR.toString(),
+				messUtils.getMessage("internal-server-error"), Map.of(messUtils.getMessage("key.detail-exception"),e.getMessage()));
+		return ResponseEntity.internalServerError().body(resMessage);
 	}
 
 	/**
@@ -63,11 +59,10 @@ public class ExceptionHandlerController {
 	 */
 	@ExceptionHandler(value = { InvalidException.class })
 	public ResponseEntity<ResErrorMessage> invalidExceptionHandler(InvalidException e) {
-		LOGGER.error("There was some RefreshTokenInvalid", e.getMessage());
-		return ResponseEntity.badRequest()
-				.body(ResErrorMessage.builder().error(HttpStatus.BAD_REQUEST.toString())
-						.message(messUtils.getMessage("client.value-invalid"))
-						.details(Map.of("message", e.getMessage())).build());
+		LOGGER.error("There was some InvalidException", e.getMessage());
+		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.BAD_REQUEST.toString(),
+				messUtils.getMessage("client.value-invalid"),Map.of(messUtils.getMessage("key.detail-exception"), e.getMessage()));
+		return ResponseEntity.badRequest().body(resMessage);
 	}
 
 	/**
@@ -79,10 +74,10 @@ public class ExceptionHandlerController {
 	@ExceptionHandler(value = { IllegalArgumentException.class })
 	public ResponseEntity<ResErrorMessage> illegalArgumentExceptionHandler(IllegalArgumentException e) {
 		LOGGER.error("There was some IllegalArgumentException", e.getMessage());
-		return ResponseEntity.internalServerError()
-				.body(ResErrorMessage.builder().error(HttpStatus.INTERNAL_SERVER_ERROR.toString())
-						.message(messUtils.getMessage("generic.illegal-arg"))//esto es realmente necesario?
-						.details(Map.of("message", e.getMessage())).build());
+		ResErrorMessage resMessage = ResErrorMessage.builder().error(HttpStatus.INTERNAL_SERVER_ERROR.toString())
+				.message(e.getMessage())
+				.build();
+		return ResponseEntity.internalServerError().body(resMessage);
 	}
 
 	/**
@@ -100,8 +95,11 @@ public class ExceptionHandlerController {
 			String message = error.getDefaultMessage();
 			errors.put(fieldName, message);
 		});
-		return ResponseEntity.badRequest().body(ResErrorMessage.builder().error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("client.body-not-fulfilled")).details(errors).build());
+		
+		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.BAD_REQUEST.toString()
+				,messUtils.getMessage("client.body-not-fulfilled") , errors);
+		
+		return ResponseEntity.badRequest().body(resMessage);
 	}
 
 	/**
@@ -127,8 +125,10 @@ public class ExceptionHandlerController {
 			String message = constraintViolation.getMessage();
 			errors.put(fieldName, message);
 		});
-		return ResponseEntity.badRequest().body(ResErrorMessage.builder().error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("client.type-incorrect")).details(errors).build());
+		
+		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.BAD_REQUEST.toString(), messUtils.getMessage("client.type-incorrect"), errors);
+		
+		return ResponseEntity.badRequest().body(resMessage);
 	}
 
 	/**
@@ -141,14 +141,14 @@ public class ExceptionHandlerController {
 	public ResponseEntity<ResErrorMessage> handleMissingServletRequestParameterException(
 			MissingServletRequestParameterException e) {
 		LOGGER.error("There was some MissingServletRequestParameterException", e.getMessage());
-		return ResponseEntity.badRequest()
-				.body(ResErrorMessage.builder().error(HttpStatus.BAD_REQUEST.toString())
-						.message(messUtils.getMessage("client.missing-param"))
-						.details(Map.of(e.getParameterName(), e.getMessage())).build());
+		
+		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.BAD_REQUEST.toString(), 
+				messUtils.getMessage("client.missing-param"), Map.of(e.getParameterName(), e.getMessage()));
+		
+		return ResponseEntity.badRequest().body(resMessage);
 
 	}
 
-	//
 	/**
 	 * When a controller has as argument a MultipartFile but the client didn't send
 	 * anything, this exception is throw
@@ -160,10 +160,9 @@ public class ExceptionHandlerController {
 	public ResponseEntity<ResErrorMessage> handleMissingServletRequestPartException(
 			MissingServletRequestPartException e) {
 		LOGGER.error("There was some MissingServletRequestPartException", e.getMessage());
-		return ResponseEntity.badRequest()
-				.body(ResErrorMessage.builder().error(HttpStatus.BAD_REQUEST.toString())
-						.message(messUtils.getMessage("vali.part.not.present"))
-						.details(Map.of(e.getRequestPartName(), e.getMessage())).build());
+		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.BAD_REQUEST.toString(),
+				messUtils.getMessage("vali.part.not.present"),Map.of(e.getRequestPartName(), e.getMessage()));
+		return ResponseEntity.badRequest().body(resMessage);
 
 	}
 
@@ -191,29 +190,11 @@ public class ExceptionHandlerController {
 	@ExceptionHandler(value = { MethodArgumentTypeMismatchException.class })
 	public ResponseEntity<ResErrorMessage> hanlderMethodArgumentTypeMismatchException(
 			MethodArgumentTypeMismatchException e) {
-		LOGGER.error("There was some MethodArgumentTypeMismatchException", e.getMessage());		
-		return ResponseEntity.badRequest().body(ResErrorMessage.builder()
-				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("client.type-incorrect"))
-				.details(Map.of(e.getName(), e.getMessage()))		
-				.build());
+		LOGGER.error("There was some MethodArgumentTypeMismatchException", e.getMessage());
+		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.BAD_REQUEST.toString(),
+				messUtils.getMessage("client.type-incorrect"), Map.of(e.getName(), e.getMessage()));
+		return ResponseEntity.badRequest().body(resMessage);
 		
-	}
-	
-	/**
-	 * Will handle exceptions from invalids tokens.
-	 * 
-	 * @param e. exception that we need to handle.
-	 * @return ResponseEntity.
-	 */
-	@ExceptionHandler(value = {TokenException.class})
-	public ResponseEntity<ResErrorMessage> handlerExpiredJwtException(TokenException e){
-		LOGGER.error("There was some TokenException", e.getMessage());
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-				ResErrorMessage.builder()
-				.error(HttpStatus.UNAUTHORIZED.toString())
-				.message(e.getMessage())
-				.build());
 	}
 	
 	/**
@@ -224,38 +205,27 @@ public class ExceptionHandlerController {
 	@ExceptionHandler(value = {PropertyReferenceException.class})
 	public ResponseEntity<ResErrorMessage> handlerPropertyReferenceException(PropertyReferenceException e){
 		LOGGER.error("There was some PropertyReferenceException : " , e.getMessage());
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-				ResErrorMessage.builder()
-				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("client.property-incorrect"))
-				.details(Map.of(e.getPropertyName(),e.getMessage()))
-				.build());
+		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.BAD_REQUEST.toString(), 
+				messUtils.getMessage("client.property-incorrect"), Map.of(e.getPropertyName(),e.getMessage()));
+		return ResponseEntity.badRequest().body(resMessage);
 	}
+	
 	
 	@ExceptionHandler(value = {AlreadyExistsException.class})
 	public ResponseEntity<ResErrorMessage> handlerAlreadyExistsException(AlreadyExistsException e){
 		LOGGER.error("There was some AlreadyExistsException: " , e.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 				ResErrorMessage.builder()
-				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("generic.create-record-already.exists"))
-				.details(Map.of("detail", e.getMessage()))
-				.build()
-				);
+				.error(e.getStatus().toString())
+				.message(e.getMessage())
+				.build());
 	}
 	
-	@ExceptionHandler(value = {EntityNotFoundException.class})
-	public ResponseEntity<ResErrorMessage> handlerEntityNotFoundException(EntityNotFoundException e){
-		LOGGER.error("There was some EntityNotFoundException: " , e.getMessage());
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-				ResErrorMessage.builder()
-				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("mess.entity-not-exists"))//ya no existe este mensaje
-				.details(Map.of("detail", e.getMessage()))
-				.build()
-				);
-	}
-	
+	/**
+	 * Exception thrown from loadUserByUsername method from UserDetailsService;
+	 * @param e - exception
+	 * @return ResponseEntity
+	 */
 	@ExceptionHandler(value = {UsernameNotFoundException.class})
 	public ResponseEntity<ResErrorMessage> handlerUsernameNotFoundException(UsernameNotFoundException e){
 		LOGGER.error("There was some UsernameNotFoundException: " , e.getMessage());
@@ -263,7 +233,6 @@ public class ExceptionHandlerController {
 				ResErrorMessage.builder()
 				.error(HttpStatus.BAD_REQUEST.toString())
 				.message(e.getMessage())
-				.details(null)
 				.build());
 	}
 	
@@ -274,26 +243,8 @@ public class ExceptionHandlerController {
 				ResErrorMessage.builder()
 				.error(HttpStatus.BAD_REQUEST.toString())
 				.message(e.getMessage())
-				.details(null)
 				.build());		
 	}
-	
-	@ExceptionHandler(value= {UserNotApplicableForChatException.class})
-	public ResponseEntity<ResErrorMessage> handlerUserNotApplicableForChatException(UserNotApplicableForChatException e){
-		LOGGER.error("There was some UserNotApplicableForChatException: " , e.getMessage());
-		Map<String, String> usersNotApplicable = new HashMap<>();
-		e.getUsernameList().forEach(username -> {
-			usersNotApplicable.put("userNotApplicable", username);
-		});
-		
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-				ResErrorMessage.builder()
-				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(e.getMessage())
-				.details(usersNotApplicable)
-				.build());
-	}
-	
 }
 
 

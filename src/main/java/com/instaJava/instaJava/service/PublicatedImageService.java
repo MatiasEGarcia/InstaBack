@@ -8,8 +8,8 @@ import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.response.PublicatedImageDto;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.PublicatedImage;
-import com.instaJava.instaJava.exception.IllegalActionException;
-import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.exception.InvalidActionException;
+import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 
 public interface PublicatedImageService {
@@ -22,7 +22,7 @@ public interface PublicatedImageService {
 	 * @param file.        Image to save.
 	 * @return PublicatedImageDto with PublicatedImage record info.
 	 * @throws IllegalArgumentException if @param file is null or empty.
-	 * @throws ImageException           if there was an error when was tried to
+	 * @throws InvalidImageException           if there was an error when was tried to
 	 *                                  encode the image to Base64
 	 */
 	PublicatedImageDto save(String Description,MultipartFile file);
@@ -33,7 +33,7 @@ public interface PublicatedImageService {
 	 * 
 	 * @param id. is the pubImaId of the PublicatedImage record wanted to delete.
 	 * @throws IllegalArgumentException if @param id is null.
-	 * @throws IllegalActionException   if the user authenticated is not the same
+	 * @throws InvalidActionException   if the user authenticated is not the same
 	 *                                  owner of the PublicatedImage record.
 	 */
 	void deleteById(Long id);
@@ -77,7 +77,7 @@ public interface PublicatedImageService {
 	 * @throws IllegalArgumentException - if ownerId or PageInfoDto or
 	 *                                  pageInfoDto.getSortDir or
 	 *                                  pageInfoDto.sortField are null.
-	 * @throws IllegalActionException if onwerUser is not visible and followStatus is not accepted.
+	 * @throws InvalidActionException if onwerUser is not visible and followStatus is not accepted.
 	 */
 	ResPaginationG<PublicatedImageDto> getAllByOnwer(Long ownerId, PageInfoDto pageInfoDto);
 	

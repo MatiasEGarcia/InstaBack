@@ -48,7 +48,7 @@ import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
-import com.instaJava.instaJava.exception.ImageException;
+import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
@@ -135,7 +135,7 @@ class UserServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 				.thenReturn(user);
-		assertThrows(ImageException.class,() -> {userService.updateImage(null);});
+		assertThrows(InvalidImageException.class,() -> {userService.updateImage(null);});
 		verify(userDao,never()).save(user);
 	}
 	

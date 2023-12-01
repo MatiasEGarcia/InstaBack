@@ -35,6 +35,7 @@ import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.LikeMapper;
@@ -87,7 +88,7 @@ class LikeServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 
-		assertThrows(InvalidException.class, () -> likeService.deleteById(1L));
+		assertThrows(InvalidActionException.class, () -> likeService.deleteById(1L));
 
 		verify(likeDao, never()).delete(any(Like.class));
 	}
@@ -194,7 +195,7 @@ class LikeServiceImplTest {
 		// cheking if like already exist (in this test exist)
 		doReturn(true).when(spyLikeService).exist(reqLike.getType(), reqLike.getItemId(), authUser.getUserId());
 
-		assertThrows(InvalidException.class, () -> spyLikeService.save(reqLike));
+		assertThrows(InvalidActionException.class, () -> spyLikeService.save(reqLike));
 
 		verify(likeDao, never()).save(any(Like.class));
 	}
