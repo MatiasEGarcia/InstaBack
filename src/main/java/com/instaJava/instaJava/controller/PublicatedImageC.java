@@ -56,7 +56,7 @@ public class PublicatedImageC {
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id) {
 		publicatedImageService.deleteById(id);
 		return ResponseEntity.ok()
-				.body(ResMessage.builder().message(messUtils.getMessage("mess.publi-image-deleted")).build());
+				.body(ResMessage.builder().message(messUtils.getMessage("generic.delete-ok")).build());
 	}
 
 	/**

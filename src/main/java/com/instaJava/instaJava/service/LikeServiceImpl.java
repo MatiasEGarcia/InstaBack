@@ -43,11 +43,11 @@ public class LikeServiceImpl implements LikeService {
 		User user;
 		Optional<Like> optLike = likeDao.findById(likeId);
 		if (optLike.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("exception.like-not-found"), "likeId", List.of(likeId.toString()), HttpStatus.NOT_FOUND);
+			throw new RecordNotFoundException(messUtils.getMessage("like.not-found"), "likeId", List.of(likeId.toString()), HttpStatus.NOT_FOUND);
 		}
 		user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (!user.equals(optLike.get().getOwnerLike()))
-			throw new InvalidException(messUtils.getMessage("exception.owner-not-same"));
+			throw new InvalidException(messUtils.getMessage("generic.auth-user-no-owner"));
 		likeDao.delete(optLike.get());
 	}
 
@@ -70,7 +70,7 @@ public class LikeServiceImpl implements LikeService {
 		User userOwner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		validateReqLike(reqLike, userOwner.getUserId());
 		if (!reqLike.isValid())
-			throw new InvalidException(messUtils.getMessage("exception.like-not-valid"));
+			throw new InvalidException(messUtils.getMessage("like.not-valid"));
 		
 		Like likeToSave = Like.builder()
 				.itemId(reqLike.getItemId())

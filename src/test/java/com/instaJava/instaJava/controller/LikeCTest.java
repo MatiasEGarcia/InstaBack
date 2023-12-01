@@ -91,7 +91,7 @@ class LikeCTest {
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message", is(messUtils.getMessage("exception.request-incorrect"))));
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("client.value-incorrect"))));//creo que este mensaje no deberia ir
 	}
 	@Test
 	void postSaveReqLikeValuesNullEmptyBadRequest() throws Exception {
@@ -104,7 +104,7 @@ class LikeCTest {
 				.content(objectMapper.writeValueAsString(req)))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.type", is(messUtils.getMessage("vali.type-not-null"))))
 				.andExpect(jsonPath("$.details.decision", is(messUtils.getMessage("vali.decision-not-null"))));
 	}

@@ -93,7 +93,7 @@ class NotificationCTest {
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.message", is(messUtils.getMessage("mess.notif-deleted"))));
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("generic.delete-ok"))));
 	}
 	
 	@AfterEach

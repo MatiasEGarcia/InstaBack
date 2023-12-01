@@ -142,7 +142,7 @@ class ChatCTest {
 		String token = jwtService.generateToken(matiasUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/chats").header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.there-no-chats"))));
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("chat.group-not-found"))));
 	}
 
 	// setImage
@@ -157,7 +157,7 @@ class ChatCTest {
 				.header("Authorization", "Bearer " + token).contentType(MediaType.MULTIPART_FORM_DATA))
 				.andExpect(status().isBadRequest()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message", is(messUtils.getMessage("mess.constraint-violation-handler"))))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("client.type-incorrect"))))
 				.andExpect(jsonPath("$.details.file", is(messUtils.getMessage("vali.image"))));
 	}
 
@@ -184,7 +184,7 @@ class ChatCTest {
 				.content(objectMapper.writeValueAsString(reqChat)).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message", is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.type", is(messUtils.getMessage("vali.chat-type-not-null"))))
 				.andExpect(jsonPath("$.details.usersToAdd", is(messUtils.getMessage("vali.users-list-not-null"))));
 	}

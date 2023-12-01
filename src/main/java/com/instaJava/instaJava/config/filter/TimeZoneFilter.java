@@ -50,7 +50,7 @@ public class TimeZoneFilter extends OncePerRequestFilter {
 				response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 				new ObjectMapper().writeValue(response.getOutputStream(),
 						ResErrorMessage.builder().error(HttpStatus.BAD_REQUEST.toString())
-								.message(messUtils.getMessage("mess.wrong-zone-id-in-header")).details(ZoneId.SHORT_IDS)
+								.message(messUtils.getMessage("client.wrong-zone-id-in-header")).details(ZoneId.SHORT_IDS)
 								.build());
 			}
 		}

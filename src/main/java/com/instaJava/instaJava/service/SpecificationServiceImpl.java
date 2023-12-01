@@ -24,7 +24,7 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 	@Override
 	public Specification<T> getSpecification(List<ReqSearch> reqSearchList, GlobalOperationEnum globalOperator) {
 		if (reqSearchList == null || globalOperator == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		if (reqSearchList.isEmpty())
 			return null;
 

@@ -69,7 +69,7 @@ public class JwtService {
 	 */
 	public String generateToken(Map<String,Object> extraClaims,UserDetails userDetails) {
 		if(userDetails == null || extraClaims == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		String accessToken = Jwts.builder()
 				.setClaims(extraClaims)
@@ -89,7 +89,7 @@ public class JwtService {
 	 * @throws IllegalArgumentException if @param userDetails is null.
 	 */
 	public String generateRefreshToken(UserDetails userDetails) {
-		if(userDetails == null)  throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		if(userDetails == null)  throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		String refreshToken = Jwts.builder()
 				.setSubject(userDetails.getUsername())
 				.setExpiration(new Date(clock.millis() + 30 * 60 * 1000 ))// 30 min
@@ -107,7 +107,7 @@ public class JwtService {
 	 * @return true if is valid, else false.
 	 */
 	public boolean isTokenValid(String token,UserDetails userDetails) {
-		if(userDetails == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		if(userDetails == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		final String username = this.extractUsername(token);
 		return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
 	}

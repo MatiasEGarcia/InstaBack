@@ -92,7 +92,7 @@ public class UserC {
 	@PostMapping(value="/logout", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<ResMessage> logout(@Valid @RequestBody ReqLogout reqLogout) {
 		invTokenService.invalidateTokens(List.of(reqLogout.getToken(),reqLogout.getRefreshToken()));
-		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("mess.successfully-logout")));
+		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("user.logout-ok")));
 	}
 
 	/**

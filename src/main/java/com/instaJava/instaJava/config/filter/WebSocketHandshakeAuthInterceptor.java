@@ -34,7 +34,7 @@ public class WebSocketHandshakeAuthInterceptor implements HandshakeInterceptor {
 		WebSocketAuthInfoDto webSocketAuthInfoDto = webSocketService.getWebSocketAuthInfoFromCache(authToken);
 		if(webSocketAuthInfoDto == null) {
 			response.setStatusCode(HttpStatus.UNAUTHORIZED);
-			response.getHeaders().add("X-Unauthorized-Reason", messUtils.getMessage("mess.auth-token-invalid")); //I CAN'T SEND A BODY
+			response.getHeaders().add("X-Unauthorized-Reason", messUtils.getMessage("client-auth-token-invalid")); //I CAN'T SEND A BODY
 			return false;
 		}
 		return true;

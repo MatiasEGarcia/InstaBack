@@ -61,6 +61,6 @@ public class NotificationC {
 	@DeleteMapping(value = "/{id}", produces = "application/json")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id) {
 		notiService.deleteNotificationById(id);
-		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("mess.notif-deleted")));
+		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
 }

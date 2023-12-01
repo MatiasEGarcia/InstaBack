@@ -27,7 +27,7 @@ public class InvTokenServiceImpl implements InvTokenService{
 	@Override
 	@Transactional
 	public List<InvToken> invalidateTokens(List<String> tokens) {
-		if(tokens == null || tokens.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
+		if(tokens == null || tokens.isEmpty()) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		List<InvToken> invTokens = new ArrayList<>();
 		for(int i = 0 ; i< tokens.size() ; i++) {
 			invTokens.add(InvToken.builder()

@@ -50,7 +50,7 @@ public class ExceptionHandlerController {
 		LOGGER.error("There was some Exception: ", e.getMessage());
 		return ResponseEntity.internalServerError()
 				.body(ResErrorMessage.builder().error(HttpStatus.INTERNAL_SERVER_ERROR.toString())
-						.message(messUtils.getMessage("mess.exception-handler"))
+						.message(messUtils.getMessage("internal-server-error"))
 						.details(Map.of("message", e.getMessage())).build());
 	}
 
@@ -66,7 +66,7 @@ public class ExceptionHandlerController {
 		LOGGER.error("There was some RefreshTokenInvalid", e.getMessage());
 		return ResponseEntity.badRequest()
 				.body(ResErrorMessage.builder().error(HttpStatus.BAD_REQUEST.toString())
-						.message(messUtils.getMessage("mess.invalid-exception-handler"))
+						.message(messUtils.getMessage("client.value-invalid"))
 						.details(Map.of("message", e.getMessage())).build());
 	}
 
@@ -81,7 +81,7 @@ public class ExceptionHandlerController {
 		LOGGER.error("There was some IllegalArgumentException", e.getMessage());
 		return ResponseEntity.internalServerError()
 				.body(ResErrorMessage.builder().error(HttpStatus.INTERNAL_SERVER_ERROR.toString())
-						.message(messUtils.getMessage("mess.illegal-exception-handler"))
+						.message(messUtils.getMessage("generic.illegal-arg"))//esto es realmente necesario?
 						.details(Map.of("message", e.getMessage())).build());
 	}
 
@@ -101,7 +101,7 @@ public class ExceptionHandlerController {
 			errors.put(fieldName, message);
 		});
 		return ResponseEntity.badRequest().body(ResErrorMessage.builder().error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("mess.method-argument-not-valid-hanlder")).details(errors).build());
+				.message(messUtils.getMessage("client.body-not-fulfilled")).details(errors).build());
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class ExceptionHandlerController {
 			errors.put(fieldName, message);
 		});
 		return ResponseEntity.badRequest().body(ResErrorMessage.builder().error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("mess.constraint-violation-handler")).details(errors).build());
+				.message(messUtils.getMessage("client.type-incorrect")).details(errors).build());
 	}
 
 	/**
@@ -143,7 +143,7 @@ public class ExceptionHandlerController {
 		LOGGER.error("There was some MissingServletRequestParameterException", e.getMessage());
 		return ResponseEntity.badRequest()
 				.body(ResErrorMessage.builder().error(HttpStatus.BAD_REQUEST.toString())
-						.message(messUtils.getMessage("mess.missing-servlet-request-parameter-handler"))
+						.message(messUtils.getMessage("client.missing-param"))
 						.details(Map.of(e.getParameterName(), e.getMessage())).build());
 
 	}
@@ -179,7 +179,7 @@ public class ExceptionHandlerController {
 		LOGGER.error("There was some HttpMessageNotReadableException", e.getMessage());
 		return ResponseEntity.badRequest().body(ResErrorMessage.builder()
 				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("exception.request-incorrect"))
+				.message(messUtils.getMessage("client.value-incorrect"))
 				.build());
 	}
 
@@ -194,7 +194,7 @@ public class ExceptionHandlerController {
 		LOGGER.error("There was some MethodArgumentTypeMismatchException", e.getMessage());		
 		return ResponseEntity.badRequest().body(ResErrorMessage.builder()
 				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("exception.type-incorrect"))
+				.message(messUtils.getMessage("client.type-incorrect"))
 				.details(Map.of(e.getName(), e.getMessage()))		
 				.build());
 		
@@ -227,7 +227,7 @@ public class ExceptionHandlerController {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 				ResErrorMessage.builder()
 				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("exception.incorrect-property"))
+				.message(messUtils.getMessage("client.property-incorrect"))
 				.details(Map.of(e.getPropertyName(),e.getMessage()))
 				.build());
 	}
@@ -238,7 +238,7 @@ public class ExceptionHandlerController {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 				ResErrorMessage.builder()
 				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("mess.record-already.exists"))
+				.message(messUtils.getMessage("generic.create-record-already.exists"))
 				.details(Map.of("detail", e.getMessage()))
 				.build()
 				);
@@ -250,7 +250,7 @@ public class ExceptionHandlerController {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 				ResErrorMessage.builder()
 				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("mess.entity-not-exists"))
+				.message(messUtils.getMessage("mess.entity-not-exists"))//ya no existe este mensaje
 				.details(Map.of("detail", e.getMessage()))
 				.build()
 				);

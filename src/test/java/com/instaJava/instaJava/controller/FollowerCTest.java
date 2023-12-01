@@ -107,7 +107,7 @@ class FollowerCTest {
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.missing-servlet-request-parameter-handler"))));
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.missing-param"))));
 		
 	}
 	@Test
@@ -149,7 +149,7 @@ class FollowerCTest {
 				.content(objectMapper.writeValueAsString(reqSearchList)))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.['reqSearchs[0].column']",is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
 				.andExpect(jsonPath("$.details.['reqSearchs[0].value']",is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
 				.andExpect(jsonPath("$.details.['reqSearchs[0].dateValue']",is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
@@ -197,7 +197,7 @@ class FollowerCTest {
 				.contentType(APPLICATION_JSON_UTF8)
 				.content(objectMapper.writeValueAsString(reqSearchList)))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("Info-header", messUtils.getMessage("mess.not-follow")));
+				.andExpect(header().string("Info-header", messUtils.getMessage("follow.not-found")));
 	}
 	
 	
@@ -226,7 +226,7 @@ class FollowerCTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.missing-servlet-request-parameter-handler"))));
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.missing-param"))));
 	}
 	
 	
@@ -236,7 +236,7 @@ class FollowerCTest {
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/{id}",1)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.record-delete"))));
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("generic.delete-ok"))));
 	}
 	@Test
 	void deleteDeleteByIdNoExistBadRequest() throws Exception {
@@ -245,8 +245,8 @@ class FollowerCTest {
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message", is(messUtils.getMessage("mess.invalid-exception-handler"))))
-				.andExpect(jsonPath("$.details.message" , is(messUtils.getMessage("exception.follow-id-not-found"))));
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("client.value-invalid"))))
+				.andExpect(jsonPath("$.details.message" , is(messUtils.getMessage("follow.not-found"))));
 	}
 	@Test
 	void deleteDeleteByIdNotSameFollowerBadRequest() throws Exception {
@@ -255,8 +255,8 @@ class FollowerCTest {
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message", is(messUtils.getMessage("mess.invalid-exception-handler"))))
-				.andExpect(jsonPath("$.details.message" , is(messUtils.getMessage("exception.follower-is-not-same"))));
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("client.value-invalid"))))
+				.andExpect(jsonPath("$.details.message" , is(messUtils.getMessage("follow.follower-not-same"))));
 	}
 	
 	@AfterEach

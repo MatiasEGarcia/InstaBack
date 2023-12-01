@@ -102,7 +102,7 @@ class AuthControllerTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.username",is(messUtils.getMessage("vali.username-not-blank"))))
 				.andExpect(jsonPath("$.details.password",is(messUtils.getMessage("vali.password-not-blank"))));
 	}
@@ -153,7 +153,7 @@ class AuthControllerTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.token",is(messUtils.getMessage("vali.token-not-blank"))))
 				.andExpect(jsonPath("$.details.refreshToken",is(messUtils.getMessage("vali.refreshToken-not-blank"))));
 		

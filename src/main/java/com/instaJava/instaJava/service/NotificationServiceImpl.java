@@ -66,13 +66,13 @@ public class NotificationServiceImpl implements NotificationService {
 	@Transactional(readOnly = true)
 	public ResPaginationG<NotificationDto> getNotificationsByAuthUser(PageInfoDto pageInfoDto) {
 		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
 		Page<Notification> notiPage = notiDao.findByToWho(user.getUserId(), pagUtils.getPageable(pageInfoDto));
 		if(!notiPage.hasContent()) {
-			throw new RecordNotFoundException(messUtils.getMessage("mess.no-notifications"), HttpStatus.NO_CONTENT);
+			throw new RecordNotFoundException(messUtils.getMessage("notif.group-not-found"), HttpStatus.NO_CONTENT);
 		}
 		return notificationMapper.pageAndPageInfoDtoToResPaginationG(notiPage, pageInfoDto);
 	}
@@ -82,12 +82,12 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	@Transactional
 	public void deleteNotificationById(Long notiId) {
-		if(notiId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		if(notiId == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User authUser;
 		Optional<Notification> notiToDelete = findNotificationById(notiId);
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if(!notiToDelete.get().getToWho().equals(authUser)) {
-			throw new IllegalActionException(messUtils.getMessage("exception.notif-owner-not-same"),HttpStatus.BAD_REQUEST); 
+			throw new IllegalActionException(messUtils.getMessage("notif.owner-not-same"),HttpStatus.BAD_REQUEST); 
 		}
 		notiDao.delete(notiToDelete.get());
 	}
@@ -96,7 +96,7 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<Notification> findNotificationById(Long notiId) {
-		if(notiId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		if(notiId == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		return notiDao.findById(notiId);
 }	
 	

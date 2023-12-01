@@ -146,7 +146,7 @@ class PublicatedImageCTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.constraint-violation-handler"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.type-incorrect"))))
 				.andExpect(jsonPath("$.details.file",is(messUtils.getMessage("vali.image"))));
 	}
 	@Test
@@ -182,7 +182,7 @@ class PublicatedImageCTest {
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/publicatedImages/{id}",1)
 				.header("authorization", "Bearer " + token))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.publi-image-deleted"))));
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("generic.delete-ok"))));
 		
 		Optional<PublicatedImage> PublicatedImage = publicatedImagesDao.findById(1L);
 		if(PublicatedImage.isPresent()) fail();
@@ -228,7 +228,7 @@ class PublicatedImageCTest {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisiblesOwners")
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.not-publi-image")));
+				.andExpect(header().string("moreInfo", messUtils.getMessage("publiImage.group-not-found")));
 	}
 	
 	@Test
@@ -255,7 +255,7 @@ class PublicatedImageCTest {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1)//the sqlAddUser1 id
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.not-publi-image")));   
+				.andExpect(header().string("moreInfo", messUtils.getMessage("publiImage.group-not-found")));   
 	}
 	@Test
 	void getGetAllByOwnerNoContentUserPrivateAndStatusInProcess() throws Exception {
@@ -265,7 +265,7 @@ class PublicatedImageCTest {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1)//the sqlAddUser1 id
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", messUtils.getMessage("mess.followStatus-in-process")));
+				.andExpect(header().string("moreInfo", messUtils.getMessage("follow.followStatus-in-process")));
 	}
 	
 	

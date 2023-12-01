@@ -47,12 +47,12 @@ public class AuthService {
 	@Transactional
 	public ResAuthToken register(ReqUserRegistration reqUserRegistration) {
 		if (reqUserRegistration == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User user;
 		String token;
 		String refreshToken;
 		if (userService.existsByUsername(reqUserRegistration.getUsername()))
-			throw new AlreadyExistsException(messUtils.getMessage("excepcion.username-already-exists"));
+			throw new AlreadyExistsException(messUtils.getMessage("user.username-already-exists"));
 		user = User.builder().username(reqUserRegistration.getUsername())
 				.password(passwordEncoder.encode(reqUserRegistration.getPassword())).role(RolesEnum.ROLE_USER).build();
 		user = userService.save(user);
@@ -73,7 +73,7 @@ public class AuthService {
 	@Transactional(readOnly = true)
 	public ResAuthToken authenticate(ReqLogin reqLogin) {
 		if (reqLogin == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		String token;
 		String refreshToken;
 		//check user credentials, if there is something wrong then throw BadCredentialsException.
@@ -98,13 +98,13 @@ public class AuthService {
 	@Transactional(readOnly = true)
 	public ResAuthToken refreshToken(ReqRefreshToken reqRefreshToken) {
 		if (reqRefreshToken == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		UserDetails userDetails;
 		try {
 			userDetails = userDetailsService
 					.loadUserByUsername(jwtService.extractUsername(reqRefreshToken.getRefreshToken()));
 		} catch (ExpiredJwtException e) {
-			throw new TokenException(messUtils.getMessage("exception.refreshToken-invalid"));
+			throw new TokenException(messUtils.getMessage("client-refreshToken-invalid"));
 		}
 		if (jwtService.isTokenValid(reqRefreshToken.getRefreshToken(), userDetails)
 				&& !invTokenService.existByToken(reqRefreshToken.getRefreshToken())) {
@@ -112,7 +112,7 @@ public class AuthService {
 					.refreshToken(reqRefreshToken.getRefreshToken()) // we return the same refreshToken
 					.build();
 		} else {
-			throw new TokenException(messUtils.getMessage("exception.refreshToken-invalid"));
+			throw new TokenException(messUtils.getMessage("client-refreshToken-invalid"));
 		}
 	}
 

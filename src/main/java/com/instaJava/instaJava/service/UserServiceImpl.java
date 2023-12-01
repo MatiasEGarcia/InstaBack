@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	@Transactional
 	public User save(User user) {
 		if (user == null)
-			throw new IllegalArgumentException("exception.argument-not-null");
+			throw new IllegalArgumentException("generic.arg-not-null");
 		return userDao.save(user);
 	}
 
@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		User user = userDao.findByUsername(username);
 		if (user == null) {
-			throw new UsernameNotFoundException(messUtils.getMessage("excepcion.username-not-found"));
+			throw new UsernameNotFoundException(messUtils.getMessage("user.username-not-found"));
 		}
 		return user;
 	}
@@ -95,7 +95,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		PersonalDetails perDet = user.getPersonalDetails();
 		if (perDet == null)
-			throw new RecordNotFoundException(messUtils.getMessage("mess.perDet-not-found"), HttpStatus.NO_CONTENT);
+			throw new RecordNotFoundException(messUtils.getMessage("perDet.not-found"), HttpStatus.NO_CONTENT);
 		return personalDetailsMapper.personalDetailsToPersonalDetailsDto(perDet);
 	}
 	
@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	@Transactional
 	public PersonalDetailsDto savePersonalDetails(PersonalDetailsDto personalDetailsDto) {
 		if (personalDetailsDto == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		PersonalDetails perDet = personalDetailsDao
 				.save(personalDetailsMapper.personalDetailsDtoAndUserToPersonalDetails(personalDetailsDto, user));
@@ -129,10 +129,10 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	@Transactional(readOnly = true)
 	public UserDto getById(Long id) {
 		if (id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		Optional<User> optUser = userDao.findById(id);
 		if (optUser.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("excepcion.record-by-id-not-found"),
+			throw new RecordNotFoundException(messUtils.getMessage("user.not-found"),
 					HttpStatus.NOT_FOUND);
 		}
 		return userMapper.userToUserDto(optUser.get());
@@ -157,7 +157,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		Optional<User> userOpt = userDao.findOne(
 				specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()));
 		if (userOpt.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("exception.no-user-record-was-found"),
+			throw new RecordNotFoundException(messUtils.getMessage("user.group-not-found"),
 					HttpStatus.NOT_FOUND);
 		}
 		return userMapper.userToUserDto(userOpt.get());
@@ -167,7 +167,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	public ResPaginationG<UserDto> getManyUsersOneCondition(PageInfoDto pageInfoDto, ReqSearch reqSearch) {
 		if (reqSearch == null || pageInfoDto == null || pageInfoDto.getSortDir() == null
 				|| pageInfoDto.getSortField() == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch))
 				.globalOperator(GlobalOperationEnum.NONE).build();
 		return this.getManyUsersManyConditions(pageInfoDto, reqSearchList);
@@ -179,13 +179,13 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	public ResPaginationG<UserDto> getManyUsersManyConditions(PageInfoDto pageInfoDto, ReqSearchList reqSearchList) {
 		if (reqSearchList == null || pageInfoDto == null || pageInfoDto.getSortDir() == null
 				|| pageInfoDto.getSortField() == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		this.passNotAvailableForSearch(reqSearchList.getReqSearchs());
 		Page<User> page = userDao.findAll(
 				specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()),
 				pagUtils.getPageable(pageInfoDto));
 		if (!page.hasContent()) {
-			throw new RecordNotFoundException(messUtils.getMessage("exception.no-user-record-was-found"),
+			throw new RecordNotFoundException(messUtils.getMessage("user.group-not-found"),
 					HttpStatus.NO_CONTENT);
 		}
 
@@ -224,10 +224,10 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	@Transactional(readOnly = true)
 	public List<User> getByUsernameIn(List<String> usernameList) {
 		if (usernameList == null || usernameList.isEmpty())
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		List<User> userList = userDao.findByUsernameIn(usernameList);
 		if (userList.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("exception.no-user-record-was-found"),
+			throw new RecordNotFoundException(messUtils.getMessage("user.group-not-found"),
 					HttpStatus.NO_CONTENT);
 		}
 		return userList;
@@ -265,7 +265,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		if (reqSearch.getColumn() == null) {
 			return;
 		} else if (reqSearch.getColumn().equalsIgnoreCase("password"))
-			throw new IllegalArgumentException(messUtils.getMessage("exception.password-not-searchable"));
+			throw new IllegalArgumentException(messUtils.getMessage("user.password-not-search"));
 	}
 
 	/**
@@ -278,7 +278,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		boolean isTherePassowrdColumn = searchs.stream().filter(s -> s.getColumn() != null)
 				.anyMatch(s -> s.getColumn().equalsIgnoreCase("password"));
 		if (isTherePassowrdColumn)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.password-not-searchable"));
+			throw new IllegalArgumentException(messUtils.getMessage("user.password-not-search"));
 	}
 
 }

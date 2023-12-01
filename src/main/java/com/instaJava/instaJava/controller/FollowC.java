@@ -86,7 +86,7 @@ public class FollowC {
 	@DeleteMapping(value="/{id}", produces = "application/json")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id){
 		follService.deleteById(id);
-		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("mess.record-delete")));
+		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
 
 }

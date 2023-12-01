@@ -70,7 +70,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				response.setStatus(HttpStatus.UNAUTHORIZED.value());
 				response.setContentType(APPLICATION_JSON_VALUE);
 				new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-						.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-invalid")).build());
+						.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("client-auth-token-invalid")).build());
 			}
 
 			try {
@@ -88,7 +88,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 						response.setStatus(HttpStatus.UNAUTHORIZED.value());
 						response.setContentType(APPLICATION_JSON_VALUE);
 						new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-								.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-expired"))
+								.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("client-auth-token-expired"))
 								.build());
 					}
 
@@ -98,7 +98,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				response.setStatus(HttpStatus.UNAUTHORIZED.value());
 				response.setContentType(APPLICATION_JSON_VALUE);
 				new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-						.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.auth-token-expired"))
+						.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("client-auth-token-expired"))
 						.details(Map.of("exception_message", e.getMessage()))
 						.build());
 			}
@@ -107,7 +107,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			response.setStatus(HttpStatus.UNAUTHORIZED.value());
 			response.setContentType(APPLICATION_JSON_VALUE);
 			new ObjectMapper().writeValue(response.getOutputStream(), ResErrorMessage.builder()
-					.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("mess.client-not-authenticated")).build());
+					.error(HttpStatus.UNAUTHORIZED.toString()).message(messUtils.getMessage("client.not-authenticated")).build());
 		}
 	}
 

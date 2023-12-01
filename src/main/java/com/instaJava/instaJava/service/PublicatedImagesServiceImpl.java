@@ -47,7 +47,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional
 	public PublicatedImageDto save(String description, MultipartFile file) {
 		if (file == null || file.isEmpty())
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		PublicatedImage publicatedImage;
 		try {
 			publicatedImage = PublicatedImage.builder().description(description)
@@ -68,12 +68,12 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional
 	public void deleteById(Long id) {
 		if (id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User authUser;
 		PublicatedImageDto publiImageDto = getById(id);
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (!publiImageDto.getUserOwner().getUserId().equals(authUser.getUserId().toString())) {
-			throw new IllegalActionException(messUtils.getMessage("exception.owner-not-same"));
+			throw new IllegalActionException(messUtils.getMessage("generic.auth-user-no-owner"));
 		}
 		publicatedImagesDao.deleteById(id);
 	}
@@ -83,10 +83,10 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional(readOnly = true)
 	public PublicatedImageDto getById(Long id) {
 		if (id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		Optional<PublicatedImage> optPublicatedImage = publicatedImagesDao.findById(id);
 		if(optPublicatedImage.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("excepcion.record-by-id-not-found"), "pubImaId", List.of(id.toString()), HttpStatus.NOT_FOUND);
+			throw new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"), "pubImaId", List.of(id.toString()), HttpStatus.NOT_FOUND);
 		}
 		
 		return publicatedImageMapper.publicatedImageToPublicatedImageDto(optPublicatedImage.get());
@@ -96,7 +96,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional(readOnly = true)
 	public Optional<PublicatedImage> findById(Long id) {
 		if (id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		return publicatedImagesDao.findById(id);
 	}
 	
@@ -104,11 +104,11 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Transactional(readOnly = true)
 	public ResPaginationG<PublicatedImageDto> getAllByOwnersVisibles(PageInfoDto pageInfoDto) {
 		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		Page<PublicatedImage> page = publicatedImagesDao.findByUserOwnerVisible(true, pagUtils.getPageable(pageInfoDto));
 		if(page.getContent().isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("exception.publications-not-found"), HttpStatus.NO_CONTENT);
+			throw new RecordNotFoundException(messUtils.getMessage("publiImage.group-not-found"), HttpStatus.NO_CONTENT);
 		}
 		return publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto);
 		
@@ -119,7 +119,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	public ResPaginationG<PublicatedImageDto> getAllByOnwer(Long ownerId, PageInfoDto pageInfoDto){
 		if (ownerId == null || pageInfoDto == null || pageInfoDto.getSortDir() == null
 				|| pageInfoDto.getSortField() == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		Page<PublicatedImage> publicatedImageFoundPage;
 		UserDto ownerUser;
@@ -132,11 +132,11 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 				FollowStatus followStatus = followService.getFollowStatusByFollowedId(ownerId);
 				switch (followStatus) {
 				case NOT_ASKED:
-					throw new IllegalActionException(messUtils.getMessage("mess.followStatus-not-asked"), HttpStatus.BAD_REQUEST);
+					throw new IllegalActionException(messUtils.getMessage("follow.followStatus-not-asked"), HttpStatus.BAD_REQUEST);
 				case REJECTED:
-					throw new IllegalActionException(messUtils.getMessage("mess.followStatus-rejected"), HttpStatus.BAD_REQUEST);
+					throw new IllegalActionException(messUtils.getMessage("follow.followStatus-rejected"), HttpStatus.BAD_REQUEST);
 				case IN_PROCESS:
-					throw new IllegalActionException(messUtils.getMessage("mess.followStatus-in-process"), HttpStatus.BAD_REQUEST);
+					throw new IllegalActionException(messUtils.getMessage("follow.followStatus-in-process"), HttpStatus.BAD_REQUEST);
 				case ACCEPTED:
 					break;
 				default:
@@ -150,7 +150,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		// if the user is visible or follow status is Accepted too.
 		publicatedImageFoundPage = publicatedImagesDao.findByUserOwner(ownerId, pagUtils.getPageable(pageInfoDto));
 		if(!publicatedImageFoundPage.hasContent()) {
-			throw new RecordNotFoundException(messUtils.getMessage("exception.publications-not-found"), HttpStatus.NO_CONTENT);
+			throw new RecordNotFoundException(messUtils.getMessage("publiImage.group-not-found"), HttpStatus.NO_CONTENT);
 		}
 		return publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(publicatedImageFoundPage, pageInfoDto);
 	}
@@ -159,7 +159,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	@Override
 	@Transactional(readOnly=true)
 	public Long countPublicationsByOwnerId(Long id) {
-		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		userService.getById(id);//if there is not an exception then the user exists and the request can continue.
 		return publicatedImagesDao.countByUserOwner(id);
 	}

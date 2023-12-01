@@ -50,12 +50,12 @@ public class ChatServiceImpl implements ChatService {
 	@Transactional(readOnly = true)
 	public ResPaginationG<ChatDto> getAuthUserChats(PageInfoDto pageInfoDto) {
 		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		Page<Chat> pageChat = chatDao.findByUsersUserId(authUser.getUserId(), pageUtils.getPageable(pageInfoDto));
 		if(pageChat.getContent().isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("mess.there-no-chats"), HttpStatus.NO_CONTENT);
+			throw new RecordNotFoundException(messUtils.getMessage("chat.group-not-found"), HttpStatus.NO_CONTENT);
 		}
 		return chatMapper.pageAndPageInfoDtoToResPaginationG(pageChat, pageInfoDto);
 	}
@@ -66,7 +66,7 @@ public class ChatServiceImpl implements ChatService {
 	public ChatDto create(ReqChat reqChat) {
 		if (reqChat == null || reqChat.getUsersToAdd() == null || reqChat.getUsersToAdd().isEmpty()
 					 || reqChat.getType() == null ) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null-empty"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		}
 		Chat chatToCreate;
 		List<User> allUsers;
@@ -90,7 +90,7 @@ public class ChatServiceImpl implements ChatService {
 		}else if(reqChat.getType().equals(ChatTypeEnum.PRIVATE)) {
 			createPrivateChate(reqChat, chatToCreate, allUsers.get(0)); //there should be only one user.
 		}else {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.enum-type-incorrect"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.enum-incorrect"));
 		}
 		
 		Chat chatCreated = chatDao.save(chatToCreate);
@@ -102,16 +102,16 @@ public class ChatServiceImpl implements ChatService {
 	@Transactional
 	public ChatDto setImage(MultipartFile image, Long chatId) {
 		if(image == null || chatId == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		Optional<Chat> chatToEdit = chatDao.findById(chatId);
 		if(chatToEdit.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("exception.chat-not-found"),"chatId" ,
+			throw new RecordNotFoundException(messUtils.getMessage("chat.not-found"),"chatId" ,
 					List.of(chatId.toString()),HttpStatus.NOT_FOUND);
 		}
 		//only group chat can edit image attribute.
 		if(chatToEdit.get().getType().equals(ChatTypeEnum.PRIVATE)) {
-			throw new InvalidException(messUtils.getMessage("exception.chat-private-not-image")); 
+			throw new InvalidException(messUtils.getMessage("chat.private-no-image")); 
 		}
 		
 		try {
@@ -133,7 +133,7 @@ public class ChatServiceImpl implements ChatService {
 	@Transactional(readOnly = true)
 	private void areNotApplicable(List<User> users) {
 		if(users == null) {
-			throw new IllegalArgumentException("exception.argument-not-null");
+			throw new IllegalArgumentException("generic.arg-not-null");
 		}
 		List<String> usersNotApplicable = new ArrayList<>();
 		
@@ -149,7 +149,7 @@ public class ChatServiceImpl implements ChatService {
 		});
 		
 		if(!usersNotApplicable.isEmpty()) {
-			throw new UserNotApplicableForChatException(messUtils.getMessage("expection.chat-users-not-applicable"), HttpStatus.BAD_REQUEST 
+			throw new UserNotApplicableForChatException(messUtils.getMessage("chat.users-not-applicable"), HttpStatus.BAD_REQUEST 
 					,"username",usersNotApplicable);
 		}
 	}
@@ -179,7 +179,7 @@ public class ChatServiceImpl implements ChatService {
 	private void createGroupChat(ReqChat reqChat, Chat chatToCreate, List<User> allUsersFound) {
 		if(reqChat == null || reqChat.getUsersToAddAsAdmins() == null || reqChat.getType() == null || reqChat.getName() == null
 				||chatToCreate == null || allUsersFound == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		//divide common users from admins users
 		Predicate<User> partition = user -> reqChat.getUsersToAddAsAdmins().contains(user.getUsername());
@@ -200,13 +200,13 @@ public class ChatServiceImpl implements ChatService {
 	 * @throws RecordNotFoundException if there was some user who couldn't be found
 	 */
 	private void checkAllFounded(List<User> usersFound, List<String> allUsersString) {
-		if(usersFound == null || allUsersString == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+		if(usersFound == null || allUsersString == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		List<String> usersFoundUsernames= usersFound.stream().map(User::getUsername).toList();
 		
 		List<String> usersNotFound = allUsersString.stream().filter(username -> !usersFoundUsernames.contains(username)).toList();
 	
 		if(!usersNotFound.isEmpty()) {			
-			throw new RecordNotFoundException(messUtils.getMessage("mess.there-no-users"), "username",
+			throw new RecordNotFoundException(messUtils.getMessage("user.group-not-found"), "username",
 					usersNotFound, HttpStatus.NOT_FOUND);
 		}
 	}
@@ -218,7 +218,7 @@ public class ChatServiceImpl implements ChatService {
 	 */
 	private void setAuthUserInChat(Chat chatToCreate) {
 		if(chatToCreate == null || chatToCreate.getUsers() == null) { //there should be already a list of users.
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		//add auth user as admin, because is the one who created the chat.

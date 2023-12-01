@@ -167,7 +167,7 @@ class UserCTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.constraint-violation-handler"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.type-incorrect"))))
 				.andExpect(jsonPath("$.details.file",is(messUtils.getMessage("vali.image"))));
 	}
 	
@@ -202,7 +202,7 @@ class UserCTest {
 				.contentType(APPLICATION_JSON_UTF8)
 				.content(objectMapper.writeValueAsString(reqLogout)))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.successfully-logout"))));
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("user.logout-ok"))));
 		
 		assertTrue(invTokenDao.existsByToken(reqLogout.getToken()));
 		assertTrue(invTokenDao.existsByToken(reqLogout.getRefreshToken()));
@@ -219,7 +219,7 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqLogout)))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.token",is(messUtils.getMessage("vali.token-not-blank"))))
 				.andExpect(jsonPath("$.details.refreshToken", is(messUtils.getMessage("vali.refreshToken-not-blank"))));
 	}
@@ -261,7 +261,7 @@ class UserCTest {
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.name",is(messUtils.getMessage("vali.name-not-blank"))))
 				.andExpect(jsonPath("$.details.lastname",is(messUtils.getMessage("vali.lastname-not-blank"))))
 				.andExpect(jsonPath("$.details.age",is(messUtils.getMessage("vali.age-range"))))
@@ -286,7 +286,7 @@ class UserCTest {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/personalDetails")
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.perDet-not-found"))));
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("perDet.not-found"))));
 	}
 	
 	@Test
@@ -322,7 +322,7 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqSearch))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.there-no-users"))));
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("user.group-not-found"))));
 		
 	}
 	@Test
@@ -335,7 +335,7 @@ class UserCTest {
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.column", is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
 				.andExpect(jsonPath("$.details.value", is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
 				.andExpect(jsonPath("$.details.dateValue", is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
@@ -371,7 +371,7 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqSearchList))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.there-no-users"))));
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("user.group-not-found"))));
 		
 	}
 	@Test
@@ -402,7 +402,7 @@ class UserCTest {
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.reqSearchs", is(messUtils.getMessage("vali.reqSearchs-not-null"))))
 				.andExpect(jsonPath("$.details.globalOperator", is(messUtils.getMessage("vali.globalOperator-not-null"))));
 	}
@@ -465,7 +465,7 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqSearch))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.there-no-users"))));
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("user.group-not-found"))));
 	}
 	@Test
 	void postSearchUsersWithOneConditionreqSearchNullBlankValuesBadRequest() throws Exception {
@@ -477,7 +477,7 @@ class UserCTest {
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.column", is(messUtils.getMessage("vali.ReqSearch.column-not-blank"))))
 				.andExpect(jsonPath("$.details.value", is(messUtils.getMessage("vali.ReqSearch.value-not-blank"))))
 				.andExpect(jsonPath("$.details.dateValue", is(messUtils.getMessage("vali.ReqSearch.dateValue-not-null"))))
@@ -544,7 +544,7 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqSearchList))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("mess.there-no-users"))));
+				.andExpect(header().string("moreInfo", is(messUtils.getMessage("user.group-not-found"))));
 	}
 	@Test
 	void postSearchUsersWithManyConditionsReqSearchListNullValuesBadRequest() throws Exception {
@@ -556,7 +556,7 @@ class UserCTest {
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error",is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.method-argument-not-valid-hanlder"))))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("client.body-not-fulfilled"))))
 				.andExpect(jsonPath("$.details.reqSearchs", is(messUtils.getMessage("vali.reqSearchs-not-null"))))
 				.andExpect(jsonPath("$.details.globalOperator", is(messUtils.getMessage("vali.globalOperator-not-null"))));
 	}
@@ -568,7 +568,7 @@ class UserCTest {
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.entity-not-exists"))));
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.entity-not-exists"))));//ya no existe este mensaje
 	}
 	
 	@Test

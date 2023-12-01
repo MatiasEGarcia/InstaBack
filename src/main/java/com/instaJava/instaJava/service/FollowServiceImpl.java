@@ -53,7 +53,7 @@ public class FollowServiceImpl implements FollowService {
 		// check if the follow record already exists.
 		userFollower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (existsByFollowedAndFollower(followedId)) {
-			throw new AlreadyExistsException(messUtils.getMessage("exception.follow-already-exists"));
+			throw new AlreadyExistsException(messUtils.getMessage("generic.create-record-already.exists"));
 		}
 		userFollowed = User.builder()
 				.userId(Long.parseLong(userDtoFollowed.getUserId()))
@@ -83,7 +83,7 @@ public class FollowServiceImpl implements FollowService {
 				reqSearchList.getGlobalOperator());
 		Page<Follow> page = followDao.findAll(spec, pagUtils.getPageable(pageInfoDto));
 		if(page.getContent().isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("mess.not-follow"), HttpStatus.NO_CONTENT);
+			throw new RecordNotFoundException(messUtils.getMessage("follow.not-found"), HttpStatus.NO_CONTENT);
 		}
 		return followMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto);
 	}
@@ -92,12 +92,12 @@ public class FollowServiceImpl implements FollowService {
 	@Transactional
 	public FollowDto updateFollowStatusById(Long id, FollowStatus newStatus) {
 		if (newStatus == null || id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User userFollowed;
 		FollowDto follower = findById(id);
 		userFollowed = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (!follower.getFollowed().getUserId().equalsIgnoreCase(userFollowed.getUserId().toString()))
-			throw new IllegalArgumentException(messUtils.getMessage("exception.followed-is-not-same"));
+			throw new IllegalArgumentException(messUtils.getMessage("follow.followed-not-same"));
 		follower.setFollowStatus(newStatus);
 		Follow followCreated = followDao.save(followMapper.followDtoToFollow(follower));
 		return followMapper.followToFollowDto(followCreated);
@@ -106,10 +106,10 @@ public class FollowServiceImpl implements FollowService {
 	@Override
 	@Transactional(readOnly = true)
 	public FollowDto findById(Long id) {
-		if(id == null) throw new IllegalArgumentException("exception.argument-not-null");
+		if(id == null) throw new IllegalArgumentException("generic.arg-not-null");
 		Optional<Follow> followerOpt = followDao.findById(id);
 		if (followerOpt.isEmpty())
-			throw new RecordNotFoundException(messUtils.getMessage("exception.follow-id-not-found"));
+			throw new RecordNotFoundException(messUtils.getMessage("follow.not-found"));
 		Follow followFound = followerOpt.get();
 		return followMapper.followToFollowDto(followFound);
 	}
@@ -119,7 +119,7 @@ public class FollowServiceImpl implements FollowService {
 	@Transactional(readOnly = true)
 	public boolean existsByFollowedAndFollower(Long followedId) {
 		if (followedId == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User follower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		return followDao.existsByFollowedAndFollower(followedId, follower.getUserId());
 	}
@@ -128,11 +128,11 @@ public class FollowServiceImpl implements FollowService {
 	@Transactional
 	public void deleteById(Long id) {
 		if (id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		FollowDto foll = findById(id);
 		User userFollower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (!foll.getFollower().getUserId().equalsIgnoreCase(userFollower.getUserId().toString()))
-			throw new InvalidException(messUtils.getMessage("exception.follower-is-not-same"));
+			throw new InvalidException(messUtils.getMessage("follow.follower-not-same"));
 		followDao.delete(followMapper.followDtoToFollow(foll));
 	}
 
@@ -141,7 +141,7 @@ public class FollowServiceImpl implements FollowService {
 	@Transactional(readOnly = true)
 	public FollowStatus getFollowStatusByFollowedId(Long id) {
 		if (id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		UserDto userFollowed;
 		Optional<Follow> optFollow;
 		User userFollower;
@@ -163,7 +163,7 @@ public class FollowServiceImpl implements FollowService {
 	@Transactional(readOnly = true)
 	public Long countByFollowStatusAndFollowed(FollowStatus followStatus,Long followedId) {
 		if (followedId == null || followStatus == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 
 		return followDao.countByFollowedAndFollowStatus(followedId, followStatus);
 	}
@@ -172,7 +172,7 @@ public class FollowServiceImpl implements FollowService {
 	@Transactional(readOnly = true)
 	public Long countByFollowStatusAndFollower(FollowStatus followStatus, Long followerId) {
 		if (followerId == null || followStatus == null)
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument-not-null"));
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 
 		return followDao.countByFollowerAndFollowStatus(followerId, followStatus);
 	}
