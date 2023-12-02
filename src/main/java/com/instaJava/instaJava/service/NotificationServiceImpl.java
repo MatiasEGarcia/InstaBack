@@ -70,7 +70,7 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		Page<Notification> notiPage = notiDao.findByToWho(user.getUserId(), pagUtils.getPageable(pageInfoDto));
+		Page<Notification> notiPage = notiDao.findByToWhoUserId(user.getUserId(), pagUtils.getPageable(pageInfoDto));
 		if(!notiPage.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("notif.group-not-found"), HttpStatus.NO_CONTENT);
 		}

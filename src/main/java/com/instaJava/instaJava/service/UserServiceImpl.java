@@ -22,11 +22,8 @@ import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.dto.response.SocialInfoDto;
-import com.instaJava.instaJava.dto.response.UserGeneralInfoDto;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
-import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
@@ -47,8 +44,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	private final PersonalDetailsMapper personalDetailsMapper;
 	private final UserMapper userMapper;
 	private final SpecificationService<User> specService;
-	private final PublicatedImageService publicatedImageService;
-	private final FollowService followService;
 	private final PageableUtils pagUtils;
 
 	// check test
@@ -95,7 +90,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		PersonalDetails perDet = user.getPersonalDetails();
 		if (perDet == null)
-			throw new RecordNotFoundException(messUtils.getMessage("perDet.not-found"), HttpStatus.NO_CONTENT);
+			throw new RecordNotFoundException(messUtils.getMessage("perDet.not-found"), HttpStatus.NOT_FOUND);
 		return personalDetailsMapper.personalDetailsToPersonalDetailsDto(perDet);
 	}
 	
@@ -157,7 +152,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		Optional<User> userOpt = userDao.findOne(
 				specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()));
 		if (userOpt.isEmpty()) {
-			throw new RecordNotFoundException(messUtils.getMessage("user.group-not-found"),
+			throw new RecordNotFoundException(messUtils.getMessage("user.not-found"),
 					HttpStatus.NOT_FOUND);
 		}
 		return userMapper.userToUserDto(userOpt.get());
@@ -231,28 +226,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 					HttpStatus.NO_CONTENT);
 		}
 		return userList;
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public UserGeneralInfoDto getGeneralUserInfoByUserId(Long userId) {
-		if(userId == null) {
-			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
-		}
-		SocialInfoDto socialDto;
-		Long nPublications;
-		Long nFollowers;
-		Long nFollowed;
-		FollowStatus followStatus;
-		UserDto userDto = this.getById(userId);
-		nPublications = publicatedImageService.countPublicationsByOwnerId(userId);
-		nFollowers = followService.countByFollowStatusAndFollower(FollowStatus.ACCEPTED, userId);
-		nFollowed = followService.countByFollowStatusAndFollowed(FollowStatus.ACCEPTED, userId);
-		followStatus = followService.getFollowStatusByFollowedId(userId);
-		
-		socialDto = new SocialInfoDto(nPublications.toString(), nFollowers.toString(), nFollowed.toString(), followStatus);
-
-		return new UserGeneralInfoDto(userDto, socialDto);
 	}
 
 	/**

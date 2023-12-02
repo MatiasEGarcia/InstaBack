@@ -11,7 +11,7 @@ public interface PublicatedImagesDao extends JpaRepository<PublicatedImage, Long
 	
 	Page<PublicatedImage> findByUserOwnerVisible(Boolean visible, Pageable pageable);
 	
-	Page<PublicatedImage> findByUserOwner(Long ownerId, Pageable pageable);
+	Page<PublicatedImage> findByUserOwnerUserId(Long ownerId, Pageable pageable);
 	
-	Long countByUserOwner(Long userOwnerId);
+	Long countByUserOwnerUserId(Long userOwnerId);
 }

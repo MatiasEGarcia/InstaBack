@@ -148,7 +148,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		
 		// if owner is the same than the user is auth then we return publications, and
 		// if the user is visible or follow status is Accepted too.
-		publicatedImageFoundPage = publicatedImagesDao.findByUserOwner(ownerId, pagUtils.getPageable(pageInfoDto));
+		publicatedImageFoundPage = publicatedImagesDao.findByUserOwnerUserId(ownerId, pagUtils.getPageable(pageInfoDto));
 		if(!publicatedImageFoundPage.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("publiImage.group-not-found"), HttpStatus.NO_CONTENT);
 		}
@@ -161,7 +161,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	public Long countPublicationsByOwnerId(Long id) {
 		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		userService.getById(id);//if there is not an exception then the user exists and the request can continue.
-		return publicatedImagesDao.countByUserOwner(id);
+		return publicatedImagesDao.countByUserOwnerUserId(id);
 	}
 
 

@@ -142,7 +142,8 @@ class ChatCTest {
 		String token = jwtService.generateToken(matiasUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/chats").header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("chat.group-not-found"))));
+				.andExpect(header().string(messUtils.getMessage("key.header-detail-exception"),
+						is(messUtils.getMessage("chat.group-not-found"))));
 	}
 
 	// setImage

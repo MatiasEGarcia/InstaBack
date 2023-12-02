@@ -16,11 +16,11 @@ public interface FollowDao extends JpaRepository<Follow, Long>, JpaSpecification
 	 * @param followerId - follower id.
 	 * @return true if follow record exists , otherwise false.
 	 */
-	boolean existsByFollowedAndFollower(Long followedId, Long followerId);
+	boolean existsByFollowedUserIdAndFollowerUserId(Long followedId, Long followerId);
 	
-	Optional<Follow> findOneByByFollowedAndFollower(Long followedId, Long followerId);
+	Optional<Follow> findOneByFollowedUserIdAndFollowerUserId(Long followedId, Long followerId);
 	
-	Long countByFollowerAndFollowStatus(Long follower, FollowStatus followStatus);
+	Long countByFollowerUserIdAndFollowStatus(Long follower, FollowStatus followStatus);
 	
-	Long countByFollowedAndFollowStatus(Long followed, FollowStatus followStatus);
+	Long countByFollowedUserIdAndFollowStatus(Long followed, FollowStatus followStatus);
 }

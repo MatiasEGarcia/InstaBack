@@ -228,7 +228,7 @@ class PublicatedImageCTest {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byVisiblesOwners")
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", messUtils.getMessage("publiImage.group-not-found")));
+				.andExpect(header().string(messUtils.getMessage("key.header-detail-exception"), messUtils.getMessage("publiImage.group-not-found")));
 	}
 	
 	@Test
@@ -255,7 +255,7 @@ class PublicatedImageCTest {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1)//the sqlAddUser1 id
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", messUtils.getMessage("publiImage.group-not-found")));   
+				.andExpect(header().string(messUtils.getMessage("key.header-detail-exception"), messUtils.getMessage("publiImage.group-not-found")));   
 	}
 	@Test
 	void getGetAllByOwnerNoContentUserPrivateAndStatusInProcess() throws Exception {
@@ -264,8 +264,9 @@ class PublicatedImageCTest {
 		String token = jwtService.generateToken(userAuthRoci);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byOwnerId/{ownerId}",1)//the sqlAddUser1 id
 				.header("Authorization", "Bearer " + token))
-				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", messUtils.getMessage("follow.followStatus-in-process")));
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("follow.followStatus-in-process"))));
 	}
 	
 	

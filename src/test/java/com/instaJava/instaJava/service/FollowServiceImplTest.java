@@ -295,7 +295,7 @@ class FollowServiceImplTest {
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
-		when(followDao.existsByFollowedAndFollower(anyLong(), eq(userWhoAuth.getUserId()))).thenReturn(false);
+		when(followDao.existsByFollowedUserIdAndFollowerUserId(anyLong(), eq(userWhoAuth.getUserId()))).thenReturn(false);
 
 		assertFalse(followService.existsByFollowedAndFollower(1L));
 	}
@@ -306,7 +306,7 @@ class FollowServiceImplTest {
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
-		when(followDao.existsByFollowedAndFollower(anyLong(), eq(userWhoAuth.getUserId()))).thenReturn(true);
+		when(followDao.existsByFollowedUserIdAndFollowerUserId(anyLong(), eq(userWhoAuth.getUserId()))).thenReturn(true);
 
 		assertTrue(followService.existsByFollowedAndFollower(1L));
 	}
@@ -366,7 +366,7 @@ class FollowServiceImplTest {
 		FollowStatus followStatus = followService.getFollowStatusByFollowedId(1L);
 		if (!followStatus.equals(FollowStatus.ACCEPTED))
 			fail("if the user is visible/public true then should return accepted");
-		verify(followDao, never()).findOneByByFollowedAndFollower(null,null);
+		verify(followDao, never()).findOneByFollowedUserIdAndFollowerUserId(null,null);
 	}
 	
 	@Test
@@ -379,7 +379,7 @@ class FollowServiceImplTest {
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
-		when(followDao.findOneByByFollowedAndFollower(followedId, userWhoAuth.getUserId())).thenReturn(Optional.empty());
+		when(followDao.findOneByFollowedUserIdAndFollowerUserId(followedId, userWhoAuth.getUserId())).thenReturn(Optional.empty());
 		
 		FollowStatus followStatus = followService.getFollowStatusByFollowedId(1L);
 		
@@ -397,7 +397,7 @@ class FollowServiceImplTest {
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
-		when(followDao.findOneByByFollowedAndFollower(followedId, userWhoAuth.getUserId())).thenReturn(Optional.of(follow));
+		when(followDao.findOneByFollowedUserIdAndFollowerUserId(followedId, userWhoAuth.getUserId())).thenReturn(Optional.of(follow));
 		
 		assertNotNull(followService.getFollowStatusByFollowedId(1L));
 		
@@ -408,19 +408,19 @@ class FollowServiceImplTest {
 	void countByFollowStatusAndFollowedParamFollowStatusNullThrow() {
 		Long followedId = 1L;
 		assertThrows(IllegalArgumentException.class, () -> followService.countByFollowStatusAndFollowed(null, followedId));
-		verify(followDao, never()).countByFollowedAndFollowStatus(followedId, null);
+		verify(followDao, never()).countByFollowedUserIdAndFollowStatus(followedId, null);
 	}
 	@Test
 	void countByFollowStatusAndFollowedParamFollowedIdNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> followService.countByFollowStatusAndFollowed(FollowStatus.ACCEPTED, null));
-		verify(followDao, never()).countByFollowedAndFollowStatus(null, FollowStatus.ACCEPTED);
+		verify(followDao, never()).countByFollowedUserIdAndFollowStatus(null, FollowStatus.ACCEPTED);
 	}
 	@Test
 	void countByFollowStatusAndFollowedReturnsNotNull() {
 		Long followedId = 1L;
 		FollowStatus followStatus = FollowStatus.ACCEPTED;
 		Long count = 2L;
-		when(followDao.countByFollowedAndFollowStatus(followedId, followStatus)).thenReturn(count);
+		when(followDao.countByFollowedUserIdAndFollowStatus(followedId, followStatus)).thenReturn(count);
 		
 		assertNotNull(followService.countByFollowStatusAndFollowed(followStatus, followedId));
 	}
@@ -431,19 +431,19 @@ class FollowServiceImplTest {
 	void countByFollowStatusAndFollowerParamFollowStatusNullThrow() {
 		Long followerId = 1L;
 		assertThrows(IllegalArgumentException.class, () -> followService.countByFollowStatusAndFollower(null, followerId));
-		verify(followDao, never()).countByFollowedAndFollowStatus(followerId, null);
+		verify(followDao, never()).countByFollowedUserIdAndFollowStatus(followerId, null);
 	}
 	@Test
 	void countByFollowStatusAndFollowerParamFollowedIdNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> followService.countByFollowStatusAndFollower(FollowStatus.ACCEPTED, null));
-		verify(followDao, never()).countByFollowedAndFollowStatus(null, FollowStatus.ACCEPTED);
+		verify(followDao, never()).countByFollowedUserIdAndFollowStatus(null, FollowStatus.ACCEPTED);
 	}
 	@Test
 	void countByFollowStatusAndFollowerReturnsNotNull() {
 		Long followerId = 1L;
 		FollowStatus followStatus = FollowStatus.ACCEPTED;
 		Long count = 2L;
-		when(followDao.countByFollowerAndFollowStatus(followerId, followStatus)).thenReturn(count);
+		when(followDao.countByFollowerUserIdAndFollowStatus(followerId, followStatus)).thenReturn(count);
 		
 		assertNotNull(followService.countByFollowStatusAndFollower(followStatus, followerId));
 	}

@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -46,7 +45,6 @@ import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
-import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
@@ -67,8 +65,6 @@ class UserServiceImplTest {
 	@Mock private UserMapper userMapper;
 	@Mock private PersonalDetailsMapper personalDetailsMapper;
 	@Mock private SpecificationService<User> specService;
-	@Mock private PublicatedImageService publicatedImageService;
-	@Mock private FollowService followService;
 	@InjectMocks private UserServiceImpl userService;
 	static private MockMultipartFile multipartFile;
 	static private User user;
@@ -550,64 +546,4 @@ class UserServiceImplTest {
 		assertNotNull(userService.getByUsernameIn(usernameList));
 		verify(userDao).findByUsernameIn(usernameList);
 	}
-	
-	//getGeneralUserInfoByUserId
-	@Test
-	void getGeneralUserInfoByUserIdParamUserIdNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> userService.getGeneralUserInfoByUserId(null));
-	}
-	
-	@Test
-	void getGeneralUserInfoByUserIdUserNoExistsThrow() {
-		Long userId = 1L;
-		FollowStatus followStatus = FollowStatus.ACCEPTED;
-		UserServiceImpl spyUserServiceImpl = spy(userService);
-		doThrow(RecordNotFoundException.class).when(spyUserServiceImpl).getById(userId);
-		
-		assertThrows(RecordNotFoundException.class, () -> spyUserServiceImpl.getGeneralUserInfoByUserId(userId));
-		
-		verify(publicatedImageService,never()).countPublicationsByOwnerId(userId);
-		verify(followService,never()).countByFollowStatusAndFollowed(followStatus, userId);
-		verify(followService,never()).countByFollowStatusAndFollower(followStatus, userId);
-		verify(followService,never()).getFollowStatusByFollowedId(userId);
-	}
-	
-	@Test
-	void getGeneralUserInfoByUserIdReturnsNotNull() {
-		Long userId = 1L;
-		FollowStatus followStatus = FollowStatus.ACCEPTED;
-		UserServiceImpl spyUserServiceImpl = spy(userService);
-		doReturn(userDto).when(spyUserServiceImpl).getById(userId);
-		when(publicatedImageService.countPublicationsByOwnerId(userId)).thenReturn(1L);
-		when(followService.countByFollowStatusAndFollower(followStatus, userId)).thenReturn(1L);
-		when(followService.countByFollowStatusAndFollowed(followStatus, userId)).thenReturn(1L);
-		when(followService.getFollowStatusByFollowedId(userId)).thenReturn(followStatus);
-		
-		assertNotNull(spyUserServiceImpl.getGeneralUserInfoByUserId(userId));
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }

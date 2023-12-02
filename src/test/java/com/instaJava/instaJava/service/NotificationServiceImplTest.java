@@ -134,7 +134,7 @@ class NotificationServiceImplTest {
 		//pageable
 		when(pageUtils.getPageable(pag)).thenReturn(pageable);
 		//dao
-		when(notiDao.findByToWho(user.getUserId(), pageable)).thenReturn(Page.empty());
+		when(notiDao.findByToWhoUserId(user.getUserId(), pageable)).thenReturn(Page.empty());
 
 		assertThrows(RecordNotFoundException.class,() -> service.getNotificationsByAuthUser(pag));
 	}
@@ -154,7 +154,7 @@ class NotificationServiceImplTest {
 		//pageable
 		when(pageUtils.getPageable(pag)).thenReturn(pageable);
 		//dao
-		when(notiDao.findByToWho(user.getUserId(), pageable)).thenReturn(page);
+		when(notiDao.findByToWhoUserId(user.getUserId(), pageable)).thenReturn(page);
 		//mapper
 		when(notiMapper.pageAndPageInfoDtoToResPaginationG(page, pag)).thenReturn(resPagG);
 		

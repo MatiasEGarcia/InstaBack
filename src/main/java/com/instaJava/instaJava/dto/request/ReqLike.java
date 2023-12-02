@@ -24,10 +24,10 @@ public class ReqLike implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
-	//falta el vali
+	@NotNull(message= "{vali.itemId-not-null}")
 	private Long itemId;
 	@NotNull(message= "{vali.decision-not-null}")
-	private boolean decision;
+	private Boolean decision;//I don't false by default, I want the client to sent a value, so I use Boolean wrapper.
 	@JsonIgnore
 	private boolean valid;
 	@NotNull(message= "{vali.type-not-null}")

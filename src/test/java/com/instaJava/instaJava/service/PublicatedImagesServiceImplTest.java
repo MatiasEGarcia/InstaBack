@@ -309,13 +309,13 @@ class PublicatedImagesServiceImplTest {
 		// pageable
 		when(pageUtils.getPageable(pageInfoDto)).thenReturn(page);
 		// dao
-		when(publicatedImagesDao.findByUserOwner(user.getUserId(), page)).thenReturn(publicatedImagePage);
+		when(publicatedImagesDao.findByUserOwnerUserId(user.getUserId(), page)).thenReturn(publicatedImagePage);
 
 		assertThrows(RecordNotFoundException.class,
 				() -> publicatedImagesService.getAllByOnwer(user.getUserId(), pageInfoDto));
 
 		verify(followService, never()).getFollowStatusByFollowedId(anyLong());
-		verify(publicatedImagesDao).findByUserOwner(user.getUserId(), page);
+		verify(publicatedImagesDao).findByUserOwnerUserId(user.getUserId(), page);
 	}
 
 	@Test
@@ -334,14 +334,14 @@ class PublicatedImagesServiceImplTest {
 		// pageable
 		when(pageUtils.getPageable(pageInfoDto)).thenReturn(page);
 		// dao
-		when(publicatedImagesDao.findByUserOwner(user.getUserId(), page)).thenReturn(publicatedImagePage);
+		when(publicatedImagesDao.findByUserOwnerUserId(user.getUserId(), page)).thenReturn(publicatedImagePage);
 		when(publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(publicatedImagePage, pageInfoDto))
 				.thenReturn(resPag);
 
 		assertNotNull(publicatedImagesService.getAllByOnwer(user.getUserId(), pageInfoDto));
 
 		verify(followService, never()).getFollowStatusByFollowedId(anyLong());
-		verify(publicatedImagesDao).findByUserOwner(user.getUserId(), page);
+		verify(publicatedImagesDao).findByUserOwnerUserId(user.getUserId(), page);
 	}
 
 	@Test
@@ -366,7 +366,7 @@ class PublicatedImagesServiceImplTest {
 
 		verify(userService).getById(idDifferentFromAuthUser);
 		verify(followService).getFollowStatusByFollowedId(idDifferentFromAuthUser);
-		verify(publicatedImagesDao, never()).findByUserOwner(idDifferentFromAuthUser, page);
+		verify(publicatedImagesDao, never()).findByUserOwnerUserId(idDifferentFromAuthUser, page);
 	}
 
 	@Test
@@ -391,7 +391,7 @@ class PublicatedImagesServiceImplTest {
 
 		verify(userService).getById(idDifferentFromAuthUser);
 		verify(followService).getFollowStatusByFollowedId(idDifferentFromAuthUser);
-		verify(publicatedImagesDao, never()).findByUserOwner(idDifferentFromAuthUser, page);
+		verify(publicatedImagesDao, never()).findByUserOwnerUserId(idDifferentFromAuthUser, page);
 	}
 
 	@Test
@@ -416,7 +416,7 @@ class PublicatedImagesServiceImplTest {
 
 		verify(userService).getById(idDifferentFromAuthUser);
 		verify(followService).getFollowStatusByFollowedId(idDifferentFromAuthUser);
-		verify(publicatedImagesDao, never()).findByUserOwner(idDifferentFromAuthUser, page);
+		verify(publicatedImagesDao, never()).findByUserOwnerUserId(idDifferentFromAuthUser, page);
 	}
 	
 	@Test
@@ -441,7 +441,7 @@ class PublicatedImagesServiceImplTest {
 		//pageUtils
 		when(pageUtils.getPageable(pageInfoDto)).thenReturn(page);
 		// dao
-		when(publicatedImagesDao.findByUserOwner(idDifferentFromAuthUser, page)).thenReturn(publicatedImagePage);
+		when(publicatedImagesDao.findByUserOwnerUserId(idDifferentFromAuthUser, page)).thenReturn(publicatedImagePage);
 		//mapping
 		when(publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(publicatedImagePage, pageInfoDto))
 				.thenReturn(resPag);
@@ -449,7 +449,7 @@ class PublicatedImagesServiceImplTest {
 		assertNotNull(publicatedImagesService.getAllByOnwer(idDifferentFromAuthUser, pageInfoDto));
 
 		verify(followService).getFollowStatusByFollowedId(anyLong());
-		verify(publicatedImagesDao).findByUserOwner(idDifferentFromAuthUser, page);
+		verify(publicatedImagesDao).findByUserOwnerUserId(idDifferentFromAuthUser, page);
 
 	}
 
@@ -457,13 +457,13 @@ class PublicatedImagesServiceImplTest {
 	@Test
 	void countPublicationsByOwnerIdParamIdNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.countPublicationsByOwnerId(null));
-		verify(publicatedImagesDao,never()).countByUserOwner(null);
+		verify(publicatedImagesDao,never()).countByUserOwnerUserId(null);
 	}
 	
 	@Test
 	void countPublicationsByOwnerIdReturnsNotNull() {
 		Long ownerId = 1L;
-		when(publicatedImagesDao.countByUserOwner(ownerId)).thenReturn(1L);
+		when(publicatedImagesDao.countByUserOwnerUserId(ownerId)).thenReturn(1L);
 		assertNotNull(publicatedImagesService.countPublicationsByOwnerId(ownerId));
 		verify(userService).getById(ownerId);
 	}

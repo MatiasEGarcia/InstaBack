@@ -24,6 +24,7 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import com.instaJava.instaJava.dto.response.ResErrorMessage;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
 import com.instaJava.instaJava.exception.InvalidException;
+import com.instaJava.instaJava.exception.NotFoundException;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import jakarta.validation.ConstraintViolation;
@@ -46,7 +47,7 @@ public class ExceptionHandlerController {
 	public ResponseEntity<ResErrorMessage> exceptionHandler(Exception e) {
 		LOGGER.error("There was some Exception: ", e.getMessage());
 		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR.toString(),
-				messUtils.getMessage("internal-server-error"), Map.of(messUtils.getMessage("key.detail-exception"),e.getMessage()));
+				messUtils.getMessage("generic.internal-server-error"), Map.of(messUtils.getMessage("key.detail-exception"),e.getMessage()));
 		return ResponseEntity.internalServerError().body(resMessage);
 	}
 
@@ -60,9 +61,13 @@ public class ExceptionHandlerController {
 	@ExceptionHandler(value = { InvalidException.class })
 	public ResponseEntity<ResErrorMessage> invalidExceptionHandler(InvalidException e) {
 		LOGGER.error("There was some InvalidException", e.getMessage());
-		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.BAD_REQUEST.toString(),
-				messUtils.getMessage("client.value-invalid"),Map.of(messUtils.getMessage("key.detail-exception"), e.getMessage()));
-		return ResponseEntity.badRequest().body(resMessage);
+		if(e.getStatus().equals(HttpStatus.NO_CONTENT)) {
+			return ResponseEntity.noContent().header(messUtils.getMessage("key.header-detail-exception"), e.getMessage()).build();
+		}
+		return ResponseEntity.status(e.getStatus()).body(ResErrorMessage.builder()
+				.error(e.getStatus().toString())
+				.message(e.getMessage())
+				.build());
 	}
 
 	/**
@@ -245,6 +250,19 @@ public class ExceptionHandlerController {
 				.message(e.getMessage())
 				.build());		
 	}
+	
+	@ExceptionHandler(value= {NotFoundException.class})
+	public ResponseEntity<ResErrorMessage> handlerNotFoundException(NotFoundException e){
+		LOGGER.error("There was some NotFoundException: " , e.getMessage());
+		if(e.getStatus().equals(HttpStatus.NO_CONTENT)) {
+			return ResponseEntity.noContent().header(messUtils.getMessage("key.header-detail-exception"), e.getMessage()).build();
+		}
+		return ResponseEntity.status(e.getStatus()).body(ResErrorMessage.builder()
+				.error(e.getStatus().toString())
+				.message(e.getMessage())
+				.build());
+	}
+	
 }
 
 

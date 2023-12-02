@@ -281,12 +281,13 @@ class UserCTest {
 	}
 	
 	@Test
-	void getPersonalDetailsNoExistNoContent() throws Exception {
+	void getPersonalDetailsNoExistNotFound() throws Exception {
 		String token = jwtService.generateToken(matiAuth);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/personalDetails")
 				.header("Authorization", "Bearer " + token))
-				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("perDet.not-found"))));
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.error", is(HttpStatus.NOT_FOUND.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("perDet.not-found"))));
 	}
 	
 	@Test
@@ -313,7 +314,7 @@ class UserCTest {
 	
 	
 	@Test
-	void postSearchUserWithOneConditionNoMatchesNoContent() throws Exception {
+	void postSearchUserWithOneConditionNoMatchesNotFound() throws Exception {
 		String token = jwtService.generateToken(matiAuth);
 		ReqSearch reqSearch = ReqSearch.builder().column("username").value("random")
 				.dateValue(false).operation(OperationEnum.EQUAL).build();
@@ -321,8 +322,9 @@ class UserCTest {
 				.header("Authorization", "Bearer " + token)
 				.content(objectMapper.writeValueAsString(reqSearch))
 				.contentType(APPLICATION_JSON_UTF8))
-				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("user.group-not-found"))));
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.error", is(HttpStatus.NOT_FOUND.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("user.not-found"))));
 		
 	}
 	@Test
@@ -360,7 +362,7 @@ class UserCTest {
 	
 	
 	@Test
-	void postSearchUserWithManyConditionsNoMatchesNoContent() throws Exception {
+	void postSearchUserWithManyConditionsNoMatchesNotFound() throws Exception {
 		String token = jwtService.generateToken(matiAuth);
 		ReqSearch reqSearch = ReqSearch.builder().column("username").value("random")
 				.dateValue(false).operation(OperationEnum.EQUAL).build();
@@ -370,8 +372,10 @@ class UserCTest {
 				.header("Authorization", "Bearer " + token)
 				.content(objectMapper.writeValueAsString(reqSearchList))
 				.contentType(APPLICATION_JSON_UTF8))
-				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("user.group-not-found"))));
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.error", is(HttpStatus.NOT_FOUND.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("user.not-found"))));
+				
 		
 	}
 	@Test
@@ -465,7 +469,8 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqSearch))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("user.group-not-found"))));
+				.andExpect(header().string(messUtils.getMessage("key.header-detail-exception"),
+						is(messUtils.getMessage("user.group-not-found"))));
 	}
 	@Test
 	void postSearchUsersWithOneConditionreqSearchNullBlankValuesBadRequest() throws Exception {
@@ -544,7 +549,8 @@ class UserCTest {
 				.content(objectMapper.writeValueAsString(reqSearchList))
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isNoContent())
-				.andExpect(header().string("moreInfo", is(messUtils.getMessage("user.group-not-found"))));
+				.andExpect(header().string(messUtils.getMessage("key.header-detail-exception"),
+						is(messUtils.getMessage("user.group-not-found"))));
 	}
 	@Test
 	void postSearchUsersWithManyConditionsReqSearchListNullValuesBadRequest() throws Exception {
@@ -562,13 +568,13 @@ class UserCTest {
 	}
 	
 	@Test
-	void getGetUserGeneralInfoByIdBadRequestUserNoExists() throws Exception{
+	void getGetUserGeneralInfoByIdUserNoExistsNotFound() throws Exception{
 		String token = jwtService.generateToken(matiAuth);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/generalInfoById/{id}",100)
 				.header("Authorization", "Bearer " + token))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message",is(messUtils.getMessage("mess.entity-not-exists"))));//ya no existe este mensaje
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.error", is(HttpStatus.NOT_FOUND.toString())))
+				.andExpect(jsonPath("$.message",is(messUtils.getMessage("user.not-found"))));//ya no existe este mensaje
 	}
 	
 	@Test

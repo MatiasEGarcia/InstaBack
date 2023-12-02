@@ -10,7 +10,6 @@ import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.request.ReqSearch;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.dto.response.UserGeneralInfoDto;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
@@ -165,12 +164,4 @@ public interface UserService {
 	 * @throws IllegalArgumentException if @param reqSearchList is null.
 	 */
 	boolean existsManyConditions(ReqSearchList reqSearchList);
-	
-	/**
-	 * Getting all general user info, like username, user's image, user's publication number , followers, followed, etc
-	 * @param userId
-	 * @return
-	 */
-	UserGeneralInfoDto getGeneralUserInfoByUserId(Long userId);
-	
 }

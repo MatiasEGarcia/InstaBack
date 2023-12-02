@@ -128,14 +128,14 @@ class LikeServiceImplTest {
 
 	@Test
 	void existReturnTrue() {
-		when(likeDao.existsByItemTypeAndItemIdAndOwnerLike(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L)).thenReturn(true);
+		when(likeDao.existsByItemTypeAndItemIdAndOwnerLikeUserId(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L)).thenReturn(true);
 		
 		assertTrue(likeService.exist(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L));
 	}
 
 	@Test
 	void existReturnFalse() {
-		when(likeDao.existsByItemTypeAndItemIdAndOwnerLike(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L)).thenReturn(false);
+		when(likeDao.existsByItemTypeAndItemIdAndOwnerLikeUserId(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L)).thenReturn(false);
 		
 		assertFalse(likeService.exist(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L));
 	}
@@ -209,7 +209,9 @@ class LikeServiceImplTest {
 		UserDto userDto = UserDto.builder()
 				.userId("2")
 				.build();
-		ReqLike reqLike = ReqLike.builder().itemId(itemId).type(itemType).build();
+		ReqLike reqLike = ReqLike.builder().itemId(itemId).type(itemType)
+				.decision(true)
+				.build();
 		LikeServiceImpl spyLikeService = spy(likeService);
 		PublicatedImage pubImage = new PublicatedImage();
 		
@@ -232,12 +234,14 @@ class LikeServiceImplTest {
 		Like likeToSave = Like.builder()
 				.itemId(itemId)
 				.itemType(itemType)
+				.decision(true)
 				.ownerLike(authUser)
 				.likedAt(ZonedDateTime.now(clock))
 				.build();
 		LikeDto likeDto = LikeDto.builder()
 				.itemId(itemId.toString())
 				.itemType(itemType)
+				.decision(true)
 				.ownerLike(userDto)
 				.likedAt(ZonedDateTime.now(clock))
 				.build();

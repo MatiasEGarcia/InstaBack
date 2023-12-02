@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.instaJava.instaJava.config.filter.JwtAuthenticationFilter;
 import com.instaJava.instaJava.config.filter.TimeZoneFilter;
+import com.instaJava.instaJava.util.MessagesUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +32,7 @@ public class SecurityConfig {
 	private final JwtAuthenticationFilter jwtAuthFilter;
 	private final TimeZoneFilter timeZoneFilter;
 	private final AuthenticationProvider authenticationProvider;
+	private final MessagesUtils messUtils;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -63,7 +65,7 @@ public class SecurityConfig {
 			CorsConfiguration  corsConf =  new CorsConfiguration();
 			corsConf.setAllowedOriginPatterns(Arrays.asList("http://127.0.0.1:5173"));//react app origin
 			corsConf.setAllowedMethods(Arrays.asList("*"));
-			corsConf.setExposedHeaders(Arrays.asList("moreInfo","X-Unauthorized-Reason"));// With this now the client can get these headers.
+			corsConf.setExposedHeaders(Arrays.asList(messUtils.getMessage("key.header-detail-exception"),"X-Unauthorized-Reason"));// With this now the client can get these headers.
 			corsConf.setAllowedHeaders(Arrays.asList("*"));
 			corsConf.setAllowCredentials(true);
 			return corsConf;

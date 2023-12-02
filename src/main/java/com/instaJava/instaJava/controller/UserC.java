@@ -28,8 +28,12 @@ import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResImageString;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.dto.response.SocialInfoDto;
 import com.instaJava.instaJava.dto.response.UserGeneralInfoDto;
+import com.instaJava.instaJava.enums.FollowStatus;
+import com.instaJava.instaJava.service.FollowService;
 import com.instaJava.instaJava.service.InvTokenService;
+import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.service.UserService;
 import com.instaJava.instaJava.service.WebSocketService;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -46,6 +50,8 @@ import lombok.RequiredArgsConstructor;
 public class UserC {
 
 	private final InvTokenService invTokenService;
+	private final PublicatedImageService publicatedImageService;
+	private final FollowService followService;
 	private final UserService userService;
 	private final WebSocketService webSocketService;
 	private final MessagesUtils messUtils;
@@ -196,7 +202,20 @@ public class UserC {
 	
 	@GetMapping(value="/generalInfoById/{id}")
 	public ResponseEntity<UserGeneralInfoDto> getUserGeneralInfoById(@PathVariable("id") Long id){
-	return ResponseEntity.ok().body(userService.getGeneralUserInfoByUserId(id));	
+		String numberFollowed;
+		String numberFollower;
+		String numberPublications;
+		UserDto userDto = userService.getById(id); //throws an exception if user don't exist
+		FollowStatus followStatus = FollowStatus.ACCEPTED;
+		SocialInfoDto socialInfoDto = new SocialInfoDto();
+		socialInfoDto.setFollowStatus(followService.getFollowStatusByFollowedId(id));
+		numberFollowed = followService.countByFollowStatusAndFollowed(followStatus, id).toString();
+		socialInfoDto.setNumberFollowed(numberFollowed);
+		numberFollower = followService.countByFollowStatusAndFollower(followStatus, id).toString();
+		socialInfoDto.setNumberFollowers(numberFollower);
+		numberPublications = publicatedImageService.countPublicationsByOwnerId(id).toString();
+		socialInfoDto.setNumberPublications(numberPublications);
+	return ResponseEntity.ok().body(new UserGeneralInfoDto(userDto, socialInfoDto));	
 	}
 	
 	/*

@@ -69,12 +69,6 @@ class SpecificationServiceImplTest {
 	}
 	
 	@Test
-	void test() {
-		User user1 = userDao.findByUsername("matias");
-		System.out.println("EL ID ES : " +  user1.getUserId());
-	}
-	
-	@Test
 	void getSpecificationReqSearchListNullThrow() {
 		assertThrows(IllegalArgumentException.class,
 				() -> pubSpecService.getSpecification(null, GlobalOperationEnum.NONE));

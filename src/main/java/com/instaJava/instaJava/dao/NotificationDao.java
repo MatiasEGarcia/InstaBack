@@ -9,5 +9,5 @@ import com.instaJava.instaJava.entity.Notification;
 
 public interface NotificationDao extends JpaRepository<Notification, Long>, JpaSpecificationExecutor<Notification>{
 
-	Page<Notification> findByToWho(Long toWhoId, Pageable pageable);
+	Page<Notification> findByToWhoUserId(Long toWhoId, Pageable pageable);
 }

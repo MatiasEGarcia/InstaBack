@@ -58,7 +58,7 @@ public class LikeServiceImpl implements LikeService {
 		if (type == null || itemId == null || ownerLikeId == null)
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 
-		return likeDao.existsByItemTypeAndItemIdAndOwnerLike(type, itemId, ownerLikeId);
+		return likeDao.existsByItemTypeAndItemIdAndOwnerLikeUserId(type, itemId, ownerLikeId);
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public class LikeServiceImpl implements LikeService {
 		
 		Like likeToSave = Like.builder()
 				.itemId(reqLike.getItemId())
-				.decision(reqLike.isDecision())
+				.decision(reqLike.getDecision())
 				.itemType(reqLike.getType())
 				.ownerLike(userOwner)
 				.likedAt(ZonedDateTime.now(clock))

@@ -121,7 +121,7 @@ public class FollowServiceImpl implements FollowService {
 		if (followedId == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User follower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		return followDao.existsByFollowedAndFollower(followedId, follower.getUserId());
+		return followDao.existsByFollowedUserIdAndFollowerUserId(followedId, follower.getUserId());
 	}
 
 	@Override
@@ -152,7 +152,7 @@ public class FollowServiceImpl implements FollowService {
 		
 		userFollower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		
-		optFollow = followDao.findOneByByFollowedAndFollower(id, userFollower.getUserId());
+		optFollow = followDao.findOneByFollowedUserIdAndFollowerUserId(id, userFollower.getUserId());
 		
 		if (optFollow.isEmpty())
 			return FollowStatus.NOT_ASKED;
@@ -165,7 +165,7 @@ public class FollowServiceImpl implements FollowService {
 		if (followedId == null || followStatus == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 
-		return followDao.countByFollowedAndFollowStatus(followedId, followStatus);
+		return followDao.countByFollowedUserIdAndFollowStatus(followedId, followStatus);
 	}
 
 	@Override
@@ -174,7 +174,7 @@ public class FollowServiceImpl implements FollowService {
 		if (followerId == null || followStatus == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 
-		return followDao.countByFollowerAndFollowStatus(followerId, followStatus);
+		return followDao.countByFollowerUserIdAndFollowStatus(followerId, followStatus);
 	}
 
 }

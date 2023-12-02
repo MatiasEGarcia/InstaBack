@@ -8,5 +8,5 @@ import com.instaJava.instaJava.enums.TypeItemLikedEnum;
 
 public interface LikeDao extends JpaRepository<Like, Long> ,JpaSpecificationExecutor<Like> {
 
-	boolean existsByItemTypeAndItemIdAndOwnerLike(TypeItemLikedEnum itemType, Long itemId, Long onwerLike);
+	boolean existsByItemTypeAndItemIdAndOwnerLikeUserId(TypeItemLikedEnum itemType, Long itemId, Long onwerLike);
 }

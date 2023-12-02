@@ -7,12 +7,16 @@ import com.instaJava.instaJava.enums.FollowStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Setter
+@Getter
 public class SocialInfoDto implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
