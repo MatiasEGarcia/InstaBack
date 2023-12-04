@@ -52,4 +52,9 @@ public class Chat {
 	@JoinTable(name = "chats_admins", joinColumns = @JoinColumn(name = "chat", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "associate_user", referencedColumnName = "id"))
 	private List<User> admins;
 
+	public Chat(Long chatId) {
+		this.chatId = chatId;
+	}
+	
+	
 }

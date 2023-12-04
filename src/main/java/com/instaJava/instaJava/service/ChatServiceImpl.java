@@ -45,6 +45,17 @@ public class ChatServiceImpl implements ChatService {
 	private final FollowService followService;
 	private final ChatMapper chatMapper;
 
+	@Override
+	@Transactional(readOnly = true)
+	public ChatDto getById(Long chatId) {
+		if(chatId == null) throw new IllegalArgumentException("generic.arg-not-null");
+		Optional<Chat> optChat = chatDao.findById(chatId);
+		if(optChat.isEmpty()) {
+			throw new RecordNotFoundException(messUtils.getMessage("chat.not-found"), HttpStatus.NOT_FOUND);
+		}
+		return chatMapper.chatToChatDto(optChat.get());
+	}
+	
 	
 	@Override
 	@Transactional(readOnly = true)

@@ -12,6 +12,15 @@ import com.instaJava.instaJava.exception.UserNotApplicableForChatException;
 public interface ChatService {
 
 	/**
+	 * Method to get Chat info by chat's id.
+	 * @param chatId - chat's id.
+	 * @return ChatDto object with Chat record info.
+	 * @throws IllegalArgumentException  if chatId is null.
+	 * @throws RecordNotFoundException if chat was not found.
+	 */
+	ChatDto getById(Long chatId);
+	
+	/**
 	 * Method to get all authenticated user's chats.
 	 * @param pageInfoDto - It has pagination info. (must not be null)
 	 * @return ResPaginationG<ChatDto> - chat list with pagination info.

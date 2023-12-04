@@ -91,7 +91,7 @@ class LikeCTest {
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
-				.andExpect(jsonPath("$.message", is(messUtils.getMessage("client.value-incorrect"))));//creo que este mensaje no deberia ir
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("client.value-missing-incorrect"))));//creo que este mensaje no deberia ir
 	}
 	@Test
 	void postSaveReqLikeValuesNullEmptyBadRequest() throws Exception {

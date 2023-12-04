@@ -70,6 +70,29 @@ class ChatServiceImplTest {
 
 	private final User user = User.builder().userId(1L).role(RolesEnum.ROLE_USER).build();
 
+	//getById
+	@Test
+	void getByIdParamChatIdNullThrow() {
+		assertThrows(IllegalArgumentException.class, ()-> chatService.getById(null));
+	}
+	
+	@Test
+	void getByIdNoExistsThrow() {
+		Long id = 1L;
+		when(chatDao.findById(id)).thenReturn(Optional.empty());
+		assertThrows(RecordNotFoundException.class, ()-> chatService.getById(id));
+	}
+	
+	@Test
+	void getByIdExistsNotNull() {
+		Long id = 1L;
+		Chat chat = new Chat();
+		ChatDto chatDto = new ChatDto();
+		when(chatDao.findById(id)).thenReturn(Optional.of(chat));
+		when(chatMapper.chatToChatDto(chat)).thenReturn(chatDto);
+		assertNotNull(chatService.getById(id));
+	}
+	
 	// getAuthUserChats
 	@Test
 	void getAuthUserChatsParamPageInfoDtoNullThrow() {

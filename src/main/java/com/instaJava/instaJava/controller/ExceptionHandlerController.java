@@ -183,7 +183,7 @@ public class ExceptionHandlerController {
 		LOGGER.error("There was some HttpMessageNotReadableException", e.getMessage());
 		return ResponseEntity.badRequest().body(ResErrorMessage.builder()
 				.error(HttpStatus.BAD_REQUEST.toString())
-				.message(messUtils.getMessage("client.value-incorrect"))
+				.message(messUtils.getMessage("client.value-missing-incorrect"))
 				.build());
 	}
 
