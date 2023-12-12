@@ -28,8 +28,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
 		registry.setApplicationDestinationPrefixes("/api/v1/notifications");//I think that when I'll add a chat should add another prefixe like chatroom or somehting like that.
-		registry.enableSimpleBroker("/user","/notifications");
-		registry.setUserDestinationPrefix("/user/notifications");///user/{username}
+		registry.enableSimpleBroker("/user","/notifications","/chat");
+		registry.setUserDestinationPrefix("/user/notifications");
 	}
 
 }

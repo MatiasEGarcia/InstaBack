@@ -3,8 +3,10 @@ package com.instaJava.instaJava.dto.request;
 import java.io.Serializable;
 import java.util.List;
 
-import com.instaJava.instaJava.enums.ChatTypeEnum;
+import org.springframework.validation.annotation.Validated;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,23 +14,27 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- *Dto to create a chat record. 
+ * 
  * @author matia
- *
+ * Object to add users on chat.
+ * chatId - to know where to add users.
+ * users - users to add.
  */
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
-public class ReqChat implements Serializable{
+@Validated
+public class ReqAddUserChat implements Serializable{
 
 	private static final long serialVersionUID = 1L;
+
+	@NotBlank(message = "{vali.chatId-not-blank}")
+	private String chatId;
 	
-	private String name;//can be null
-	@NotNull(message = "{vali.chat-type-not-null}")
-	private ChatTypeEnum type;
 	@NotNull(message = "{vali.users-list-not-null}")
-	private List<String> usersToAdd;//users username
-	private List<String> usersToAddAsAdmins;//users username
+	@Valid
+	private List<ReqUserChat> users;
 	
 }

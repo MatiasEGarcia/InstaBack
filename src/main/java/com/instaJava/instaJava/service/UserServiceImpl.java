@@ -3,6 +3,7 @@ package com.instaJava.instaJava.service;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -132,7 +133,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		}
 		return userMapper.userToUserDto(optUser.get());
 	}
-
 	
 	@Override
 	public UserDto getOneUserOneCondition(ReqSearch reqSearch) {
@@ -214,10 +214,10 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 				.exists(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator()));
 	}
 
-	
+	//MIRAR TEST, ya no recive a lsit, sino un set
 	@Override
 	@Transactional(readOnly = true)
-	public List<User> getByUsernameIn(List<String> usernameList) {
+	public List<User> getByUsernameIn(Set<String> usernameList) {
 		if (usernameList == null || usernameList.isEmpty())
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		List<User> userList = userDao.findByUsernameIn(usernameList);

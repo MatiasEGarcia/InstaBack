@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -17,6 +17,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -522,23 +523,24 @@ class UserServiceImplTest {
 	}
 	
 	@Test
-	void getByUsernameInParamUsernameListEmptyThrow() {
-		assertThrows(IllegalArgumentException.class,() -> userService.getByUsernameIn(Collections.emptyList()));
-		verify(userDao,never()).findByUsernameIn(Collections.emptyList());
+	void getByUsernameInParamUsernameSetEmptyThrow() {
+		Set<String> emptySet = Collections.emptySet();
+		assertThrows(IllegalArgumentException.class,() -> userService.getByUsernameIn(emptySet));
+		verify(userDao,never()).findByUsernameIn(emptySet);
 	}
 	
 	@Test
 	void getByUsernameInNoUserFoundThrow() {
-		List<String> usernameList = List.of("Mati");
-		when(userDao.findByUsernameIn(anyList())).thenReturn(Collections.emptyList());
+		Set<String> usernameList = Set.of("Mati");
+		when(userDao.findByUsernameIn(anySet())).thenReturn(Collections.emptyList());
 		
 		assertThrows(RecordNotFoundException.class,() -> userService.getByUsernameIn(usernameList));
-		verify(userDao).findByUsernameIn(anyList());
+		verify(userDao).findByUsernameIn(anySet());
 	}
 	
 	@Test
 	void getByUsernameInReturnsNotNull() {
-		List<String> usernameList = List.of("username1", "username2");
+		Set<String> usernameList = Set.of("username1", "username2");
 		List<User> userList = List.of(user);
 		
 		when(userDao.findByUsernameIn(usernameList)).thenReturn(userList);

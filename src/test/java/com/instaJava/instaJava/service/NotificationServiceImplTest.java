@@ -1,24 +1,30 @@
 package com.instaJava.instaJava.service;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,6 +38,9 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.instaJava.instaJava.dao.NotificationDao;
+import com.instaJava.instaJava.dto.ChatDto;
+import com.instaJava.instaJava.dto.MessageDto;
+import com.instaJava.instaJava.dto.NotificationChatDto;
 import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.UserDto;
@@ -39,6 +48,7 @@ import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
 import com.instaJava.instaJava.entity.User;
+import com.instaJava.instaJava.enums.NotificationType;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
@@ -62,7 +72,7 @@ class NotificationServiceImplTest {
 	private SimpMessagingTemplate messTemplate;
 	@Mock
 	private UserMapper userMapper;
-	@Mock 
+	@Mock
 	private NotificationMapper notiMapper;
 	@Mock
 	private PageableUtils pageUtils;
@@ -71,19 +81,20 @@ class NotificationServiceImplTest {
 	@Mock
 	private SpecificationService<Notification> specService;
 	@InjectMocks
-	private NotificationServiceImpl service;
+	private NotificationServiceImpl notiService;
 	// As auth user
 	private final User user = User.builder().userId(1L).username("random").password("random").role(RolesEnum.ROLE_USER)
 			.build();
 
+	// saveNotificationOfFollow
 	@Test
 	void saveNotificationOfFollowParamFollowNullThorw() {
-		assertThrows(IllegalArgumentException.class, () -> service.saveNotificationOfFollow(null, "some message"));
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfFollow(null, "some message"));
 	}
 
 	@Test
 	void saveNotificationOfFollowParamcustomMessageNullThorw() {
-		assertThrows(IllegalArgumentException.class, () -> service.saveNotificationOfFollow(new Follow(), null));
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfFollow(new Follow(), null));
 	}
 
 	@Test
@@ -97,29 +108,149 @@ class NotificationServiceImplTest {
 		when(userMapper.userToUserDto(followerUser)).thenReturn(new UserDto());
 		when(notiDao.save(any(Notification.class))).thenReturn(notiSaved);
 
-		service.saveNotificationOfFollow(follow, "some message");
+		notiService.saveNotificationOfFollow(follow, "some message");
 
 		verify(notiDao).save(any(Notification.class));
 		verify(messTemplate).convertAndSendToUser(eq(followedUser.getUserId().toString()), eq("/private"),
 				any(NotificationDto.class));
 	}
 
-	//getNotificationByAuthUser
+	// saveNotificationOfMessage
+	@Test
+	void saveNotificationOfMessageParamChatDtoNullThrow() {
+		MessageDto message = MessageDto.builder()
+				.body("random")
+				.build();
+		assertThrows(IllegalArgumentException.class,
+				() -> notiService.saveNotificationOfMessage(null, message));
+	}
+
+	@Test
+	void saveNotificationOfMessageParamChatDtoUsersNullThrow() {
+		MessageDto message = MessageDto.builder()
+				.body("random")
+				.build();
+		ChatDto chatDto = new ChatDto();
+		assertThrows(IllegalArgumentException.class,
+				() -> notiService.saveNotificationOfMessage(chatDto, message));
+	}
+
+	@Test
+	void saveNotificationOfMessageParamChatDtoUsersEmptyThrow() {
+		MessageDto message = MessageDto.builder()
+				.body("random")
+				.build();
+		ChatDto chatDto = ChatDto.builder().users(Collections.emptyList()).build();
+		assertThrows(IllegalArgumentException.class,
+				() -> notiService.saveNotificationOfMessage(chatDto, message));
+	}
+
+	@Test
+	void saveNotificationOfMessageParamMessageDtoNullThrow() {
+		ChatDto chatDto = ChatDto.builder().users(List.of(new UserDto())).build();
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfMessage(chatDto, null));
+	}
+
+	@Test
+	void saveNotificationOfMessageParamMessageDtoBodyNullThrow() {
+		ChatDto chatDto = ChatDto.builder().users(List.of(new UserDto())).build();
+		MessageDto message = new MessageDto();
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfMessage(chatDto, message));
+	}
+	@Test
+	void saveNotificationOfMessageParamMessageDtoBodyBlankThrow() {
+		ChatDto chatDto = ChatDto.builder().users(List.of(new UserDto())).build();
+		MessageDto message = MessageDto.builder()
+				.body("")
+				.build();
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfMessage(chatDto, message));
+	}
+
+	@Test
+	void saveNotificationOfMessage() {
+		List<String> destinationValues;
+		Long userId2 = 2L;
+		Long userId3 = 3L;
+		UserDto userDto1 = new UserDto("1"); //same user that auth user, should not get a notification
+		UserDto userDto2 = new UserDto("2");
+		UserDto userDto3 = new UserDto("3");
+		ChatDto chatDto = ChatDto.builder().users(List.of(userDto1, userDto2,userDto3)).build();
+		MessageDto messageDto = MessageDto.builder()
+				.body("randomMessage")
+				.build();
+		NotificationDto notiDto2 = NotificationDto.builder()
+				.toWho(userDto2)
+				.build();
+		NotificationDto notiDto3 = NotificationDto.builder()
+				.toWho(userDto3)
+				.build();
+		List<NotificationDto> notificationListDto = List.of(notiDto2,notiDto3);
+		List<Notification> notificationList;
+		Notification notification1;
+		Notification notification2;
+
+		//argument captor for socket destination
+		ArgumentCaptor<String> argumentDestinationCapture = ArgumentCaptor.forClass(String.class);
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		// clock
+		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
+		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
+		
+		//notifications which will be saved. For userId == 1 there should not be a notification.
+		notification1 = Notification.builder()
+				.fromWho(user)
+				.toWho(new User(userId2))
+				.createdAt(ZonedDateTime.now(clock))
+				.type(NotificationType.MESSAGE)
+				.build();
+		notification2 = Notification.builder()
+				.fromWho(user)
+				.toWho(new User(userId3))
+				.createdAt(ZonedDateTime.now(clock))
+				.type(NotificationType.MESSAGE)
+				.build();
+		notificationList = List.of(notification1 ,notification2);
+		
+		// dao
+		when(notiDao.saveAll(notificationList)).thenReturn(Collections.emptyList());
+		when(notiMapper.notificationListToNotificationDtoListWithToWho(anyList())).thenReturn(notificationListDto);
+		
+		notiService.saveNotificationOfMessage(chatDto, messageDto);
+		
+		//verify
+		verify(notiDao).saveAll(anyList());
+		verify(messTemplate,times(2)).convertAndSend(argumentDestinationCapture.capture(), any(NotificationChatDto.class));
+		verify(messTemplate, times(2)).convertAndSendToUser(argumentDestinationCapture.capture(), eq("/private"), any(NotificationDto.class));
+		
+		//checking socket destinations.
+		destinationValues = argumentDestinationCapture.getAllValues();
+		assertFalse(destinationValues.contains("/chat/1"), "auhtenticated user don't need a notification for a new message");
+		assertTrue(destinationValues.contains("/chat/2"));
+		assertTrue(destinationValues.contains("/chat/3"));
+		assertFalse(destinationValues.contains("1"),"auhtenticated user don't need a notification for a new message");
+		assertTrue(destinationValues.contains("2"));
+		assertTrue(destinationValues.contains("3"));
+	}
+
+	// getNotificationByAuthUser
 	@Test
 	void getNotificationsByAuthUserParamPageInfoDtoNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> service.getNotificationsByAuthUser(null));
+		assertThrows(IllegalArgumentException.class, () -> notiService.getNotificationsByAuthUser(null));
 	}
 
 	@Test
 	void getNotificationsByAuthUserParamPageInfoDtoSortDirNullThrow() {
 		PageInfoDto pag = PageInfoDto.builder().sortDir(null).sortField("random").build();
-		assertThrows(IllegalArgumentException.class, () -> service.getNotificationsByAuthUser(pag));
+		assertThrows(IllegalArgumentException.class, () -> notiService.getNotificationsByAuthUser(pag));
 	}
 
 	@Test
 	void getNotificationsByAuthUserParamPageInfoDtoSortFieldNullThrow() {
 		PageInfoDto pag = PageInfoDto.builder().sortDir(Direction.ASC).sortField(null).build();
-		assertThrows(IllegalArgumentException.class, () -> service.getNotificationsByAuthUser(pag));
+		assertThrows(IllegalArgumentException.class, () -> notiService.getNotificationsByAuthUser(pag));
 	}
 
 	@Test
@@ -127,16 +258,16 @@ class NotificationServiceImplTest {
 		PageInfoDto pag = PageInfoDto.builder().sortDir(Direction.ASC).sortField("random").build();
 		Pageable pageable = Pageable.unpaged();
 
-		//auth user
+		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		//pageable
+		// pageable
 		when(pageUtils.getPageable(pag)).thenReturn(pageable);
-		//dao
+		// dao
 		when(notiDao.findByToWhoUserId(user.getUserId(), pageable)).thenReturn(Page.empty());
 
-		assertThrows(RecordNotFoundException.class,() -> service.getNotificationsByAuthUser(pag));
+		assertThrows(RecordNotFoundException.class, () -> notiService.getNotificationsByAuthUser(pag));
 	}
 
 	@Test
@@ -145,37 +276,36 @@ class NotificationServiceImplTest {
 		Pageable pageable = Pageable.unpaged();
 		Notification noti = new Notification();
 		Page<Notification> page = new PageImpl<>(List.of(noti));
-		ResPaginationG<NotificationDto> resPagG= new ResPaginationG<NotificationDto>(); 
-		
-		//auth user
+		ResPaginationG<NotificationDto> resPagG = new ResPaginationG<NotificationDto>();
+
+		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		//pageable
+		// pageable
 		when(pageUtils.getPageable(pag)).thenReturn(pageable);
-		//dao
+		// dao
 		when(notiDao.findByToWhoUserId(user.getUserId(), pageable)).thenReturn(page);
-		//mapper
+		// mapper
 		when(notiMapper.pageAndPageInfoDtoToResPaginationG(page, pag)).thenReturn(resPagG);
-		
-		assertNotNull(service.getNotificationsByAuthUser(pag));
+
+		assertNotNull(notiService.getNotificationsByAuthUser(pag));
 	}
-	
-	
-	//deleteById
+
+	// deleteById
 	@Test
 	void deleteNotificationByIdNotiIdParamNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> service.deleteNotificationById(null));
+		assertThrows(IllegalArgumentException.class, () -> notiService.deleteNotificationById(null));
 	}
 
 	@Test
 	void deleteNotificationByIdNotSameReceptorAndAuthUserThrow() {
-		Notification notiToDelete = Notification.builder().toWho(new User()).build();//different user.
+		Notification notiToDelete = Notification.builder().toWho(new User()).build();// different user.
 
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		NotificationServiceImpl serviceSpy = spy(service);
+		NotificationServiceImpl serviceSpy = spy(notiService);
 
 		doReturn(Optional.of(notiToDelete)).when(serviceSpy).findNotificationById(any(Long.class));
 
@@ -190,7 +320,7 @@ class NotificationServiceImplTest {
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		NotificationServiceImpl serviceSpy = spy(service);
+		NotificationServiceImpl serviceSpy = spy(notiService);
 
 		doReturn(Optional.of(notiToDelete)).when(serviceSpy).findNotificationById(any(Long.class));
 
@@ -198,23 +328,23 @@ class NotificationServiceImplTest {
 		verify(notiDao).delete(notiToDelete);
 	}
 
-	//getNotificationById
+	// getNotificationById
 	@Test
 	void getNotificationByIdNotiIdParamNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> service.findNotificationById(null));
+		assertThrows(IllegalArgumentException.class, () -> notiService.findNotificationById(null));
 	}
 
 	@Test
 	void getNotificationByIdEmptyOptional() {
 		when(notiDao.findById(any(Long.class))).thenReturn(Optional.empty());
-		assertTrue(service.findNotificationById(1L).isEmpty());
+		assertTrue(notiService.findNotificationById(1L).isEmpty());
 	}
 
 	@Test
 	void getNotificationByIdOptionalPresent() {
 		Notification notiFounded = new Notification();
 		when(notiDao.findById(any(Long.class))).thenReturn(Optional.of(notiFounded));
-		assertTrue(service.findNotificationById(1L).isPresent());
+		assertTrue(notiService.findNotificationById(1L).isPresent());
 	}
 
 }

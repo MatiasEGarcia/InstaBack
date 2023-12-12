@@ -27,6 +27,4 @@ public class ChatDto implements Serializable{
 	private String image;
 	
 	private List<UserDto> users;
-	
-	private List<UserDto> admins;
 }

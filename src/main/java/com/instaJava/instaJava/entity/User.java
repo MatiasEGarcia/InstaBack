@@ -57,6 +57,10 @@ public class User implements UserDetails{
 	@OneToOne(fetch = FetchType.LAZY , mappedBy = "user")
 	private PersonalDetails personalDetails;
 
+	public User(Long userId) {
+		this.userId = userId;
+	}
+	
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return List.of(new SimpleGrantedAuthority(this.getRole().toString()));

@@ -1,7 +1,11 @@
 package com.instaJava.instaJava.mapper;
 
+import java.util.List;
+
+import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.springframework.data.domain.Page;
 
 import com.instaJava.instaJava.dto.NotificationDto;
@@ -12,9 +16,19 @@ import com.instaJava.instaJava.entity.Notification;
 @Mapper(componentModel = "spring")
 public interface NotificationMapper {
 
-	NotificationDto notificationToNotificationDto(Notification noti);
+	@Named("toNotiDtoWhithoutToWho")
+	@Mapping(target ="notificationType", source ="type")
+	@Mapping(target= "toWho" , ignore = true)
+	NotificationDto notificationToNotificationDtoWhithoutToWho(Notification noti);
+
+	@Named("toNotiDtoWhithToWho")
+	@Mapping(target ="notificationType", source ="type")
+	NotificationDto notificationToNotificationDtoWithToWho(Notification noti);
 	
-	//I HAVE TO DO SOME GENERIC pageAndPageInfoDtoToResPaginationG, IHAVE THE SAME METHOD IN MANY INTERFACES
+	@IterableMapping(qualifiedByName = "toNotiDtoWhithToWho")
+	List<NotificationDto> notificationListToNotificationDtoListWithToWho(List<Notification> notiList);
+	
+	@IterableMapping(qualifiedByName = "toNotiDtoWhithoutToWho")
 	@Mapping(target ="list" , source = "page.content")
 	@Mapping(target ="pageInfoDto.pageNo", source = "pageInfoDto.pageNo")
 	@Mapping(target ="pageInfoDto.pageSize", source = "pageInfoDto.pageSize") 

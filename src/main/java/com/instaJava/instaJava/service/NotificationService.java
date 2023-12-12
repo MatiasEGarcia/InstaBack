@@ -2,11 +2,14 @@ package com.instaJava.instaJava.service;
 
 import java.util.Optional;
 
+import com.instaJava.instaJava.dto.ChatDto;
+import com.instaJava.instaJava.dto.MessageDto;
 import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 
 public interface NotificationService {
@@ -21,6 +24,14 @@ public interface NotificationService {
 	 * @return void.
 	 */
 	void saveNotificationOfFollow(Follow follow, String customMessage);
+	
+	/**
+	 * Method to send a notification when a message was created.
+	 * @param newMessage - new message created
+	 * @throws IllegalArgumentException if some param is null, or blank.
+	 */
+	void saveNotificationOfMessage(ChatDto chatDto, MessageDto messageDto);
+	
 
 	/**
 	 * Method to get notifications with toWho atribute equal to the auth user.

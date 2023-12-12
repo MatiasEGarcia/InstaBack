@@ -31,7 +31,8 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
 @ControllerAdvice
-public class ExceptionHandlerController {
+public class ExceptionHandlerController {//TENGO QUE AGREGAR EL MANEJO DE HttpRequestMethodNotSupportedException(CUANDO SE EQUIVOCAN DE TIPO DE METODO, DELETE, POST,GET,ETC)
+
 
 	@Autowired
 	MessagesUtils messUtils;

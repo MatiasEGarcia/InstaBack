@@ -25,7 +25,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.instaJava.instaJava.dto.request.ReqChat;
+import com.instaJava.instaJava.dto.request.ReqAddUserChat;
+import com.instaJava.instaJava.dto.request.ReqCreateChat;
+import com.instaJava.instaJava.dto.request.ReqDelUserFromChat;
+import com.instaJava.instaJava.dto.request.ReqUserChat;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.ChatTypeEnum;
 import com.instaJava.instaJava.enums.RolesEnum;
@@ -68,14 +71,12 @@ class ChatCTest {
 	private String sqlAddChatUsers3;
 	@Value("${sql.script.create.chatUsers.3}")
 	private String sqlAddChatUsers4;
-	@Value("${sql.script.create.chatAdmins.1}")
-	private String sqlAddChatAdmins1;
 	@Value("${sql.script.delete.chat.group.1}")
 	private String sqlDeleteChat1;
 	@Value("${sql.script.delete.chat.group.1.users}")
-	private String sqlDeleteChatUsers1;
-	@Value("${sql.script.delete.chat.group.1.admins}")
-	private String sqlDeleteChatAdmins1;
+	private String sqlDeleteChatGroupAllUsers1;
+	@Value("${sql.script.delete.chatUsers.3}")
+	private String sqlDeleteChatUser3;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
 	@Value("${sql.script.truncate.follow}")
@@ -84,8 +85,6 @@ class ChatCTest {
 	private String sqlTruncateChats;
 	@Value("${sql.script.truncate.chatUsers}")
 	private String sqlTruncateChatUsers;
-	@Value("${sql.script.truncate.chatAdmins}")
-	private String sqlTruncateChatAdmins;
 	@Value("${sql.script.ref.integrity.false}")
 	private String sqlRefIntegrityFalse;
 	@Value("${sql.script.ref.integrity.true}")
@@ -100,19 +99,18 @@ class ChatCTest {
 	@BeforeEach
 	void dbbSetUp() {
 		// users entities
-		jdbc.update(sqlAddUser1);
-		jdbc.update(sqlAddUser2);
-		jdbc.update(sqlAddUser3);
-		jdbc.update(sqlAddUser4);
+		jdbc.execute(sqlAddUser1);
+		jdbc.execute(sqlAddUser2);
+		jdbc.execute(sqlAddUser3);
+		jdbc.execute(sqlAddUser4);
 		// user1 follow user3 and user4, is accepted.
-		jdbc.update(sqlAddFollowStatusAccepted1);
-		jdbc.update(sqlAddFollowStatusAccepted2);
-		// chat group already created with user1 , user3 and user4
-		jdbc.update(sqlAddChatGroup1);
-		jdbc.update(sqlAddChatUsers1);
-		jdbc.update(sqlAddChatUsers3);
-		jdbc.update(sqlAddChatUsers4);
-		jdbc.update(sqlAddChatAdmins1);
+		jdbc.execute(sqlAddFollowStatusAccepted1);
+		jdbc.execute(sqlAddFollowStatusAccepted2);
+		// chat group with user1 , user3 and user4
+		jdbc.execute(sqlAddChatGroup1);
+		jdbc.execute(sqlAddChatUsers1);
+		jdbc.execute(sqlAddChatUsers3);
+		jdbc.execute(sqlAddChatUsers4);
 	}
 
 	// getChatsByAuthUser
@@ -135,9 +133,9 @@ class ChatCTest {
 
 	@Test
 	void getGetChatsByAuthUserWithoutParamsResponseStatusNoContent() throws Exception {
-		//for some reason, delete on cascade doesn't work in h2 ,so I need to delete manually.
-		jdbc.update(sqlDeleteChatUsers1);
-		jdbc.update(sqlDeleteChatAdmins1);
+		// for some reason, delete on cascade doesn't work in h2 ,so I need to delete
+		// manually.
+		jdbc.update(sqlDeleteChatGroupAllUsers1);
 		jdbc.update(sqlDeleteChat1);// we delete the only chat that user1(matias) has
 		String token = jwtService.generateToken(matiasUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/chats").header("Authorization", "Bearer " + token))
@@ -153,8 +151,7 @@ class ChatCTest {
 		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", "text/plain", "Hello, World!".getBytes());
 		String token = jwtService.generateToken(matiasUserAuth);
 		// don't send new image so response should be bad request
-		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/chats/image/{chatId}",1)
-				.file(img)
+		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/chats/image/{chatId}", 1).file(img)
 				.header("Authorization", "Bearer " + token).contentType(MediaType.MULTIPART_FORM_DATA))
 				.andExpect(status().isBadRequest()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
@@ -179,7 +176,7 @@ class ChatCTest {
 	void postCreateBodyinfoNullResponseStatusBadRequest() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		// we don't send type attribute either attribute usersToAdd
-		ReqChat reqChat = ReqChat.builder().build();
+		ReqCreateChat reqChat = ReqCreateChat.builder().build();
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/chats").header("Authorization", "Bearer " + token)
 				.content(objectMapper.writeValueAsString(reqChat)).contentType(MediaType.APPLICATION_JSON))
@@ -193,28 +190,163 @@ class ChatCTest {
 	@Test
 	void postCreateResponseStatusOk() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
+		ReqUserChat reqUserChat = ReqUserChat.builder().username(julioUserAuth.getUsername()).admin(false).build();
 		// we don't send type attribute either attribute usersToAdd
-		ReqChat reqChat = ReqChat.builder().type(ChatTypeEnum.PRIVATE)
-				.usersToAdd(List.of(julioUserAuth.getUsername()))
+		ReqCreateChat reqChat = ReqCreateChat.builder().type(ChatTypeEnum.PRIVATE).usersToAdd(List.of(reqUserChat))
 				.build();
 
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/chats")
-				.header("Authorization", "Bearer " + token)
-				.content(objectMapper.writeValueAsString(reqChat))
-				.contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/chats").header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(reqChat)).contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.chatId", is("2"))); // is the second chat to be created, it depends of how many I
 															// add in dbbSetUp for each.
 	}
 
+	// setName
+	@Test
+	void putSetNameResponseStatusOk() throws Exception {
+		String token = jwtService.generateToken(matiasUserAuth);
+		String newName = "newGroupName";
+
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/chats/name/{name}/{id}", newName, 1).header("Authorization",
+				"Bearer " + token)).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(jsonPath("$.chatId", is("1"))).andExpect(jsonPath("$.name", is(newName)));
+	}
+
+	@Test
+	void putSetNameChatNotFoundResponseStatusNotFound() throws Exception {
+		String token = jwtService.generateToken(matiasUserAuth);
+		String newName = "newGroupName";
+
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/chats/name/{name}/{id}", newName, 100)
+				.header("Authorization", "Bearer " + token)).andExpect(status().isNotFound())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(jsonPath("$.error", is(HttpStatus.NOT_FOUND.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("chat.not-found"))));
+	}
+
+	// delete
+	@Test
+	void deleteResponseStatusOk() throws Exception {
+		String token = jwtService.generateToken(matiasUserAuth);
+
+		mockMvc.perform(
+				MockMvcRequestBuilders.delete("/api/v1/chats/{id}", 1).header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("generic.delete-ok"))));
+	}
+
+	@Test
+	void deleteChatNoExistsResponseStatusNotFound() throws Exception {
+		String token = jwtService.generateToken(matiasUserAuth);
+
+		mockMvc.perform(
+				MockMvcRequestBuilders.delete("/api/v1/chats/{id}", 100).header("Authorization", "Bearer " + token))
+				.andExpect(status().isNotFound()).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(jsonPath("$.error", is(HttpStatus.NOT_FOUND.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("chat.not-found"))));
+	}
+
+	// getUsersByChatId
+	@Test
+	void getGetUsersByChatIdResponseStatusOk() throws Exception {
+		String token = jwtService.generateToken(matiasUserAuth);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/chats/{id}", 1).header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(jsonPath("$", hasSize(3)));
+	}
+
+	@Test
+	void getGetUsersByChatIdChatNoExistsResponseStatusNotFound() throws Exception {
+		String token = jwtService.generateToken(matiasUserAuth);
+
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/api/v1/chats/{id}", 100).header("Authorization", "Bearer " + token))
+				.andExpect(status().isNotFound()).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(jsonPath("$.error", is(HttpStatus.NOT_FOUND.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("chat.not-found"))));
+	}
+ 
+	//addUsers 
+	@Test
+	void postAddUsersChatIdBlankUsersNullResponseStatusBadRequest() throws Exception{
+		String token = jwtService.generateToken(matiasUserAuth);
+		ReqAddUserChat reqAddUserChat = new ReqAddUserChat();
+		
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/chats/add")
+				.header("Authorization", "Bearer " + token)
+				.contentType(MediaType.APPLICATION_JSON_VALUE)
+				.content(objectMapper.writeValueAsString(reqAddUserChat)))
+				.andExpect(status().isBadRequest())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("client.body-not-fulfilled"))))
+				.andExpect(jsonPath("$.details.chatId" , is(messUtils.getMessage("vali.chatId-not-blank"))))
+				.andExpect(jsonPath("$.details.users", is(messUtils.getMessage("vali.users-list-not-null"))));
+	}
+	 
+	@Test
+	void postAddUsersResponseStatusOk() throws Exception{
+			jdbc.execute(sqlDeleteChatUser3); //we delete the Elda user who is already in chat, now we can add it.
+			String token = jwtService.generateToken(matiasUserAuth);
+			ReqUserChat reqUserChat = new ReqUserChat("Elda",true);
+			ReqAddUserChat reqAddUserChat = new ReqAddUserChat("1", List.of(reqUserChat));
+			
+			mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/chats/add")
+					.header("Authorization", "Bearer " + token)
+					.contentType(MediaType.APPLICATION_JSON_VALUE)
+					.content(objectMapper.writeValueAsString(reqAddUserChat)))
+					.andExpect(status().isOk())
+					.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+					.andExpect(jsonPath("$.chatId", is("1")))
+					.andExpect(jsonPath("$.users" , hasSize(3)));
+	}
+	
+	//quitUsers
+	@Test
+	void deleteQuitUsersChatIdBlankUsersUsernameNullResponseStatusBadRequest() throws Exception{
+			jdbc.execute(sqlDeleteChatUser3); //we delete the Elda user who is already in chat, now we can add it.
+			String token = jwtService.generateToken(matiasUserAuth);
+			ReqDelUserFromChat reqDelUserFromChat = new ReqDelUserFromChat();
+			
+			mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/chats/quit")
+					.header("Authorization", "Bearer " + token)
+					.contentType(MediaType.APPLICATION_JSON_VALUE)
+					.content(objectMapper.writeValueAsString(reqDelUserFromChat)))
+					.andExpect(status().isBadRequest())
+					.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+					.andExpect(jsonPath("$.error", is(HttpStatus.BAD_REQUEST.toString())))
+					.andExpect(jsonPath("$.message", is(messUtils.getMessage("client.body-not-fulfilled"))))
+					.andExpect(jsonPath("$.details.chatId" , is(messUtils.getMessage("vali.chatId-not-blank"))))
+					.andExpect(jsonPath("$.details.usersUsername", is(messUtils.getMessage("vali.usersUsername-list-not-null"))));
+	}
+	
+	@Test
+	void deleteQuitUsersResponseStatusOk() throws Exception{
+			jdbc.execute(sqlDeleteChatUser3); //we delete the Elda user who is already in chat, now we can add it.
+			String token = jwtService.generateToken(matiasUserAuth);
+			ReqDelUserFromChat reqDelUserFromChat = new ReqDelUserFromChat("1" , List.of("Elda"));
+			
+			mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/chats/quit")
+					.header("Authorization", "Bearer " + token)
+					.contentType(MediaType.APPLICATION_JSON_VALUE)
+					.content(objectMapper.writeValueAsString(reqDelUserFromChat)))
+					.andExpect(status().isOk())
+					.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+					.andExpect(jsonPath("$.chatId", is("1")))
+					.andExpect(jsonPath("$.users" , hasSize(2)));
+	}
+	
+	
+	
 	@AfterEach
 	void truncateTables() {
 		jdbc.execute(sqlRefIntegrityFalse);
 		jdbc.execute(sqlTruncateFollow);
 		jdbc.execute(sqlTruncateUsers);
 		jdbc.execute(sqlTruncateChatUsers);
-		jdbc.execute(sqlTruncateChatAdmins);
 		jdbc.execute(sqlTruncateChats);
 		jdbc.execute(sqlRefIntegrityTrue);
 	}

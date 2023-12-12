@@ -29,12 +29,26 @@ public class MessageC {
 
 	private final MessageService msgService;
 	
+	/**
+	 * To create a message.
+	 * @param reqNewMessage
+	 * @return the messsage created.
+	 */
 	@PostMapping(consumes= MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<MessageDto> create(@Valid @RequestBody ReqNewMessage reqNewMessage){
 		MessageDto messageDto= msgService.create(reqNewMessage.getMessage(), Long.parseLong(reqNewMessage.getChatId()));
 		return ResponseEntity.ok().body(messageDto);
 	}
 	
+	/**
+	 * To get messages in chat.
+	 * @param chatId - chat's id.
+	 * @param pageNo. For pagination, number of the page.
+	 * @param pageSize. For pagination, size of the elements in the same page.
+	 * @param sortField. For pagination, sorted by..
+	 * @param sortDir. In what direction is sorted, asc or desc.
+	 * @return messages with pagination info.
+	 */
 	@GetMapping(value="/{chatId}" , produces= MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResPaginationG<MessageDto>> getMessagesByChat(@PathVariable("chatId") Long chatId,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
@@ -43,6 +57,7 @@ public class MessageC {
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		return ResponseEntity.ok().body(msgService.getMessagesByChat(chatId, pageInfoDto));
+		ResPaginationG<MessageDto> res = msgService.getMessagesByChat(chatId, pageInfoDto);
+		return ResponseEntity.ok().body(res);
 	}
 }

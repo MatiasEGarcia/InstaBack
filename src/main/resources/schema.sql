@@ -44,6 +44,7 @@ CREATE TABLE chats_users(
 	id int not null auto_increment primary key,
 	associate_user int not null,
     chat int not null,
+    is_admin boolean default 0, -- false
 	foreign key (associate_user) references users(id)  ON DELETE CASCADE,
 	foreign key (chat) references chats(id)  ON DELETE CASCADE
 );
@@ -56,14 +57,6 @@ CREATE TABLE comments(
     parent_id int,
     created_at datetime not null, 
 	foreign key (img) references publicated_images(id) on delete cascade
-);
-
-CREATE TABLE chats_admins(
-	id int not null auto_increment primary key,
-	associate_user int not null,
-    chat int not null,
-	foreign key (associate_user) references users(id)  ON DELETE CASCADE,
-	foreign key (chat) references chats(id)  ON DELETE CASCADE
 );
 
 CREATE TABLE follow(

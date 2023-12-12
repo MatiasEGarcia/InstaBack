@@ -1,7 +1,5 @@
 package com.instaJava.instaJava.entity;
 
-import java.time.ZonedDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -21,25 +19,23 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "messages")
-public class Message {
-
+@Table(name = "chats_users")
+public class ChatUser {
+	
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name = "id")
-	private Long messageId;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name ="id")
+	private Long chatUserId;
 	
-	@Column(name = "body")
-	private String body;
-	
-	@Column(name = "user_owner")
-	private String userOwner;
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "associate_user")
+	private User user;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "chat")
 	private Chat chat;
 	
-	@Column(name = "sended_at")
-	private ZonedDateTime sendedAt;
+	@Column(name = "is_admin")
+	private boolean admin;
 	
 }

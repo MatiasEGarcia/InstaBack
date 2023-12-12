@@ -33,30 +33,36 @@ public class MessageServiceImpl implements MessageService{
 	private final MessageDao msgDao;
 	private final MessageMapper msgMapper;
 	private final ChatService chatService;
+	private final NotificationService notifService;
 	private final MessagesUtils messUtils;
 	private final PageableUtils pagUtils;
 	
 	@Override
-	@Transactional
+	@Transactional//check tests
 	public MessageDto create(String message, Long chatId) {
 		if(message == null || chatId == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}else if(message.isBlank()) {
 			throw new InvalidActionException(messUtils.getMessage("message.body-not-blank"),HttpStatus.BAD_REQUEST);
 		}
+		ChatDto chatDto;
 		Message newMessage;
+		MessageDto newMessageDto;
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		isAuthUserAUserFromChat(chatId);
+		chatDto= chatService.getById(chatId);
+		isAuthUserAUserFromChat(chatDto);
 		
 		newMessage = Message.builder()
 				.body(message)
 				.chat(new Chat(chatId))
-				.userOnwer(user.getUsername())
+				.userOwner(user.getUsername())
 				.sendedAt(ZonedDateTime.now(clock))
 				.build();
 		
 		newMessage = msgDao.save(newMessage);
-		return msgMapper.messageToMessageDto(newMessage);
+		newMessageDto = msgMapper.messageToMessageDto(newMessage);
+		notifService.saveNotificationOfMessage(chatDto, newMessageDto);
+		return newMessageDto;
 	}
 
 	@Override
@@ -65,8 +71,10 @@ public class MessageServiceImpl implements MessageService{
 		if(chatId == null || pageInfoDto == null || pageInfoDto.getSortField() == null || pageInfoDto.getSortDir() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
-		isAuthUserAUserFromChat(chatId);
-		Page<Message> page = msgDao.findByChatChatId(chatId, pagUtils.getPageable(pageInfoDto));
+		Page<Message> page;
+		ChatDto chatDto; chatDto= chatService.getById(chatId);
+		isAuthUserAUserFromChat(chatDto);
+		page = msgDao.findByChatChatId(chatId, pagUtils.getPageable(pageInfoDto));
 		if(!page.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("message.group-not-found"), HttpStatus.NO_CONTENT);
 		}
@@ -78,10 +86,11 @@ public class MessageServiceImpl implements MessageService{
 	 * @param chatId - chat's id.
 	 * @throws InvalidActionException if authenticated user is not a user in the chat.
 	 */
-	private void isAuthUserAUserFromChat(Long chatId) {
-		if(chatId == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+	private void isAuthUserAUserFromChat(ChatDto chatDto) {
+		if(chatDto == null || chatDto.getUsers() == null) {
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+		}
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		ChatDto chatDto= chatService.getById(chatId);
 		
 		if(!chatDto.getUsers().stream().anyMatch((userDto) -> userDto.getUsername().equalsIgnoreCase(user.getUsername()))) {
 			throw new InvalidActionException(messUtils.getMessage("message.only-users"), HttpStatus.BAD_REQUEST);

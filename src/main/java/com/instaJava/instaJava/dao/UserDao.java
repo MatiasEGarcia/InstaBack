@@ -1,6 +1,7 @@
 package com.instaJava.instaJava.dao;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -11,7 +12,7 @@ public interface UserDao extends JpaRepository<User, Long> ,JpaSpecificationExec
 
 	User findByUsername(String username);
 	
-	List<User> findByUsernameIn(List<String> username);
+	List<User> findByUsernameIn(Set<String> username);
 	
 	boolean existsByUsername(String username);
 	

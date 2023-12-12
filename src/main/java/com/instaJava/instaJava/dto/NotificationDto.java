@@ -36,6 +36,8 @@ public class NotificationDto implements Serializable {
 	
 	private boolean watched;
 	
+	private UserDto toWho;
+	
 	private UserDto fromWho;
 	
 	@JsonFormat(shape = Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSSZ")

@@ -1,6 +1,7 @@
 package com.instaJava.instaJava.service;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -86,7 +87,7 @@ public interface UserService {
 	 * @throws RecordNotFoundException if none user was found.
 	 * @return List of users. 
 	 */
-	List<User> getByUsernameIn(List<String> usernameList);
+	List<User> getByUsernameIn(Set<String> usernameList);
 
 	/**
 	 * 

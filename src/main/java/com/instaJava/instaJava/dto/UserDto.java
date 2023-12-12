@@ -27,4 +27,10 @@ public class UserDto implements Serializable{
 	private String image;
 	
 	private boolean visible;
+	
+	private boolean admin;//for chat purposes
+	
+	public UserDto(String userId) {
+		this.userId = userId;
+	}
 }

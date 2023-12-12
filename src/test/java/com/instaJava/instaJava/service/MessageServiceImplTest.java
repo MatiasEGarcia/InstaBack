@@ -61,6 +61,8 @@ class MessageServiceImplTest {
 	private MessagesUtils messUtils;
 	@Mock
 	private PageableUtils pagUtils;
+	@Mock
+	private NotificationService notifSerivce;
 	@InjectMocks
 	private MessageServiceImpl messageService;
 	private final User user = User.builder().userId(1L).username("Mati").password("random").role(RolesEnum.ROLE_USER)
@@ -101,6 +103,7 @@ class MessageServiceImplTest {
 	@Test
 	void createAuthUserIsInChatReturnsNotNull() {
 		Long id = 1L;
+		String messageToSend = "randomMessage";
 		UserDto userDto = UserDto.builder().username("Mati").build();// same user than auth user.
 		ChatDto chatDto = ChatDto.builder().users(List.of(userDto)).build();
 		Message message = new Message();
@@ -119,10 +122,11 @@ class MessageServiceImplTest {
 		//mapper
 		when(msgMapper.messageToMessageDto(message)).thenReturn(messageDto);
 		
-		assertNotNull(messageService.create("randomMessage", id));
+		assertNotNull(messageService.create(messageToSend, id));
 		
 		verify(chatService).getById(id);
 		verify(msgDao).save(any(Message.class));
+		verify(notifSerivce).saveNotificationOfMessage(chatDto,messageDto);
 	}
 	
 

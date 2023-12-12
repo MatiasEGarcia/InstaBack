@@ -9,5 +9,5 @@ import com.instaJava.instaJava.entity.Chat;
 
 public interface ChatDao extends JpaRepository<Chat, Long>, JpaSpecificationExecutor<Chat>{
 
-	Page<Chat> findByUsersUserId(Long userId, Pageable page);
+	Page<Chat> findByChatUsersUserUserId(Long userId, Pageable page);
 }
