@@ -46,8 +46,6 @@ class MessageCTest {
 	private String sqlAddChatGroup1;
 	@Value("${sql.script.create.chatUsers.1}")
 	private String sqlAddChatUsers1;
-	@Value("${sql.script.create.chatAdmins.1}")
-	private String sqlAddChatAdmins1;
 	@Value("${sql.script.create.message.1}")
 	private String sqlAddMessage1;
 	@Value("${sql.script.delete.message.1}")
@@ -58,8 +56,6 @@ class MessageCTest {
 	private String sqlTruncateChats;
 	@Value("${sql.script.truncate.chatUsers}")
 	private String sqlTruncateChatUsers;
-	@Value("${sql.script.truncate.chatAdmins}")
-	private String sqlTruncateChatAdmins;
 	@Value("${sql.script.truncate.messages}")
 	private String sqlTruncateMessages;
 	@Value("${sql.script.ref.integrity.false}")
@@ -76,7 +72,6 @@ class MessageCTest {
 		jdbc.update(sqlAddUser1);
 		jdbc.update(sqlAddChatGroup1);
 		jdbc.update(sqlAddChatUsers1);
-		jdbc.update(sqlAddChatAdmins1);
 		jdbc.update(sqlAddMessage1);
 	}
 	
@@ -158,7 +153,6 @@ class MessageCTest {
 		jdbc.execute(sqlTruncateUsers);
 		jdbc.execute(sqlTruncateChats);
 		jdbc.execute(sqlTruncateChatUsers);
-		jdbc.execute(sqlTruncateChatAdmins);
 		jdbc.execute(sqlTruncateMessages);
 		jdbc.execute(sqlRefIntegrityTrue);
 	}

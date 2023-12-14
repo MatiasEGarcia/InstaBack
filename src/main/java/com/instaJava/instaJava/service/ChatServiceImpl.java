@@ -214,15 +214,33 @@ public class ChatServiceImpl implements ChatService {
 				reqDelUserFromChat.getUsersUsername().isEmpty()) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		}
-		long chatId = Long.parseLong(reqDelUserFromChat.getChatId());
+		Long chatId = Long.parseLong(reqDelUserFromChat.getChatId());
 		Chat chat = chatDao.findById(chatId).orElseThrow(
 				() -> new RecordNotFoundException(messUtils.getMessage("chat.not-found"), HttpStatus.NOT_FOUND));
 		authUserIsAdmin(chat);
-		chatUserDao.deleteByChatChatIdAndUserUsernameIn(chatId, Set.copyOf(reqDelUserFromChat.getUsersUsername()));
+		chatUserDao.deleteByChatIdAndUserUsernameIn(chatId, Set.copyOf(reqDelUserFromChat.getUsersUsername()));
 		chat.setChatUsers(chatUserDao.findByChatChatId(chatId));
 		return chatMapper.chatToChatDto(chat);
 	}
 
+	
+	@Override
+	@Transactional
+	public ChatDto changeAdminStatus(Long chatId, Long userId) {
+		if(chatId == null || userId == null) {
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+		}
+		Chat chat;
+		ChatUser ch = chatUserDao.findByChatChatIdAndUserUserId(chatId, userId).orElseThrow(() -> 
+		new RecordNotFoundException(messUtils.getMessage("chatUser.not-found"), HttpStatus.NOT_FOUND));
+		chat = ch.getChat();
+		authUserIsAdmin(chat);
+		ch.setAdmin(ch.isAdmin() ? false : true);
+		chatUserDao.save(ch);
+		return chatMapper.chatToChatDto(chat);
+	}
+	
+	
 	/**
 	 * Will add users in chat, will create a ChatUser object for each user wanted to
 	 * add in chat and will add auth user too.

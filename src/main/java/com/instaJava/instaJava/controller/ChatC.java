@@ -137,8 +137,16 @@ public class ChatC {
 		return ResponseEntity.ok(chatService.quitUsersFromChat(reqDelUserFromChat));
 	}
 	
-	
-	
+	/**
+	 * To chage user's admin status on the chat.
+	 * @param chatId - chat's id where the user is.
+	 * @param userId - user's id.
+	 * @return chat with the user's admin status updated.
+	 */
+	@PutMapping(value = "/adminStatus/{chatId}/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ChatDto> changeAdminStatus(@PathVariable("chatId") Long chatId, @PathVariable("userId") Long userId){
+		return ResponseEntity.ok(chatService.changeAdminStatus(chatId, userId));
+	}
 	
 	
 	

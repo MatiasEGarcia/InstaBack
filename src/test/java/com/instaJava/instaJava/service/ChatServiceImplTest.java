@@ -796,7 +796,7 @@ class ChatServiceImplTest {
 				.usersUsername(listUsername).build();
 		when(chatDao.findById(chatId)).thenReturn(Optional.empty());
 		assertThrows(RecordNotFoundException.class, () -> chatService.quitUsersFromChat(reqDelUserFromChat));
-		verify(chatUserDao,never()).deleteByChatChatIdAndUserUsernameIn(eq(chatId), anySet());
+		verify(chatUserDao, never()).deleteByChatIdAndUserUsernameIn(eq(chatId), anySet());
 	}
 
 	@Test
@@ -807,16 +807,16 @@ class ChatServiceImplTest {
 				.usersUsername(listUsername).build();
 		ChatUser chatUser = ChatUser.builder().user(user).admin(false).build();
 		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
-		
+
 		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		assertThrows(InvalidActionException.class, () -> chatService.quitUsersFromChat(reqDelUserFromChat));
-		verify(chatUserDao,never()).deleteByChatChatIdAndUserUsernameIn(eq(chatId), anySet());
+		verify(chatUserDao, never()).deleteByChatIdAndUserUsernameIn(eq(chatId), anySet());
 	}
-	
+
 	@Test
 	void quitUsersFromChat() {
 		Long chatId = 1L;
@@ -825,7 +825,7 @@ class ChatServiceImplTest {
 				.usersUsername(listUsername).build();
 		ChatUser chatUser = ChatUser.builder().user(user).admin(true).build();
 		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
-		
+
 		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
@@ -833,13 +833,115 @@ class ChatServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		when(chatMapper.chatToChatDto(chat)).thenReturn(new ChatDto());
 		assertNotNull(chatService.quitUsersFromChat(reqDelUserFromChat));
-		verify(chatUserDao).deleteByChatChatIdAndUserUsernameIn(eq(chatId), anySet());
+		verify(chatUserDao).deleteByChatIdAndUserUsernameIn(eq(chatId), anySet());
 		verify(chatUserDao).findByChatChatId(chatId);
 	}
+
+	// changeAdminStatus
+	@Test
+	void changeAdminStatusChatIdNullthrow() {
+		assertThrows(IllegalArgumentException.class, () -> chatService.changeAdminStatus(null, 1L));
+	}
+
+	@Test
+	void changeAdminStatusUserIdNullthrow() {
+		assertThrows(IllegalArgumentException.class, () -> chatService.changeAdminStatus(1L, null));
+	}
+
+	@Test
+	void changeAdminStatusChatUserNotFoundThrow() {
+		Long chatId = 1L;
+		Long userId = 1L;
+		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.empty());
+		assertThrows(RecordNotFoundException.class, () -> chatService.changeAdminStatus(chatId, userId));
+		verify(chatUserDao, never()).save(any(ChatUser.class));
+	}
 	
+	@Test
+	void changeAdminStatusAuthUserNoAdminThrow() {
+		Long chatId = 1L;
+		Long userId = 1L;
+		ChatUser chatUserAuthUser = ChatUser.builder()
+				.user(user)
+				.admin(false)
+				.build();
+		Chat chat = Chat.builder()
+				.chatUsers(List.of(chatUserAuthUser))
+				.build();
+		ChatUser chatUserFound = ChatUser.builder()
+				.chat(chat)
+				.admin(false) // at the end, should be true.
+				.build();
+
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+
+		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
+		
+		assertThrows(InvalidActionException.class, () -> chatService.changeAdminStatus(chatId, userId));
+		
+		verify(chatUserDao,never()).save(chatUserFound);
+	}
+	
+	@Test
+	void changeAdminStatusAuthUserNoInChat() {
+		Long chatId = 1L;
+		Long userId = 1L;
+		ChatUser chatUserAuthUser = ChatUser.builder()
+				.user(new User())
+				.admin(false)
+				.build();
+		Chat chat = Chat.builder()
+				.chatUsers(List.of(chatUserAuthUser))
+				.build();
+		ChatUser chatUserFound = ChatUser.builder()
+				.chat(chat)
+				.admin(false) // at the end, should be true.
+				.build();
+
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
+		
+		assertThrows(InvalidActionException.class, () -> chatService.changeAdminStatus(chatId, userId));
+		
+		verify(chatUserDao,never()).save(chatUserFound);
+	}
+	
+	@Test
+	void changeAdminStatusReturnsNotNull() {
+		Long chatId = 1L;
+		Long userId = 1L;
+		ChatUser chatUserAuthUser = ChatUser.builder()
+				.user(user)
+				.admin(true)
+				.build();
+		Chat chat = Chat.builder()
+				.chatUsers(List.of(chatUserAuthUser))
+				.build();
+		ChatUser chatUserFound = ChatUser.builder()
+				.chat(chat)
+				.admin(false) // at the end, should be true.
+				.build();
+
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+
+		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
+		when(chatMapper.chatToChatDto(chat)).thenReturn(new ChatDto());
+		
+		assertNotNull(chatService.changeAdminStatus(chatId, userId));
+		
+		chatUserFound.setAdmin(true);
+		verify(chatUserDao).save(chatUserFound);
+	}
 }
-
-
 
 
 

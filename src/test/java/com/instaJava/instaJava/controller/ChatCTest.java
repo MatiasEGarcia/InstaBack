@@ -307,7 +307,6 @@ class ChatCTest {
 	//quitUsers
 	@Test
 	void deleteQuitUsersChatIdBlankUsersUsernameNullResponseStatusBadRequest() throws Exception{
-			jdbc.execute(sqlDeleteChatUser3); //we delete the Elda user who is already in chat, now we can add it.
 			String token = jwtService.generateToken(matiasUserAuth);
 			ReqDelUserFromChat reqDelUserFromChat = new ReqDelUserFromChat();
 			
@@ -325,7 +324,6 @@ class ChatCTest {
 	
 	@Test
 	void deleteQuitUsersResponseStatusOk() throws Exception{
-			jdbc.execute(sqlDeleteChatUser3); //we delete the Elda user who is already in chat, now we can add it.
 			String token = jwtService.generateToken(matiasUserAuth);
 			ReqDelUserFromChat reqDelUserFromChat = new ReqDelUserFromChat("1" , List.of("Elda"));
 			
@@ -338,6 +336,20 @@ class ChatCTest {
 					.andExpect(jsonPath("$.chatId", is("1")))
 					.andExpect(jsonPath("$.users" , hasSize(2)));
 	}
+	
+	@Test
+	void putchangeAdminStatusResponseStatusOk() throws Exception{
+		String token = jwtService.generateToken(matiasUserAuth);
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/chats/adminStatus/{chatId}/{userId}",1,3)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(jsonPath("$.chatId", is("1")))
+				.andExpect(jsonPath("$.users[1].userId",is("3")))//user with id 3 is the second in the list of users
+				.andExpect(jsonPath("$.users[1].admin",is(true)));
+	}
+	
 	
 	
 	

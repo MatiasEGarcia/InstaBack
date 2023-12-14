@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.instaJava.instaJava.enums.RolesEnum;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -54,9 +55,9 @@ public class User implements UserDetails{
 	@Column(name = "rol")
 	private RolesEnum role;
 	
-	@OneToOne(fetch = FetchType.LAZY , mappedBy = "user")
+	@OneToOne(fetch = FetchType.LAZY , mappedBy = "user",cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REMOVE})
 	private PersonalDetails personalDetails;
-
+	
 	public User(Long userId) {
 		this.userId = userId;
 	}

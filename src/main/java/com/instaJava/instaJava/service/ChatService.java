@@ -110,4 +110,16 @@ public interface ChatService {
 	 * @throws RecordNotFoundException if chat was not found.
 	 */
 	ChatDto quitUsersFromChat(ReqDelUserFromChat reqDelUserFromChat);
+	
+	/**
+	 * Function to set a user as admin in a chat, it can be settled to admin if before was a simple user, or 
+	 * can be settled to a simple user if before was an admin.
+	 * @param chatId - chat's id.
+	 * @param userId - user's id.
+	 * @return ChatDto with Chat info updated.
+	 * @throws IllegalArgumentException if some parameter is null.
+	 * @throws RecordNotFoundException if chatUser was not found.
+	 * @throws InvalidActionException if auth user is not admin or if is not a chat's user.
+	 */
+	ChatDto changeAdminStatus(Long chatId, Long userId);
 }
