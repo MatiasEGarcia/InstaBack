@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "notifications")
-public class Notification {
+public class Notification{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,4 +53,5 @@ public class Notification {
 	
 	@Column(name = "watched")
 	private boolean watched; //by default in bdd false
+
 }

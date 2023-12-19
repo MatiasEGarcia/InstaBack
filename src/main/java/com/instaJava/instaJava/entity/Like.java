@@ -48,4 +48,5 @@ public class Like {
 	
 	@Column(name = "liked_at")
 	private ZonedDateTime likedAt;
+
 }

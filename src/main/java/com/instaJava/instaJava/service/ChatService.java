@@ -11,6 +11,7 @@ import com.instaJava.instaJava.dto.request.ReqAddUserChat;
 import com.instaJava.instaJava.dto.request.ReqCreateChat;
 import com.instaJava.instaJava.dto.request.ReqDelUserFromChat;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.exception.InvalidImageException;
@@ -122,4 +123,12 @@ public interface ChatService {
 	 * @throws InvalidActionException if auth user is not admin or if is not a chat's user.
 	 */
 	ChatDto changeAdminStatus(Long chatId, Long userId);
+	
+	/**
+	 * Binary search to find index of item in list by id.
+	 * @param chats - chats list where to search. (have to be sorted by id).
+	 * @param chatIdToFind - id to find.
+	 * @return index number, if was not found -1.
+	 */
+	int bynarySearchByChatId(List<Chat> chats, Long chatIdToFind);
 }

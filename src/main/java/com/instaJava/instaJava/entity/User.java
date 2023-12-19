@@ -58,8 +58,8 @@ public class User implements UserDetails{
 	@OneToOne(fetch = FetchType.LAZY , mappedBy = "user",cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REMOVE})
 	private PersonalDetails personalDetails;
 	
-	public User(Long userId) {
-		this.userId = userId;
+	public User(Long id) {
+		this.userId = id;
 	}
 	
 	@Override
@@ -86,5 +86,4 @@ public class User implements UserDetails{
 	public boolean isEnabled() {
 		return true;
 	}
-	
 }

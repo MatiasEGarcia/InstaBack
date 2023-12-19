@@ -20,12 +20,14 @@ import com.instaJava.instaJava.dto.NotificationChatDto;
 import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.NotificationType;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
+import com.instaJava.instaJava.mapper.ChatMapper;
 import com.instaJava.instaJava.mapper.NotificationMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -42,6 +44,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private final SimpMessagingTemplate messTemplate;
 	private final UserMapper userMapper;
 	private final NotificationMapper notificationMapper;
+	private final ChatMapper chatMapper;
 	private final PageableUtils pagUtils;
 	private final MessagesUtils messUtils;
 
@@ -64,24 +67,24 @@ public class NotificationServiceImpl implements NotificationService {
 		messTemplate.convertAndSendToUser(follow.getFollowed().getUserId().toString(), "/private", notiDto);
 	}
 
+	//FIJATE LOS TESTS
 	@Override
-	@Transactional//check tests
-	public void saveNotificationOfMessage(ChatDto chatDto, MessageDto messageDto) {
-		if(chatDto == null || chatDto.getUsers() == null || chatDto.getUsers().isEmpty() 
-				|| messageDto == null || messageDto.getBody() == null || messageDto.getBody().isBlank()) {
+	@Transactional
+	public void saveNotificationOfMessage(Chat chat, MessageDto messageDto) {
+		if(chat == null || chat.getUsers().isEmpty()  || messageDto == null || 
+				messageDto.getBody() == null || messageDto.getBody().isBlank()) {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		}
-		
+		ChatDto chatDto;
 		List<NotificationDto> notificationsDto;
 		List<Notification> notifications = new ArrayList<>();
-		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
 		//creating notifications to save, to each user in chatDto.
-		chatDto.getUsers().forEach((userDto) -> {
+		chat.getUsers().forEach((user) -> {
 			//authenticated user don't need the notification of new message.
-			if(!userDto.getUserId().equalsIgnoreCase(user.getUserId().toString())) {
-				Long userDtoIdLong = Long.parseLong(userDto.getUserId());
-				Notification newNoti = Notification.builder().fromWho(user).toWho(new User(userDtoIdLong))
+			if(user.getUserId() != authUser.getUserId()) {
+				Notification newNoti = Notification.builder().fromWho(authUser).toWho(user)
 						.type(NotificationType.MESSAGE).createdAt(ZonedDateTime.now(clock)).notiMessage(messUtils.getMessage("socket.new-message"))
 						.build();	
 				notifications.add(newNoti);
@@ -90,6 +93,7 @@ public class NotificationServiceImpl implements NotificationService {
 		
 		//saving new notifications
 		notificationsDto = notificationMapper.notificationListToNotificationDtoListWithToWho(notiDao.saveAll(notifications));
+		chatDto = chatMapper.chatToChatDto(chat);
 		
 		//sending notifications to each user subscribed by sockets.
 		notificationsDto.forEach((notificationDto) -> {

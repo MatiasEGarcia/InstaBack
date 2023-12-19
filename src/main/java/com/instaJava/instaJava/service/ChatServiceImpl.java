@@ -50,6 +50,7 @@ public class ChatServiceImpl implements ChatService {
 	private final PageableUtils pageUtils;
 	private final MessagesUtils messUtils;
 	private final UserService userService;
+	private final MessageService messageService;
 	private final FollowService followService;
 	private final ChatMapper chatMapper;
 
@@ -58,9 +59,12 @@ public class ChatServiceImpl implements ChatService {
 	public ChatDto getById(Long chatId) {
 		if (chatId == null)
 			throw new IllegalArgumentException("generic.arg-not-null");
+		ChatDto chatDto;
 		Chat chat = chatDao.findById(chatId).orElseThrow(
 				() -> new RecordNotFoundException(messUtils.getMessage("chat.not-found"), HttpStatus.NOT_FOUND));
-		return chatMapper.chatToChatDto(chat);
+		chatDto = new ChatDto();
+		setMessagesNotWatched(chatDto, chat);
+		return chatDto;
 	}
 
 	@Override
@@ -69,12 +73,23 @@ public class ChatServiceImpl implements ChatService {
 		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
+		List<ChatDto> listChatDto = null;
+		ResPaginationG<ChatDto> resPagChatDto = new ResPaginationG<ChatDto>();
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		Page<Chat> pageChat = chatDao.findByChatUsersUserUserId(authUser.getUserId(), pageUtils.getPageable(pageInfoDto));
+		Page<Chat> pageChat = chatDao.findByChatUsersUserUserId(authUser.getUserId(),
+				pageUtils.getPageable(pageInfoDto));
 		if (pageChat.getContent().isEmpty()) {
 			throw new RecordNotFoundException(messUtils.getMessage("chat.group-not-found"), HttpStatus.NO_CONTENT);
 		}
-		return chatMapper.pageAndPageInfoDtoToResPaginationG(pageChat, pageInfoDto);
+
+		listChatDto = new ArrayList<>();
+		setMessagesNotWatched(listChatDto, pageChat.getContent(), authUser.getUsername());
+
+		resPagChatDto.setList(listChatDto);
+		pageInfoDto.setTotalElements(pageChat.getNumberOfElements());
+		pageInfoDto.setTotalPages(pageChat.getTotalPages());
+		resPagChatDto.setPageInfoDto(pageInfoDto);
+		return resPagChatDto;
 	}
 
 	@Override
@@ -97,6 +112,8 @@ public class ChatServiceImpl implements ChatService {
 		if (image == null || chatId == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
+		Chat chatUpdated;
+		ChatDto chatDto;
 		Optional<Chat> chatToEdit = chatDao.findById(chatId);
 		if (chatToEdit.isEmpty()) {
 			throw new RecordNotFoundException(messUtils.getMessage("chat.not-found"), List.of(chatId.toString()),
@@ -112,8 +129,10 @@ public class ChatServiceImpl implements ChatService {
 		} catch (Exception e) {
 			throw new InvalidImageException(messUtils.getMessage("generic.image-base-64"), HttpStatus.BAD_REQUEST, e);
 		}
-		Chat chatUpdated = chatDao.save(chatToEdit.get());
-		return chatMapper.chatToChatDto(chatUpdated);
+		chatUpdated = chatDao.save(chatToEdit.get());
+		chatDto = new ChatDto();
+		setMessagesNotWatched(chatDto, chatUpdated);
+		return chatDto;
 	}
 
 	@Override
@@ -122,11 +141,15 @@ public class ChatServiceImpl implements ChatService {
 		if (chatId == null || name == null || name.isBlank()) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		}
+		ChatDto chatDto;
 		Chat chat = chatDao.findById(chatId).orElseThrow(
 				() -> new RecordNotFoundException(messUtils.getMessage("chat.not-found"), HttpStatus.NOT_FOUND));
 		authUserIsAdmin(chat);
 		chat.setName(name);
-		return chatMapper.chatToChatDto(chatDao.save(chat));
+		chat = chatDao.save(chat);
+		chatDto = new ChatDto();
+		setMessagesNotWatched(chatDto, chat);
+		return chatDto;
 	}
 
 	@Override
@@ -162,6 +185,7 @@ public class ChatServiceImpl implements ChatService {
 		List<User> listUsersToAdd;
 		Iterator<User> userRemoveIterator;
 		List<ChatUser> listChatUsersToSave;
+		ChatDto chatDto;
 		Chat chat = chatDao.findById(Long.parseLong(reqAddUserChat.getChatId())).orElseThrow(
 				() -> new RecordNotFoundException(messUtils.getMessage("chat.not-found"), HttpStatus.NOT_FOUND));
 		// auth user needs to be admin to add new users.
@@ -187,7 +211,7 @@ public class ChatServiceImpl implements ChatService {
 				if (chatUser.getUser().equals(user)) {
 					// user already is in chat so we remove it from users to add.
 					userRemoveIterator.remove();
-					 break; 
+					break;
 				}
 			}
 		}
@@ -203,41 +227,73 @@ public class ChatServiceImpl implements ChatService {
 			listChatUsersToSave.add(chatUser);
 		}
 		chat.getChatUsers().addAll(listChatUsersToSave);
-		return chatMapper.chatToChatDto(chatDao.save(chat));// now users should be updated.
+		chat = chatDao.save(chat);
+		chatDto = new ChatDto();
+		setMessagesNotWatched(chatDto, chat);
+		return chatDto;// now users should be updated.
 	}
 
 	@Override
 	@Transactional
 	public ChatDto quitUsersFromChat(ReqDelUserFromChat reqDelUserFromChat) {
-		if (reqDelUserFromChat == null || reqDelUserFromChat.getChatId() == null 
-				||reqDelUserFromChat.getChatId().isBlank() || reqDelUserFromChat.getUsersUsername() == null || 
-				reqDelUserFromChat.getUsersUsername().isEmpty()) {
+		if (reqDelUserFromChat == null || reqDelUserFromChat.getChatId() == null
+				|| reqDelUserFromChat.getChatId().isBlank() || reqDelUserFromChat.getUsersUsername() == null
+				|| reqDelUserFromChat.getUsersUsername().isEmpty()) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		}
+		ChatDto chatDto;
 		Long chatId = Long.parseLong(reqDelUserFromChat.getChatId());
 		Chat chat = chatDao.findById(chatId).orElseThrow(
 				() -> new RecordNotFoundException(messUtils.getMessage("chat.not-found"), HttpStatus.NOT_FOUND));
 		authUserIsAdmin(chat);
 		chatUserDao.deleteByChatIdAndUserUsernameIn(chatId, Set.copyOf(reqDelUserFromChat.getUsersUsername()));
 		chat.setChatUsers(chatUserDao.findByChatChatId(chatId));
-		return chatMapper.chatToChatDto(chat);
+		chatDto = new ChatDto();
+		setMessagesNotWatched(chatDto, chat);
+		return chatDto;
 	}
 
-	
+	// check tests
 	@Override
 	@Transactional
 	public ChatDto changeAdminStatus(Long chatId, Long userId) {
-		if(chatId == null || userId == null) {
+		if (chatId == null || userId == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
+		ChatDto chatDto;
 		Chat chat;
-		ChatUser ch = chatUserDao.findByChatChatIdAndUserUserId(chatId, userId).orElseThrow(() -> 
-		new RecordNotFoundException(messUtils.getMessage("chatUser.not-found"), HttpStatus.NOT_FOUND));
+		ChatUser ch = chatUserDao.findByChatChatIdAndUserUserId(chatId, userId).orElseThrow(
+				() -> new RecordNotFoundException(messUtils.getMessage("chatUser.not-found"), HttpStatus.NOT_FOUND));
 		chat = ch.getChat();
 		authUserIsAdmin(chat);
 		ch.setAdmin(ch.isAdmin() ? false : true);
 		chatUserDao.save(ch);
-		return chatMapper.chatToChatDto(chat);
+		chatDto = new ChatDto();
+		setMessagesNotWatched(chatDto, chat);
+		return chatDto;
+	}
+
+	@Override
+	public int bynarySearchByChatId(List<Chat> chats, Long chatIdToFind) {
+		if(chats == null || chats.isEmpty() || chatIdToFind == null) {
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
+		}
+		int low = 0;
+		int high = chats.size() - 1;
+		
+		while(low <= high) {
+			int middlePosition = (low + high) / 2;
+			Chat middleChat = chats.get(middlePosition);
+			
+			if(middleChat.getChatId() == chatIdToFind) {
+				return middlePosition;
+			}else if(middleChat.getChatId() < chatIdToFind) {
+				low = middlePosition + 1;
+			}else {
+				high = middlePosition - 1;
+			}
+		}
+		return -1;
 	}
 	
 	
@@ -384,4 +440,80 @@ public class ChatServiceImpl implements ChatService {
 		// user was not found between the users so
 		throw new InvalidActionException(messUtils.getMessage("chat.auth-user-not-in-chat"), HttpStatus.BAD_REQUEST);
 	}
+
+	/**
+	 * Calls setMessagesNotWatched.
+	 * 
+	 * @param chatDto - object where save Chat info withmessages not watched count.
+	 * @param chat    - chat found.
+	 * @throws IllegalArgumentException if some param is null.
+	 */
+	private void setMessagesNotWatched(ChatDto chatDto, Chat chat) {
+		if (chat == null || chatDto == null)
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+		Long nMessagesNoWatched = 0L;
+
+		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		List<Long[]> countMessages = messageService.getMessagesNotWatchedCountByChatIds(List.of(chat.getChatId()),
+				authUser.getUsername());
+		if (!countMessages.isEmpty()) {
+			nMessagesNoWatched = countMessages.get(0)[1];
+		}
+		chatDto.setMessagesNoWatched(nMessagesNoWatched.toString());
+		chatMapper.chatToChatDto(chat, chatDto);
+	}
+
+	/**
+	 * Function to set list of chats info in ChatDtos with number of messages not
+	 * watched in that chat(by the authUsername)
+	 * 
+	 * @param listChatDto  - a list where save chatDto objects.
+	 * @param listChat     - a list with Chat objects.
+	 * @param authUsername - authenicated user's username.
+	 */
+	private void setMessagesNotWatched(List<ChatDto> listChatDto, List<Chat> listChat, String authUsername) {
+		if (listChatDto == null || listChat == null || listChat.isEmpty() || authUsername == null
+				|| authUsername.isBlank()) {
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
+		}
+		List<Long[]> countMessages;
+		List<Long> listChatsIds = new ArrayList<>();
+		chatMapper.chatListToChatDtoList(listChat,listChatDto);
+
+		// getting chats ids.
+		for (Chat chat : listChat) {
+			listChatsIds.add(chat.getChatId());
+		}
+		
+		countMessages = messageService.getMessagesNotWatchedCountByChatIds(listChatsIds, authUsername);
+		
+		for(Long[] array : countMessages) {
+			ChatDto chatDto = listChatDto.get(this.bynarySearchByChatId(listChat, array[0]));//listChatDto is sort in the same way of listChat
+			chatDto.setMessagesNoWatched(array[1].toString());
+		}
+
+	}
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

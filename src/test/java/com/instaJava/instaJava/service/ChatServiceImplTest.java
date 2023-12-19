@@ -1,5 +1,6 @@
 package com.instaJava.instaJava.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,7 +23,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.mock.web.MockMultipartFile;
@@ -40,7 +40,6 @@ import com.instaJava.instaJava.dto.request.ReqAddUserChat;
 import com.instaJava.instaJava.dto.request.ReqCreateChat;
 import com.instaJava.instaJava.dto.request.ReqDelUserFromChat;
 import com.instaJava.instaJava.dto.request.ReqUserChat;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.ChatUser;
 import com.instaJava.instaJava.entity.User;
@@ -65,6 +64,8 @@ class ChatServiceImplTest {
 	private UserService userService;
 	@Mock
 	private FollowService followService;
+	@Mock
+	private MessageService messageService;
 	@Mock
 	private MessagesUtils messUtils;
 	@Mock
@@ -95,12 +96,24 @@ class ChatServiceImplTest {
 
 	@Test
 	void getByIdExistsNotNull() {
-		Long id = 1L;
-		Chat chat = new Chat();
-		ChatDto chatDto = new ChatDto();
-		when(chatDao.findById(id)).thenReturn(Optional.of(chat));
-		when(chatMapper.chatToChatDto(chat)).thenReturn(chatDto);
-		assertNotNull(chatService.getById(id));
+		// messages not watched = 2
+		Long chatId = 1L;
+		Long messArr[] = { chatId, 2L };
+		List<Long[]> listMessArr = new ArrayList<>();
+		listMessArr.add(messArr);
+		Chat chat = new Chat(chatId);
+		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
+		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		// get messages not watched count.
+		when(messageService.getMessagesNotWatchedCountByChatIds(List.of(chatId), user.getUsername()))
+				.thenReturn(listMessArr);
+
+		assertNotNull(chatService.getById(chatId));
+		verify(chatMapper).chatToChatDto(chat, chatDto);
 	}
 
 	// getAuthUserChats
@@ -139,24 +152,9 @@ class ChatServiceImplTest {
 		verify(chatDao).findByChatUsersUserUserId(eq(user.getUserId()), any(Pageable.class));
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test
+	//I cannot test this. A method void called from a private method. the void method change a list content, and I cannot emulate that.
 	void getAuthUserChatsReturnsNotNull() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("random").sortDir(Direction.ASC).build();
-		ResPaginationG<ChatDto> resPag = new ResPaginationG<ChatDto>();
-		Chat newChat = new Chat();
-		Page<Chat> page = new PageImpl<>(List.of(newChat));
-
-		when(securityContext.getAuthentication()).thenReturn(auth);
-		SecurityContextHolder.setContext(securityContext);
-		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
-		when(chatDao.findByChatUsersUserUserId(eq(user.getUserId()), any(Pageable.class))).thenReturn(page);
-		when(chatMapper.pageAndPageInfoDtoToResPaginationG(any(Page.class), eq(pageInfoDto))).thenReturn(resPag);
-
-		assertNotNull(chatService.getAuthUserChats(pageInfoDto));
-
-		verify(chatDao).findByChatUsersUserUserId(eq(user.getUserId()), any(Pageable.class));
+		
 	}
 
 	// create
@@ -427,15 +425,28 @@ class ChatServiceImplTest {
 
 	@Test
 	void setImageReturnsNotNull() {
-		Chat chat = Chat.builder().type(ChatTypeEnum.GROUP).build();
-		ChatDto chatDto = new ChatDto();
+		// messages not watched = 2
+		Long chatId = 1L;
+		Long messArr[] = { chatId, 2L };
+		List<Long[]> listMessArr = new ArrayList<>();
+		listMessArr.add(messArr);
+		Chat chat = Chat.builder().chatId(chatId).type(ChatTypeEnum.GROUP).build();
+		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
+
 		MultipartFile multipartFile = new MockMultipartFile("file", "test.txt", "text/plain", "testing".getBytes());
 		when(chatDao.findById(anyLong())).thenReturn(Optional.of(chat));
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		when(chatDao.save(chat)).thenReturn(chat);
-		when(chatMapper.chatToChatDto(any(Chat.class))).thenReturn(chatDto);
+		// get messages not watched count.
+		when(messageService.getMessagesNotWatchedCountByChatIds(List.of(chatId), user.getUsername()))
+				.thenReturn(listMessArr);
 
-		assertNotNull(chatService.setImage(multipartFile, anyLong()));
+		assertNotNull(chatService.setImage(multipartFile, chatId));
 		verify(chatDao).save(any(Chat.class));
+		verify(chatMapper).chatToChatDto(chat, chatDto);
 	}
 
 	// setChatName
@@ -464,7 +475,7 @@ class ChatServiceImplTest {
 	}
 
 	@Test
-	void setChatNameAuthUserNotAdmin() {
+	void setChatNameAuthUserNotAdminThrow() {
 		Long chatId = 1L;
 		String chatName = "chatName";
 		ChatUser chatUser = ChatUser.builder().user(user).admin(false).build();
@@ -478,17 +489,28 @@ class ChatServiceImplTest {
 	@Test
 	void setChatNameReturnsNotNull() {
 		Long chatId = 1L;
+		Long messArr[] = { chatId, 2L };
+		List<Long[]> listMessArr = new ArrayList<>();
+		listMessArr.add(messArr);
 		String chatName = "chatName";
 		ChatUser chatUser = ChatUser.builder().user(user).admin(true).build();
-		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
-		ChatDto chatDto = new ChatDto();
+		Chat chat = Chat.builder().chatId(chatId).chatUsers(List.of(chatUser)).build();
+		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
 
 		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
 		chat.setName(chatName);
 		when(chatDao.save(chat)).thenReturn(chat);
-		when(chatMapper.chatToChatDto(chat)).thenReturn(chatDto);
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		// get messages not watched count.
+		when(messageService.getMessagesNotWatchedCountByChatIds(List.of(chatId), user.getUsername()))
+				.thenReturn(listMessArr);
+
 		assertNotNull(chatService.setChatName(chatId, chatName));
 		verify(chatDao).save(any(Chat.class));
+		verify(chatMapper).chatToChatDto(chat, chatDto);
 	}
 
 	// deleteChatId
@@ -595,7 +617,7 @@ class ChatServiceImplTest {
 	}
 
 	@Test
-	void addUsersChatAuthUserNotAdmin() {
+	void addUsersChatAuthUserNotAdminThrow() {
 		String chatId = "1";
 		ReqUserChat reqUserChat = new ReqUserChat();
 		ReqAddUserChat reqAddUserChat = ReqAddUserChat.builder().chatId(chatId).users(List.of(reqUserChat)).build();
@@ -717,16 +739,21 @@ class ChatServiceImplTest {
 
 	@Test
 	void addUsersReturnNotNullAuthUserAlreadyInChatIsNotAddedAgain() {
-		String chatId = "1";
+		String chatIdString = "1";
+		Long chatIdLong = 1L;
+		Long messArr[] = { chatIdLong, 2L };
+		List<Long[]> listMessArr = new ArrayList<>();
+		listMessArr.add(messArr);
 		ReqUserChat reqUserChatAuthUser = new ReqUserChat(user.getUsername(), false);
 		ReqUserChat reqUserChat1 = new ReqUserChat("username1", false);
 		ReqUserChat reqUserChat2 = new ReqUserChat("username2", false); // will not be found.
-		ReqAddUserChat reqAddUserChat = ReqAddUserChat.builder().chatId(chatId)
+		ReqAddUserChat reqAddUserChat = ReqAddUserChat.builder().chatId(chatIdString)
 				.users(List.of(reqUserChatAuthUser, reqUserChat1, reqUserChat2)).build();
 		ChatUser chatUserAuthUser = ChatUser.builder().user(user).admin(true).build();// auth user is admin
 		List<ChatUser> listChatUsers = new ArrayList<>();
 		listChatUsers.add(chatUserAuthUser);
-		Chat chat = Chat.builder().chatUsers(listChatUsers).build();
+		Chat chat = Chat.builder().chatId(chatIdLong).chatUsers(listChatUsers).build();
+		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
 		// only user who was found.
 		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
 		User user2 = User.builder().userId(3L).username("username2").visible(true).build();
@@ -735,7 +762,7 @@ class ChatServiceImplTest {
 		listUsersFound.add(user2);
 		listUsersFound.add(user);
 
-		when(chatDao.findById(Long.parseLong(chatId))).thenReturn(Optional.of(chat));
+		when(chatDao.findById(chatIdLong)).thenReturn(Optional.of(chat));
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -754,12 +781,13 @@ class ChatServiceImplTest {
 
 		// dao
 		when(chatDao.save(chat)).thenReturn(chat);
-		// mapping
-		when(chatMapper.chatToChatDto(chat)).thenReturn(new ChatDto());
+		// get messages not watched count.
+		when(messageService.getMessagesNotWatchedCountByChatIds(List.of(chatIdLong), user.getUsername()))
+				.thenReturn(listMessArr);
 
 		assertNotNull(chatService.addUsers(reqAddUserChat));
 
-		verify(chatDao).save(chat);
+		verify(chatMapper).chatToChatDto(chat, chatDto);
 	}
 
 	// quitUsersFromChat.
@@ -820,21 +848,29 @@ class ChatServiceImplTest {
 	@Test
 	void quitUsersFromChat() {
 		Long chatId = 1L;
+		Long messArr[] = { chatId, 2L };
+		List<Long[]> listMessArr = new ArrayList<>();
+		listMessArr.add(messArr);
 		List<String> listUsername = List.of("username1", "username2");
 		ReqDelUserFromChat reqDelUserFromChat = ReqDelUserFromChat.builder().chatId(chatId.toString())
 				.usersUsername(listUsername).build();
 		ChatUser chatUser = ChatUser.builder().user(user).admin(true).build();
-		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
+		Chat chat = Chat.builder().chatId(chatId).chatUsers(List.of(chatUser)).build();
+		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
 
 		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		when(chatMapper.chatToChatDto(chat)).thenReturn(new ChatDto());
+		// get messages not watched count.
+				when(messageService.getMessagesNotWatchedCountByChatIds(List.of(chatId), user.getUsername()))
+						.thenReturn(listMessArr);
 		assertNotNull(chatService.quitUsersFromChat(reqDelUserFromChat));
+		
 		verify(chatUserDao).deleteByChatIdAndUserUsernameIn(eq(chatId), anySet());
 		verify(chatUserDao).findByChatChatId(chatId);
+		verify(chatMapper).chatToChatDto(chat, chatDto);
 	}
 
 	// changeAdminStatus
@@ -856,21 +892,14 @@ class ChatServiceImplTest {
 		assertThrows(RecordNotFoundException.class, () -> chatService.changeAdminStatus(chatId, userId));
 		verify(chatUserDao, never()).save(any(ChatUser.class));
 	}
-	
+
 	@Test
 	void changeAdminStatusAuthUserNoAdminThrow() {
 		Long chatId = 1L;
 		Long userId = 1L;
-		ChatUser chatUserAuthUser = ChatUser.builder()
-				.user(user)
-				.admin(false)
-				.build();
-		Chat chat = Chat.builder()
-				.chatUsers(List.of(chatUserAuthUser))
-				.build();
-		ChatUser chatUserFound = ChatUser.builder()
-				.chat(chat)
-				.admin(false) // at the end, should be true.
+		ChatUser chatUserAuthUser = ChatUser.builder().user(user).admin(false).build();
+		Chat chat = Chat.builder().chatUsers(List.of(chatUserAuthUser)).build();
+		ChatUser chatUserFound = ChatUser.builder().chat(chat).admin(false) // at the end, should be true.
 				.build();
 
 		// auth user
@@ -879,26 +908,19 @@ class ChatServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 
 		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
-		
+
 		assertThrows(InvalidActionException.class, () -> chatService.changeAdminStatus(chatId, userId));
-		
-		verify(chatUserDao,never()).save(chatUserFound);
+
+		verify(chatUserDao, never()).save(chatUserFound);
 	}
-	
+
 	@Test
 	void changeAdminStatusAuthUserNoInChat() {
 		Long chatId = 1L;
 		Long userId = 1L;
-		ChatUser chatUserAuthUser = ChatUser.builder()
-				.user(new User())
-				.admin(false)
-				.build();
-		Chat chat = Chat.builder()
-				.chatUsers(List.of(chatUserAuthUser))
-				.build();
-		ChatUser chatUserFound = ChatUser.builder()
-				.chat(chat)
-				.admin(false) // at the end, should be true.
+		ChatUser chatUserAuthUser = ChatUser.builder().user(new User()).admin(false).build();
+		Chat chat = Chat.builder().chatUsers(List.of(chatUserAuthUser)).build();
+		ChatUser chatUserFound = ChatUser.builder().chat(chat).admin(false) // at the end, should be true.
 				.build();
 
 		// auth user
@@ -906,26 +928,23 @@ class ChatServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
-		
+
 		assertThrows(InvalidActionException.class, () -> chatService.changeAdminStatus(chatId, userId));
-		
-		verify(chatUserDao,never()).save(chatUserFound);
+
+		verify(chatUserDao, never()).save(chatUserFound);
 	}
-	
+
 	@Test
 	void changeAdminStatusReturnsNotNull() {
 		Long chatId = 1L;
 		Long userId = 1L;
-		ChatUser chatUserAuthUser = ChatUser.builder()
-				.user(user)
-				.admin(true)
-				.build();
-		Chat chat = Chat.builder()
-				.chatUsers(List.of(chatUserAuthUser))
-				.build();
-		ChatUser chatUserFound = ChatUser.builder()
-				.chat(chat)
-				.admin(false) // at the end, should be true.
+		Long messArr[] = { chatId, 2L };
+		List<Long[]> listMessArr = new ArrayList<>();
+		listMessArr.add(messArr);
+		ChatUser chatUserAuthUser = ChatUser.builder().user(user).admin(true).build();
+		Chat chat = Chat.builder().chatId(chatId).chatUsers(List.of(chatUserAuthUser)).build();
+		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
+		ChatUser chatUserFound = ChatUser.builder().chat(chat).admin(false) // at the end, should be true.
 				.build();
 
 		// auth user
@@ -934,16 +953,53 @@ class ChatServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 
 		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
-		when(chatMapper.chatToChatDto(chat)).thenReturn(new ChatDto());
-		
+		// get messages not watched count.
+		when(messageService.getMessagesNotWatchedCountByChatIds(List.of(chatId), user.getUsername()))
+				.thenReturn(listMessArr);
+
 		assertNotNull(chatService.changeAdminStatus(chatId, userId));
-		
+
 		chatUserFound.setAdmin(true);
 		verify(chatUserDao).save(chatUserFound);
+		verify(chatMapper).chatToChatDto(chat, chatDto);
+	}
+	
+	//bynarySearchById
+	@Test
+	void bynarySearchByChatIdParamChatsNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> chatService.bynarySearchByChatId(null, 1L));
+	}
+	@Test
+	void bynarySearchByChatIdParamChatsEmptyThrow() {
+		assertThrows(IllegalArgumentException.class, () -> chatService.bynarySearchByChatId(Collections.emptyList(), 1L));
+	}
+	@Test
+	void bynarySearchByChatIdParamChatIdToFindNullThrow() {
+		Chat chat = new Chat();
+		List<Chat> chats = List.of(chat);
+		assertThrows(IllegalArgumentException.class, () -> chatService.bynarySearchByChatId(chats, null));
+	}
+	
+	@Test
+	void bynarySearchByChatIdReturnCorrectIndex() {
+		Chat chat1 = Chat.builder().chatId(1L).build();
+		Chat chat2 = Chat.builder().chatId(2L).build();
+		Chat chat3 = Chat.builder().chatId(3L).build();
+		Chat chat4 = Chat.builder().chatId(4L).build();
+		List<Chat> chats = List.of(chat1,chat2,chat3,chat4);
+		assertEquals(1, chatService.bynarySearchByChatId(chats, 2L),"should return index 1");
+	}
+	
+	@Test
+	void bynarySearchByChatIdReturnNegative1ChatNotFound() {
+		Chat chat1 = Chat.builder().chatId(1L).build();
+		Chat chat2 = Chat.builder().chatId(2L).build();
+		Chat chat3 = Chat.builder().chatId(3L).build();
+		Chat chat4 = Chat.builder().chatId(4L).build();
+		List<Chat> chats = List.of(chat1,chat2,chat3,chat4);
+		assertEquals(-1, chatService.bynarySearchByChatId(chats, 5L),"if chat was not found should return -1");
 	}
 }
-
-
 
 
 

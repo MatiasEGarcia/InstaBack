@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "comments")
-public class Comment {
+public class Comment{
 
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
@@ -43,4 +43,5 @@ public class Comment {
 	
 	@Column(name = "created_At")
 	private ZonedDateTime createdAt;
+
 }

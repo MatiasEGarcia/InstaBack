@@ -18,7 +18,7 @@ public interface ChatUserDao extends JpaRepository<ChatUser, Long>  {
 	Optional<ChatUser> findByChatChatIdAndUserUserId(Long chatId, Long userId);
 	
 	@Modifying
-	@Query("DELETE FROM ChatUser ch WHERE ch.chat IN (SELECT c FROM Chat c WHERE c.chatId= :chatId) "
+	@Query("DELETE FROM ChatUser ch WHERE ch.chat IN (SELECT c FROM Chat c WHERE c.id= :chatId) "
 			+ "AND ch.user IN (SELECT u FROM User u where u.username IN (:usernames))")
 	void deleteByChatIdAndUserUsernameIn(@Param(value="chatId")Long chatId , @Param(value="usernames")Set<String> listUsername);
 }

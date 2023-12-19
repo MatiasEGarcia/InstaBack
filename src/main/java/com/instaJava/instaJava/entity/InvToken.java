@@ -19,12 +19,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "invalid_tokens")
-public class InvToken {
+public class InvToken{
 
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	@Column(name= "id")
-	private Long invTokId;
+	private Long invTokenid;
 	
 	@Column(name= "token")
 	private String token;

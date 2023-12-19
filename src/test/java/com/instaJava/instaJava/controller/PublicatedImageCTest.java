@@ -201,7 +201,7 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
-				.andExpect(jsonPath("$.pageInfoDto.sortField", is("pubImaId")))  //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("publImgId")))  //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));   //default value if the user don't pass any param
 	}
 	@Test
@@ -244,7 +244,7 @@ class PublicatedImageCTest {
 		        .andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
 		        .andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 		        .andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
-		        .andExpect(jsonPath("$.pageInfoDto.sortField", is("pubImaId")))  //default value if the user don't pass any param
+		        .andExpect(jsonPath("$.pageInfoDto.sortField", is("publImgId")))  //default value if the user don't pass any param
 		        .andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));   //default value if the user don't pass any param
 	}
 	@Test

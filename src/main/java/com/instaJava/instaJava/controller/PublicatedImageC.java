@@ -74,7 +74,7 @@ public class PublicatedImageC {
 	public ResponseEntity<ResPaginationG<PublicatedImageDto>> getAllByOwnerVisible(
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue = "pubImaId") String sortField,
+			@RequestParam(name = "sortField", defaultValue = "publImgId") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
@@ -98,7 +98,7 @@ public class PublicatedImageC {
 	public ResponseEntity<ResPaginationG<PublicatedImageDto>> getAllByOwner(@PathVariable("ownerId") Long ownerId,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue = "pubImaId") String sortField,
+			@RequestParam(name = "sortField", defaultValue = "publImgId") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();

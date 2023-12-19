@@ -37,6 +37,7 @@ CREATE TABLE messages(
     user_owner varchar(20) not null,
     chat int not null,
     sended_at datetime not null,
+    watched_by varchar(300) not null, -- at least the user owner should have seen it
 	foreign key (chat) references chats(id) on delete cascade
 );
 

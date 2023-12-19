@@ -22,12 +22,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "publicated_images")
-public class PublicatedImage {
+public class PublicatedImage{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name= "id")
-	private Long pubImaId;
+	private Long publImgId;
 	
 	@Column(name = "img", columnDefinition = "BLOB")
     private String image;

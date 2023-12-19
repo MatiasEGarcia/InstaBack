@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "follow")
-public class Follow {
+public class Follow{
 
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
@@ -41,4 +41,5 @@ public class Follow {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
 	private FollowStatus followStatus;
+
 }

@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "messages")
-public class Message {
+public class Message{
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -42,4 +42,6 @@ public class Message {
 	@Column(name = "sended_at")
 	private ZonedDateTime sendedAt;
 	
+	@Column(name = "watched_by")
+	private String watchedBy;
 }

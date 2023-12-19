@@ -17,13 +17,12 @@ import com.instaJava.instaJava.entity.User;
 @Mapper(componentModel = "spring")
 public interface PublicatedImageMapper {
 	
-	@Mapping(target="id", source="publicatedImage.pubImaId")
+	@Mapping(target="id", source="publicatedImage.publImgId")
 	@Mapping(target="image" , source = "publicatedImage.image")
 	@Mapping(target="userOwner", source="user")
 	PublicatedImageDto publicatedImageAndUserToPublicatedImageDto(PublicatedImage publicatedImage,User user);
 	
-	
-	@Mapping(target="id", source="publicatedImage.pubImaId")
+	@Mapping(target="id", source="publicatedImage.publImgId")
 	@Mapping(target="image" , source = "publicatedImage.image")
 	@Mapping(target="userOwner", source="publicatedImage.userOwner")
 	PublicatedImageDto publicatedImageToPublicatedImageDto(PublicatedImage publicatedImage);

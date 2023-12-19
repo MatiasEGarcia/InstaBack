@@ -45,6 +45,8 @@ import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.entity.Chat;
+import com.instaJava.instaJava.entity.ChatUser;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
 import com.instaJava.instaJava.entity.User;
@@ -52,6 +54,7 @@ import com.instaJava.instaJava.enums.NotificationType;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
+import com.instaJava.instaJava.mapper.ChatMapper;
 import com.instaJava.instaJava.mapper.NotificationMapper;
 import com.instaJava.instaJava.mapper.UserMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -74,6 +77,8 @@ class NotificationServiceImplTest {
 	private UserMapper userMapper;
 	@Mock
 	private NotificationMapper notiMapper;
+	@Mock
+	private ChatMapper chatMapper;
 	@Mock
 	private PageableUtils pageUtils;
 	@Mock
@@ -124,46 +129,45 @@ class NotificationServiceImplTest {
 		assertThrows(IllegalArgumentException.class,
 				() -> notiService.saveNotificationOfMessage(null, message));
 	}
-
+	
 	@Test
-	void saveNotificationOfMessageParamChatDtoUsersNullThrow() {
+	void saveNotificationOfMessageParamChatUsersEmptyThrow() {
 		MessageDto message = MessageDto.builder()
 				.body("random")
 				.build();
-		ChatDto chatDto = new ChatDto();
+		Chat chat = Chat.builder().chatUsers(Collections.emptyList()).build();
 		assertThrows(IllegalArgumentException.class,
-				() -> notiService.saveNotificationOfMessage(chatDto, message));
-	}
-
-	@Test
-	void saveNotificationOfMessageParamChatDtoUsersEmptyThrow() {
-		MessageDto message = MessageDto.builder()
-				.body("random")
-				.build();
-		ChatDto chatDto = ChatDto.builder().users(Collections.emptyList()).build();
-		assertThrows(IllegalArgumentException.class,
-				() -> notiService.saveNotificationOfMessage(chatDto, message));
+				() -> notiService.saveNotificationOfMessage(chat, message));
 	}
 
 	@Test
 	void saveNotificationOfMessageParamMessageDtoNullThrow() {
-		ChatDto chatDto = ChatDto.builder().users(List.of(new UserDto())).build();
-		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfMessage(chatDto, null));
+		ChatUser chatUser = ChatUser.builder().user(user).build();
+		Chat chat = Chat.builder()
+				.chatUsers(List.of(chatUser))
+				.build();
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfMessage(chat, null));
 	}
 
 	@Test
 	void saveNotificationOfMessageParamMessageDtoBodyNullThrow() {
-		ChatDto chatDto = ChatDto.builder().users(List.of(new UserDto())).build();
+		ChatUser chatUser = ChatUser.builder().user(user).build();
+		Chat chat = Chat.builder()
+				.chatUsers(List.of(chatUser))
+				.build();
 		MessageDto message = new MessageDto();
-		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfMessage(chatDto, message));
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfMessage(chat, message));
 	}
 	@Test
 	void saveNotificationOfMessageParamMessageDtoBodyBlankThrow() {
-		ChatDto chatDto = ChatDto.builder().users(List.of(new UserDto())).build();
+		ChatUser chatUser = ChatUser.builder().user(user).build();
+		Chat chat = Chat.builder()
+				.chatUsers(List.of(chatUser))
+				.build();
 		MessageDto message = MessageDto.builder()
 				.body("")
 				.build();
-		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfMessage(chatDto, message));
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfMessage(chat, message));
 	}
 
 	@Test
@@ -171,10 +175,16 @@ class NotificationServiceImplTest {
 		List<String> destinationValues;
 		Long userId2 = 2L;
 		Long userId3 = 3L;
-		UserDto userDto1 = new UserDto("1"); //same user that auth user, should not get a notification
 		UserDto userDto2 = new UserDto("2");
 		UserDto userDto3 = new UserDto("3");
-		ChatDto chatDto = ChatDto.builder().users(List.of(userDto1, userDto2,userDto3)).build();
+		User user2 = new User(userId2);
+		User user3 = new User(userId3);
+		ChatUser chatUser = ChatUser.builder().user(user).build();//same user than authenticated user, so, it shouldn't get a notif
+		ChatUser chatUser2 = ChatUser.builder().user(user2).build();
+		ChatUser chatUser3 = ChatUser.builder().user(user3).build();
+		Chat chat = Chat.builder()
+				.chatUsers(List.of(chatUser,chatUser2,chatUser3))
+				.build();
 		MessageDto messageDto = MessageDto.builder()
 				.body("randomMessage")
 				.build();
@@ -216,9 +226,11 @@ class NotificationServiceImplTest {
 		
 		// dao
 		when(notiDao.saveAll(notificationList)).thenReturn(Collections.emptyList());
+		//mappers
 		when(notiMapper.notificationListToNotificationDtoListWithToWho(anyList())).thenReturn(notificationListDto);
+		when(chatMapper.chatToChatDto(chat)).thenReturn(new ChatDto());
 		
-		notiService.saveNotificationOfMessage(chatDto, messageDto);
+		notiService.saveNotificationOfMessage(chat, messageDto);
 		
 		//verify
 		verify(notiDao).saveAll(anyList());

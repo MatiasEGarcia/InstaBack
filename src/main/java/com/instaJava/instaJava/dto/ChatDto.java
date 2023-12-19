@@ -27,4 +27,11 @@ public class ChatDto implements Serializable{
 	private String image;
 	
 	private List<UserDto> users;
+	
+	private String messagesNoWatched;//number of messages that the authenticated user didn't watched yet.
+	
+	public ChatDto(String id) {
+		chatId = id;
+	}
+	
 }

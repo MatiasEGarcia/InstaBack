@@ -2,8 +2,11 @@ package com.instaJava.instaJava.mapper;
 
 import java.util.List;
 
+import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.springframework.data.domain.Page;
 
 import com.instaJava.instaJava.dto.ChatDto;
@@ -25,12 +28,35 @@ public interface ChatMapper {
 	
 	List<UserDto> chatUserListToUserDtoList(List<ChatUser> chatUserList);
 	
+	@Named("basicChatToChatDto")
 	@Mapping(target ="chatId", source = "chat.chatId")
 	@Mapping(target ="name", source = "chat.name")
 	@Mapping(target ="type", source = "chat.type")
 	@Mapping(target ="image", source = "chat.image")
 	@Mapping(target ="users", source = "chat.chatUsers")
 	ChatDto chatToChatDto(Chat chat);
+	
+	@Mapping(target ="chatId", source = "chat.chatId")
+	@Mapping(target ="name", source = "chat.name")
+	@Mapping(target ="type", source = "chat.type")
+	@Mapping(target ="image", source = "chat.image")
+	@Mapping(target ="users", source = "chat.chatUsers")
+	void chatToChatDto(Chat chat, @MappingTarget ChatDto chatDto);
+	
+	@Mapping(target ="chatId", source = "chat.chatId")
+	@Mapping(target ="name", source = "chat.name")
+	@Mapping(target ="type", source = "chat.type")
+	@Mapping(target ="image", source = "chat.image")
+	@Mapping(target ="users", source = "chat.chatUsers")
+	@Mapping(target = "messagesNoWatched", source = "messagesNoWatched")
+	ChatDto chatAndMessagesNoWatchedToChatDto(Chat chat, Long messagesNoWatched);
+	
+	@IterableMapping(qualifiedByName = "basicChatToChatDto")
+	List<ChatDto> chatListToChatDtoList(List<Chat> chatList);
+	
+	@IterableMapping(qualifiedByName = "basicChatToChatDto")
+	void chatListToChatDtoList(List<Chat> chatList, @MappingTarget List<ChatDto> chatDtoList);
+	
 
 	@Mapping(target ="list" , source = "page.content")
 	@Mapping(target ="pageInfoDto.pageNo", source = "pageInfoDto.pageNo")
@@ -40,4 +66,5 @@ public interface ChatMapper {
 	@Mapping(target ="pageInfoDto.totalPages" , source = "page.totalPages")
 	@Mapping(target ="pageInfoDto.totalElements" , source = "page.totalElements")
 	ResPaginationG<ChatDto> pageAndPageInfoDtoToResPaginationG(Page<Chat> page, PageInfoDto pageInfoDto);
+	
 }

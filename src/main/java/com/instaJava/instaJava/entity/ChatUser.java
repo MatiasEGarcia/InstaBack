@@ -20,12 +20,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "chats_users")
-public class ChatUser {
+public class ChatUser{
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name ="id")
-	private Long chatUserId;
+	private Long chatUserid;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "associate_user")

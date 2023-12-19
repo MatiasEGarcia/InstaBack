@@ -190,7 +190,7 @@ class PublicatedImagesServiceImplTest {
 	@Test
 	void getByIdReturnsNotNull() {
 		Long id = 1L;
-		PublicatedImage publicatedImage = PublicatedImage.builder().pubImaId(id).build();
+		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).build();
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());

@@ -1,5 +1,6 @@
 package com.instaJava.instaJava.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.instaJava.instaJava.enums.ChatTypeEnum;
@@ -26,7 +27,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "chats")
-public class Chat {
+public class Chat{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,11 +44,28 @@ public class Chat {
 	@Column(name = "type")
 	private ChatTypeEnum type;
 
-	@OneToMany(fetch = FetchType.LAZY , mappedBy = "chat",cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REMOVE})
+	@OneToMany(fetch = FetchType.LAZY , mappedBy = "chat",cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
 	private List<ChatUser> chatUsers;
+	
+	@OneToMany(fetch = FetchType.LAZY , mappedBy = "chat",cascade = {CascadeType.REMOVE})
+	private List<Message> messages;
+	
 
-	public Chat(Long chatId) {
-		this.chatId = chatId;
+	public Chat(Long id) {
+		this.chatId = id;
 	}
 	
+	/**
+	 * 
+	 * @return list of chat's users. 
+	 */
+	public List<User> getUsers(){
+		List<User> listUser = new ArrayList<>();
+		if(chatUsers != null) {
+			for(ChatUser chatUser : this.chatUsers) {
+				listUser.add(chatUser.getUser());
+			}
+		}
+		return listUser;
+	}
 }

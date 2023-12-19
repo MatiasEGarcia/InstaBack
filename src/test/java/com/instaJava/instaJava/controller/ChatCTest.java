@@ -77,12 +77,22 @@ class ChatCTest {
 	private String sqlDeleteChatGroupAllUsers1;
 	@Value("${sql.script.delete.chatUsers.3}")
 	private String sqlDeleteChatUser3;
+	@Value("${sql.script.create.message.1}")
+	private String sqlAddMessage1;
+	@Value("${sql.script.create.message.2}")
+	private String sqlAddMessage2;
+	@Value("${sql.script.delete.message.1}")
+	private String sqlDeleteMessage1;
+	@Value("${sql.script.delete.message.2}")
+	private String sqlDeleteMessage2;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
 	@Value("${sql.script.truncate.follow}")
 	private String sqlTruncateFollow;
 	@Value("${sql.script.truncate.chats}")
 	private String sqlTruncateChats;
+	@Value("${sql.script.truncate.messages}")
+	private String sqlTruncateMessages;
 	@Value("${sql.script.truncate.chatUsers}")
 	private String sqlTruncateChatUsers;
 	@Value("${sql.script.ref.integrity.false}")
@@ -111,6 +121,9 @@ class ChatCTest {
 		jdbc.execute(sqlAddChatUsers1);
 		jdbc.execute(sqlAddChatUsers3);
 		jdbc.execute(sqlAddChatUsers4);
+		//ading messages in chat 1
+		jdbc.execute(sqlAddMessage1);
+		jdbc.execute(sqlAddMessage2);
 	}
 
 	// getChatsByAuthUser
@@ -135,6 +148,8 @@ class ChatCTest {
 	void getGetChatsByAuthUserWithoutParamsResponseStatusNoContent() throws Exception {
 		// for some reason, delete on cascade doesn't work in h2 ,so I need to delete
 		// manually.
+		jdbc.update(sqlDeleteMessage1);
+		jdbc.update(sqlDeleteMessage2);
 		jdbc.update(sqlDeleteChatGroupAllUsers1);
 		jdbc.update(sqlDeleteChat1);// we delete the only chat that user1(matias) has
 		String token = jwtService.generateToken(matiasUserAuth);
@@ -358,6 +373,7 @@ class ChatCTest {
 		jdbc.execute(sqlRefIntegrityFalse);
 		jdbc.execute(sqlTruncateFollow);
 		jdbc.execute(sqlTruncateUsers);
+		jdbc.execute(sqlTruncateMessages);
 		jdbc.execute(sqlTruncateChatUsers);
 		jdbc.execute(sqlTruncateChats);
 		jdbc.execute(sqlRefIntegrityTrue);

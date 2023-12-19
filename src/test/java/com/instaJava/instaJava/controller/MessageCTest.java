@@ -2,10 +2,12 @@ package com.instaJava.instaJava.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+
+import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,14 +44,24 @@ class MessageCTest {
 	
 	@Value("${sql.script.create.user.1}")
 	private String sqlAddUser1;
+	@Value("${sql.script.create.user.2}")
+	private String sqlAddUser2;
+	@Value("${sql.script.create.user.3}")
+	private String sqlAddUser3;
 	@Value("${sql.script.create.chat.group.1}")
 	private String sqlAddChatGroup1;
 	@Value("${sql.script.create.chatUsers.1}")
 	private String sqlAddChatUsers1;
+	@Value("${sql.script.create.chatUsers.2}")
+	private String sqlAddChatUsers2;
 	@Value("${sql.script.create.message.1}")
 	private String sqlAddMessage1;
+	@Value("${sql.script.create.message.2}")
+	private String sqlAddMessage2;
 	@Value("${sql.script.delete.message.1}")
 	private String sqlDeleteMessage1;
+	@Value("${sql.script.delete.message.2}")
+	private String sqlDeleteMessage2;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
 	@Value("${sql.script.truncate.chats}")
@@ -69,10 +81,18 @@ class MessageCTest {
 	
 	@BeforeEach
 	void dbbSetUp() {
+		//adding users.
 		jdbc.update(sqlAddUser1);
+		jdbc.update(sqlAddUser2);
+		jdbc.update(sqlAddUser3);
+		//adding chat 1
 		jdbc.update(sqlAddChatGroup1);
+		//adding users to chat 1
 		jdbc.update(sqlAddChatUsers1);
+		jdbc.update(sqlAddChatUsers2);
+		//adding messages in chat 1
 		jdbc.update(sqlAddMessage1);
+		jdbc.update(sqlAddMessage2);
 	}
 	
 	//create
@@ -125,11 +145,11 @@ class MessageCTest {
 				.header("Authorization", "Bearer "+ token))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("$.list" , hasSize(1)))
+				.andExpect(jsonPath("$.list" , hasSize(2)))
 				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) //default value if the user don't pass any param
-				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(2))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.sortField", is("messageId"))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString()))); //default value if the user don't pass any param
 	}
@@ -137,6 +157,7 @@ class MessageCTest {
 	void getMessagesByChatWhithoutParamsThereIsNotMatchesNoContent() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		jdbc.update(sqlDeleteMessage1);
+		jdbc.update(sqlDeleteMessage2);
 		String chatId= "1";
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/messages/{chatId}",chatId)
 				.header("Authorization", "Bearer "+ token))
@@ -144,8 +165,32 @@ class MessageCTest {
 				.andExpect(header().string(messUtils.getMessage("key.header-detail-exception"), messUtils.getMessage("message.group-not-found")));
 	}
 	
+	@Test
+	void putMessagesWatchedStatusOk() throws Exception {
+		String token = jwtService.generateToken(matiasUserAuth);
+		Set<String> setIds = Set.of("2");
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/messages/messagesWatched")
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(setIds))
+				.contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("chatId", is("1")))//messages are from chat with id = 1
+				.andExpect(jsonPath("messagesNoWatched", is("0"))); //now , there are not messages in this chat not watched by the auth user.
+		
+	}
 	
-	
+	@Test
+	void putWatchedAllStatusOk() throws Exception {
+		String token = jwtService.generateToken(matiasUserAuth);
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/messages/watchedAll/{chatId}", 1)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(jsonPath("$.message" , is(messUtils.getMessage("message.watched-all-in-chat"))));
+	}
 	
 	@AfterEach
 	void truncateTables() {
