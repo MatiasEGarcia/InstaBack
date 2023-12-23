@@ -16,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -50,9 +51,21 @@ public class Chat{
 	@OneToMany(fetch = FetchType.LAZY , mappedBy = "chat",cascade = {CascadeType.REMOVE})
 	private List<Message> messages;
 	
-
+	@Transient
+	private String lastMessage;
+	
+	
 	public Chat(Long id) {
 		this.chatId = id;
+	}
+	
+	public Chat(Chat c, String lastMessage) {
+		this.chatId = c.getChatId();
+		this.name = c.getName();
+		this.image = c.getImage();
+		this.type = c.getType();
+		this.chatUsers = c.getChatUsers();
+		this.lastMessage = lastMessage;
 	}
 	
 	/**

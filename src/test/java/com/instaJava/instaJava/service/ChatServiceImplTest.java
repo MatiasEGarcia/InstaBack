@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
@@ -24,7 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -124,32 +124,16 @@ class ChatServiceImplTest {
 	}
 
 	@Test
-	void getAuthUserChatsParamPageInfoDtoSortDirNullThrow() {
-		PageInfoDto page = PageInfoDto.builder().sortField("random").build();
-		assertThrows(IllegalArgumentException.class, () -> chatService.getAuthUserChats(page));
-		verify(chatDao, never()).findByChatUsersUserUserId(eq(1L), any(Pageable.class));
-	}
-
-	@Test
-	void getAuthUserChatsParamPageInfoDtoSortFieldNullThrow() {
-		PageInfoDto page = PageInfoDto.builder().sortDir(Direction.ASC).build();
-		assertThrows(IllegalArgumentException.class, () -> chatService.getAuthUserChats(page));
-		verify(chatDao, never()).findByChatUsersUserUserId(eq(1L), any(Pageable.class));
-	}
-
-	@Test
-	void getAuthUserChatsNotFoundAnyEmptyPageThrow() {
-		PageInfoDto page = PageInfoDto.builder().sortField("random").sortDir(Direction.ASC).build();
-
+	void getAuthUserChatsNoContentThrow() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(20).build();
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		when(pageUtils.getPageable(page)).thenReturn(Pageable.unpaged());
-		when(chatDao.findByChatUsersUserUserId(eq(user.getUserId()), any(Pageable.class))).thenReturn(Page.empty());
+		when(chatDao.findChatsByUser(eq(user.getUserId()),eq(user.getUsername()),any(Pageable.class))).thenReturn(Page.empty());
 
-		assertThrows(RecordNotFoundException.class, () -> chatService.getAuthUserChats(page));
-
-		verify(chatDao).findByChatUsersUserUserId(eq(user.getUserId()), any(Pageable.class));
+		assertThrows(RecordNotFoundException.class, () -> chatService.getAuthUserChats(pageInfoDto));
+		
+		verify(messageService,never()).getMessagesNotWatchedCountByChatIds(anyList(), eq(user.getUsername()));
 	}
 
 	//I cannot test this. A method void called from a private method. the void method change a list content, and I cannot emulate that.
@@ -988,6 +972,14 @@ class ChatServiceImplTest {
 		Chat chat4 = Chat.builder().chatId(4L).build();
 		List<Chat> chats = List.of(chat1,chat2,chat3,chat4);
 		assertEquals(1, chatService.bynarySearchByChatId(chats, 2L),"should return index 1");
+	}
+	
+	@Test
+	void bynarySearchByChatIdReturnCorrectIndex2Items() {
+		Chat chat1 = Chat.builder().chatId(1L).build();
+		Chat chat2 = Chat.builder().chatId(2L).build();
+		List<Chat> chats = List.of(chat1,chat2);
+		assertEquals(0, chatService.bynarySearchByChatId(chats, 1L),"should return index 0");
 	}
 	
 	@Test

@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -37,7 +39,6 @@ import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.exception.UserNotApplicableForChatException;
 import com.instaJava.instaJava.mapper.ChatMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
-import com.instaJava.instaJava.util.PageableUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -47,7 +48,6 @@ public class ChatServiceImpl implements ChatService {
 
 	private final ChatUserDao chatUserDao;
 	private final ChatDao chatDao;
-	private final PageableUtils pageUtils;
 	private final MessagesUtils messUtils;
 	private final UserService userService;
 	private final MessageService messageService;
@@ -69,19 +69,19 @@ public class ChatServiceImpl implements ChatService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public ResPaginationG<ChatDto> getAuthUserChats(PageInfoDto pageInfoDto) {
-		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
+	public ResPaginationG<ChatDto> getAuthUserChats(PageInfoDto pageInfoDto){
+		if(pageInfoDto == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		List<ChatDto> listChatDto = null;
 		ResPaginationG<ChatDto> resPagChatDto = new ResPaginationG<ChatDto>();
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		Page<Chat> pageChat = chatDao.findByChatUsersUserUserId(authUser.getUserId(),
-				pageUtils.getPageable(pageInfoDto));
+		Pageable page = PageRequest.of(pageInfoDto.getPageNo(), pageInfoDto.getPageSize());
+		Page<Chat> pageChat = chatDao.findChatsByUser(authUser.getUserId(), authUser.getUsername(), page);
 		if (pageChat.getContent().isEmpty()) {
 			throw new RecordNotFoundException(messUtils.getMessage("chat.group-not-found"), HttpStatus.NO_CONTENT);
 		}
-
+		
 		listChatDto = new ArrayList<>();
 		setMessagesNotWatched(listChatDto, pageChat.getContent(), authUser.getUsername());
 
@@ -91,6 +91,7 @@ public class ChatServiceImpl implements ChatService {
 		resPagChatDto.setPageInfoDto(pageInfoDto);
 		return resPagChatDto;
 	}
+	
 
 	@Override
 	@Transactional
@@ -278,19 +279,19 @@ public class ChatServiceImpl implements ChatService {
 		if(chats == null || chats.isEmpty() || chatIdToFind == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		}
-		int low = 0;
-		int high = chats.size() - 1;
+		double low = 0;
+		double high = chats.size() - 1;
 		
 		while(low <= high) {
-			int middlePosition = (low + high) / 2;
+			int middlePosition = (int) Math.ceil((low + high) / 2.0);
 			Chat middleChat = chats.get(middlePosition);
 			
 			if(middleChat.getChatId() == chatIdToFind) {
 				return middlePosition;
 			}else if(middleChat.getChatId() < chatIdToFind) {
-				low = middlePosition + 1;
+				low = middlePosition + 1.0;
 			}else {
-				high = middlePosition - 1;
+				high = middlePosition - 1.0;
 			}
 		}
 		return -1;

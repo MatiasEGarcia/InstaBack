@@ -2,7 +2,6 @@ package com.instaJava.instaJava.controller;
 
 import java.util.List;
 
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,18 +46,12 @@ public class ChatC {
 	 * 
 	 * @param pageNo. For pagination, number of the page. (optional)
 	 * @param pageSize. For pagination, size of the elements in the same page. (optional)
-	 * @param sortField. For pagination, sorted by.. (optional)
-	 * @param sortDir. In what direction is sorted, asc or desc. (optional)
 	 * @return paginated chats that were found,else a message that there wasn't any that meet the conditions.
 	 */
-	@GetMapping(produces = "application/json")
-	public ResponseEntity<ResPaginationG<ChatDto>> getChatsByAuthUser(
-			@RequestParam(name = "page", defaultValue = "0") String pageNo,
-			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue = "chatId") String sortField,
-			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
+	@GetMapping( value = "/{pageNo}/{pageSize}" , produces = "application/json")
+	public ResponseEntity<ResPaginationG<ChatDto>> getChatsByAuthUser(@PathVariable("pageNo") int pageNo,
+			@PathVariable("pageSize") int pageSize){
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(pageNo).pageSize(pageSize).build();
 		return ResponseEntity.ok(chatService.getAuthUserChats(pageInfoDto));
 	}
 	

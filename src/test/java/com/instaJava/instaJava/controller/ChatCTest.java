@@ -128,24 +128,15 @@ class ChatCTest {
 
 	// getChatsByAuthUser
 	@Test
-	void getGetChatsByAuthUserWithoutParamsResponseStatusOk() throws Exception {
+	void getGetChatsByAuthUserResponseStatusOk() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/chats").header("Authorization", "Bearer " + token))
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/chats/{pageNo}/{pageSize}",0,20).header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.list", hasSize(1)));
 	}
-
+	
 	@Test
-	void getGetChatsByAuthUserWithParamsResponseStatusOk() throws Exception {
-		String token = jwtService.generateToken(matiasUserAuth);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/chats").header("Authorization", "Bearer " + token)
-				.param("page", "0").param("pageSize", "2").param("sortField", "chatId").param("sortDir", "ASC"))
-				.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("$.list", hasSize(1)));
-	}
-
-	@Test
-	void getGetChatsByAuthUserWithoutParamsResponseStatusNoContent() throws Exception {
+	void getGetChatsByAuthUserResponseStatusNoContent() throws Exception {
 		// for some reason, delete on cascade doesn't work in h2 ,so I need to delete
 		// manually.
 		jdbc.update(sqlDeleteMessage1);
@@ -153,7 +144,7 @@ class ChatCTest {
 		jdbc.update(sqlDeleteChatGroupAllUsers1);
 		jdbc.update(sqlDeleteChat1);// we delete the only chat that user1(matias) has
 		String token = jwtService.generateToken(matiasUserAuth);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/chats").header("Authorization", "Bearer " + token))
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/chats/{pageNo}/{pageSize}",0,20).header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent())
 				.andExpect(header().string(messUtils.getMessage("key.header-detail-exception"),
 						is(messUtils.getMessage("chat.group-not-found"))));

@@ -30,6 +30,8 @@ public class ChatDto implements Serializable{
 	
 	private String messagesNoWatched;//number of messages that the authenticated user didn't watched yet.
 	
+	private String lastMessage;
+	
 	public ChatDto(String id) {
 		chatId = id;
 	}
