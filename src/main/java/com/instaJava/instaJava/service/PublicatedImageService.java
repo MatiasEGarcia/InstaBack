@@ -44,6 +44,7 @@ public interface PublicatedImageService {
 	 * @return PublicatedImageDto with PublicatedImage record info.
 	 * @throws RecordNotFoundException if PublicatedImage record was not found.
 	 * @throws IllegalArgumentException if @param id is null.
+	 * @throws InvalidActionException if authenticated user is not following the publication owner.
 	 */
 	PublicatedImageDto getById(Long id);
 	
@@ -88,4 +89,13 @@ public interface PublicatedImageService {
 	 * @return number of publications.
 	 */
 	Long countPublicationsByOwnerId(Long id);
+	
+	/**
+	 * Function to get all publications where the owner user is followed by authenticated user.
+	 * 
+	 * @param pageInfoDtoIt has pagination info.
+	 * @return ResPaginationG of PublicatedImagesDto with PublicatedImage records info and pagination info.
+	 * @throws RecordNotFoundException if there was not found any publicated image.
+	 */
+	ResPaginationG<PublicatedImageDto> getPublicationsFromUsersFollowed(PageInfoDto pageInfoDto);
 }

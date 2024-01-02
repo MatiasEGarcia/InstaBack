@@ -186,17 +186,75 @@ class PublicatedImagesServiceImplTest {
 		assertThrows(RecordNotFoundException.class, () -> publicatedImagesService.getById(id));
 		verify(publicatedImagesDao).findById(id);
 	}
+	
+	@Test
+	void getByIdStatusRejectedThrow() {
+		Long id = 1L;
+		User userOnwer = new User(2L);
+		PublicatedImage publicatedImage = PublicatedImage.builder()
+				.publImgId(id)
+				.userOwner(userOnwer)
+				.build();
+		//dao
+		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
+		//follow
+		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.REJECTED);
+
+		assertThrows(InvalidActionException.class,() -> publicatedImagesService.getById(id));
+		verify(publicatedImageMapper,never()).publicatedImageToPublicatedImageDto(publicatedImage);
+	}
+	
+	@Test
+	void getByIdStatusInProcessThrow() {
+		Long id = 1L;
+		User userOnwer = new User(2L);
+		PublicatedImage publicatedImage = PublicatedImage.builder()
+				.publImgId(id)
+				.userOwner(userOnwer)
+				.build();
+		//dao
+		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
+		//follow
+		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.IN_PROCESS);
+
+		assertThrows(InvalidActionException.class,() -> publicatedImagesService.getById(id));
+		verify(publicatedImageMapper,never()).publicatedImageToPublicatedImageDto(publicatedImage);
+	}
+	
+	@Test
+	void getByIdStatusNotAskedThrow() {
+		Long id = 1L;
+		User userOnwer = new User(2L);
+		PublicatedImage publicatedImage = PublicatedImage.builder()
+				.publImgId(id)
+				.userOwner(userOnwer)
+				.build();
+		//dao
+		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
+		//follow
+		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.NOT_ASKED);
+
+		assertThrows(InvalidActionException.class,() -> publicatedImagesService.getById(id));
+		verify(publicatedImageMapper,never()).publicatedImageToPublicatedImageDto(publicatedImage);
+	}
 
 	@Test
 	void getByIdReturnsNotNull() {
 		Long id = 1L;
-		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).build();
+		User userOnwer = new User(2L);
+		PublicatedImage publicatedImage = PublicatedImage.builder()
+				.publImgId(id)
+				.userOwner(userOnwer)
+				.build();
+		//dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
+		//follow
+		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.ACCEPTED);
+		//mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
 
 		assertNotNull(publicatedImagesService.getById(id));
-		verify(publicatedImagesDao).findById(id);
 	}
 
 	//findById
@@ -468,4 +526,105 @@ class PublicatedImagesServiceImplTest {
 		verify(userService).getById(ownerId);
 	}
 	
+	//getPublicationsFromUsersFollowed
+	@Test
+	void getPublicationsFromUsersFollowedParamPageInfoDtoNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getPublicationsFromUsersFollowed(null));
+	}
+	
+	@Test
+	void getPublicationsFromUsersFollowedParamPageInfoDtoSortDirNullThrow() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortField("random")
+				.build();
+		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getPublicationsFromUsersFollowed(pageInfoDto));
+	}
+	
+	@Test
+	void getPublicationsFromUsersFollowedParamPageInfoDtoSortFieldNullThrow() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.DESC)
+				.build();
+		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getPublicationsFromUsersFollowed(pageInfoDto));
+	}
+	
+	@Test
+	void getPublicationsFromUsersFollowedParamPageInfoDtoSortFieldBlankThrow() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.DESC)
+				.sortField("")
+				.build();
+		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getPublicationsFromUsersFollowed(pageInfoDto));
+	}
+	
+	@Test
+	void getPublicationsFromUsersFollowedNoRecordsFoundThrow() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.DESC)
+				.sortField("random")
+				.build();
+		Page<PublicatedImage> page = Page.empty();
+		
+		// getting authenticated user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		//pageUtils
+		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
+		//dao
+		when(publicatedImagesDao.findPublicationsFromUsersFollowed(eq(user.getUserId()), any(Pageable.class))).thenReturn(page);
+		
+		assertThrows(RecordNotFoundException.class, () -> publicatedImagesService.getPublicationsFromUsersFollowed(pageInfoDto));
+		
+		verify(publicatedImageMapper,never()).pageAndPageInfoDtoToResPaginationG(page, pageInfoDto);
+	}
+	
+	@Test
+	void getPublicationsFromUsersFollowedReturnsNotNull() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.DESC)
+				.sortField("random")
+				.build();
+		PublicatedImage publicatedImage = new PublicatedImage();
+		Page<PublicatedImage> page = new PageImpl<>(List.of(publicatedImage));
+		ResPaginationG<PublicatedImageDto> resPag = new ResPaginationG<PublicatedImageDto>();
+		
+		// getting authenticated user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		//pageUtils
+		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
+		//dao
+		when(publicatedImagesDao.findPublicationsFromUsersFollowed(eq(user.getUserId()), any(Pageable.class))).thenReturn(page);
+		//mapper
+		when(publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto)).thenReturn(resPag);
+		
+		assertNotNull(publicatedImagesService.getPublicationsFromUsersFollowed(pageInfoDto));
+	}
+	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

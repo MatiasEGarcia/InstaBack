@@ -60,6 +60,17 @@ public class PublicatedImageC {
 	}
 
 	/**
+	 * Get all publication info by id.
+	 * @param id - publication's info.
+	 * @return all publication info.
+	 */
+	@GetMapping(value = "/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<PublicatedImageDto> getById(@PathVariable("id") Long id){
+		return  ResponseEntity.ok().body(publicatedImageService.getById(id));
+	}
+	
+	
+	/**
 	 * Get PublicatedImages from any user with User.visible = true.(public account)
 	 * I don't use ReqSearch with postMapping because I already know that is for
 	 * onwer visible.
@@ -103,7 +114,26 @@ public class PublicatedImageC {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
 		return ResponseEntity.ok().body(publicatedImageService.getAllByOnwer(ownerId, pageInfoDto));
-
 	}
+	
+	/**
+	 * get all publications by users who auth user follow.(status = ACCEPTED)
+	 * @param pageNo    - For pagination, number of the page.
+	 * @param pageSize  - For pagination, size of the elements in the same page.
+	 * @param sortField - For pagination, sorted by..
+	 * @param sortDir   - In what direction is sorted, asc or desc.
+	 * @return ResPaginationG wiht PublicatedImages records info and Pagination info.
+	 */
+	@GetMapping(value="/byUsersFollowed" , produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResPaginationG<PublicatedImageDto>> getAllByUsersFollowed(
+			@RequestParam(name = "page", defaultValue = "0") String pageNo,
+			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
+			@RequestParam(name = "sortField", defaultValue = "publImgId") String sortField,
+			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
+				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
+		return ResponseEntity.ok().body(publicatedImageService.getPublicationsFromUsersFollowed(pageInfoDto));
+	}
+	
 
 }

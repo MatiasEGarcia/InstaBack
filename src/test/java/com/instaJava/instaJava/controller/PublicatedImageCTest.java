@@ -59,10 +59,16 @@ class PublicatedImageCTest {
 	private String sqlAddUser1;
 	@Value("${sql.script.create.user.2}")
 	private String sqlAddUser2;
+	@Value("${sql.script.update.user.1.visible.false}")
+	private String sqlUpdateUser1;
 	@Value("${sql.script.create.publicatedImage}")
 	private String sqlAddPublicatedImage;
+	@Value("${sql.script.create.publicatedImage.2}")
+	private String sqlAddPublicatedImage2;
 	@Value("${sql.script.create.follow.statusInProcess}")
 	private String sqlAddFollow;
+	@Value("${sql.script.update.follow.statusAccepted.on.follow1}")
+	private String updateFollow1ToAccepted;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
 	@Value("${sql.script.truncate.publicatedImages}")
@@ -104,10 +110,12 @@ class PublicatedImageCTest {
 		jdbc.execute(sqlAddUser1); //userAuthMati
 		jdbc.execute(sqlAddUser2); //userAuthRoci
 		jdbc.execute(sqlAddPublicatedImage); //this has as ownerUser -> sqlAddUser1
-		jdbc.execute(sqlAddFollow); //sqlAddUser1 is the follower and sqlAddUser2 is the followed
+		jdbc.execute(sqlAddPublicatedImage2); // this has as ownerUser -> sqlAddUser2
+		jdbc.execute(sqlAddFollow); //sqlAddUser1 is the followed and sqlAddUser2 is the follower
 		
 	}
 	
+	//save
 	@Test
 	void postSaveStatusOk() throws Exception {
 		String token = jwtService.generateToken(userAuthMati);
@@ -123,7 +131,7 @@ class PublicatedImageCTest {
 				.header("authorization", "Bearer " + token)
 				.param("description", description))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id",is("2")))
+				.andExpect(jsonPath("$.id",is("3")))
 				.andExpect(jsonPath("$.createdAt",instanceOf(String.class)))
 				.andExpect(jsonPath("$.image", is(imgBase64)))
 				.andExpect(jsonPath("$.description",is(description)))
@@ -163,7 +171,7 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.message",is(messUtils.getMessage("vali.part.not.present"))));
 	}
 
-	
+	//deleteById
 	@Test
 	void deleteDeleteByIdStatusOk() throws Exception {
 		String token = jwtService.generateToken(userAuthMati);
@@ -188,7 +196,41 @@ class PublicatedImageCTest {
 		if(PublicatedImage.isPresent()) fail();
 	}
 	
+	//getById
+	@Test
+	void getGetByIdBadRequest() throws Exception {///////////////////////////////////////////////////////////////////////////////////////
+		jdbc.execute(sqlUpdateUser1); //now mati is not visible.
+		String token = jwtService.generateToken(userAuthRoci);//this user don't have follow status accepted with the publication owner.
+		
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/{id}",1)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isBadRequest());
+	}
 	
+	@Test
+	void getGetByIdOk() throws Exception {
+		jdbc.execute(updateFollow1ToAccepted);//now follow has status accepted, so roci can get mati publications
+		String token = jwtService.generateToken(userAuthRoci);
+		
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/{id}",1)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id", is("1")))
+				.andExpect(jsonPath("$.userOwner.userId", is("1")));
+	}
+	
+	@Test
+	void getGetByIdNotFound() throws Exception {
+		String token = jwtService.generateToken(userAuthRoci);
+		
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/{id}",10000)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isNotFound());
+	}
+	
+	//getAllByOwnerVisible
 	@Test
 	void getGetAllByOwnerVisibleWithoutParamsOk() throws Exception {
 		String token = jwtService.generateToken(userAuthMati); //this user is public and has publicated images
@@ -231,6 +273,7 @@ class PublicatedImageCTest {
 				.andExpect(header().string(messUtils.getMessage("key.header-detail-exception"), messUtils.getMessage("publiImage.group-not-found")));
 	}
 	
+	//getAllByOwner
 	@Test
 	void getGetAllByOwnerOk() throws Exception{
 		String token = jwtService.generateToken(userAuthRoci);
@@ -269,6 +312,35 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.message", is(messUtils.getMessage("follow.followStatus-in-process"))));
 	}
 	
+	
+	//getAllByUsersFollowed
+	@Test
+	void getGetAllByUsersFollowedWithoutParamsOk() throws Exception{
+		String token = jwtService.generateToken(userAuthRoci);
+		jdbc.execute(updateFollow1ToAccepted);//now follow has status accepted, so roci can get mati publications
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUsersFollowed")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.list", hasSize(1)))//should have at least 1 publication
+        		.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
+        		.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
+        		.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
+        		.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
+        		.andExpect(jsonPath("$.pageInfoDto.sortField", is("publImgId")))  //default value if the user don't pass any param
+        		.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));   //default value if the user don't pass any param
+	}
+	
+	@Test
+	void getGetAllByUsersFollowedWithoutParamsNoContent() throws Exception{
+		String token = jwtService.generateToken(userAuthRoci);
+		//roci only tries to follow mati, but follow status is in process , so there should be none publication
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/byUsersFollowed")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isNoContent())
+				.andExpect(header().string(messUtils.getMessage("key.header-detail-exception"), 
+						messUtils.getMessage("publiImage.group-not-found")));   
+	}
 	
 	
 	@AfterEach
