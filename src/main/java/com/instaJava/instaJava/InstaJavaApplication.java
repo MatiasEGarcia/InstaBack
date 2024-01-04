@@ -11,12 +11,4 @@ public class InstaJavaApplication {
 	}
 
 }
-/*
- *QUE CAMBIOS HICE?
- *
- * 	- get all publications by users who auth user follow.(status = ACCEPTED)
- * 
- *  - get publication by id.
- * 
- * 
- */
+

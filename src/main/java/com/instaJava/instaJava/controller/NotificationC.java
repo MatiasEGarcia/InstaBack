@@ -63,4 +63,14 @@ public class NotificationC {
 		notiService.deleteNotificationById(id);
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
+	
+	/**
+	 * Delete all the auth user's notifications
+	 * @return
+	 */
+	@DeleteMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResMessage> deleteAll(){
+		notiService.deleteAllByAuthUser();
+		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
+	}
 }

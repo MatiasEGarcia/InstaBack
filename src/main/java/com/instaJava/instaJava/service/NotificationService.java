@@ -54,6 +54,8 @@ public interface NotificationService {
 	 */
 	void deleteNotificationById(Long notiId);
 	
+	void deleteAllByAuthUser();
+	
 	/**
 	 * Method to get notification record by id.
 	 * @param notiId notification id.

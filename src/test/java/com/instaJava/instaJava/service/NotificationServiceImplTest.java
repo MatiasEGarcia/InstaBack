@@ -340,6 +340,20 @@ class NotificationServiceImplTest {
 		verify(notiDao).delete(notiToDelete);
 	}
 
+	//deleteAllByAuthUser
+	@Test
+	void deleteAllByAuthUser() {
+		//auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		
+		notiService.deleteAllByAuthUser();
+		
+		verify(notiDao).deleteAllByToWho(user);
+	}
+	
+	
 	// getNotificationById
 	@Test
 	void getNotificationByIdNotiIdParamNullThrow() {

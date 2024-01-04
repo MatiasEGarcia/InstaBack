@@ -67,7 +67,7 @@ public class NotificationServiceImpl implements NotificationService {
 		messTemplate.convertAndSendToUser(follow.getFollowed().getUserId().toString(), "/private", notiDto);
 	}
 
-	//FIJATE LOS TESTS
+	
 	@Override
 	@Transactional
 	public void saveNotificationOfMessage(Chat chat, MessageDto messageDto) {
@@ -108,7 +108,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 	}
 
-	// check test
+	
 	@Override
 	@Transactional(readOnly = true)
 	public ResPaginationG<NotificationDto> getNotificationsByAuthUser(PageInfoDto pageInfoDto) {
@@ -124,7 +124,7 @@ public class NotificationServiceImpl implements NotificationService {
 		return notificationMapper.pageAndPageInfoDtoToResPaginationG(notiPage, pageInfoDto);
 	}
 
-	// check test
+	
 	@Override
 	@Transactional
 	public void deleteNotificationById(Long notiId) {
@@ -139,7 +139,14 @@ public class NotificationServiceImpl implements NotificationService {
 		notiDao.delete(notiToDelete.get());
 	}
 
-	// check test
+	@Override
+	@Transactional
+	public void deleteAllByAuthUser() {
+		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		notiDao.deleteAllByToWho(authUser);
+	}
+	
+	
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<Notification> findNotificationById(Long notiId) {
@@ -147,5 +154,4 @@ public class NotificationServiceImpl implements NotificationService {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		return notiDao.findById(notiId);
 	}
-
 }

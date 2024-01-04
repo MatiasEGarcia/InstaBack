@@ -1,7 +1,7 @@
 package com.instaJava.instaJava.controller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,6 +19,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import com.instaJava.instaJava.dao.NotificationDao;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.service.JwtService;
@@ -37,6 +38,8 @@ class NotificationCTest {
 	private MessagesUtils messUtils;
 	@Autowired
 	private JdbcTemplate jdbc;
+	@Autowired
+	private NotificationDao notiDao;
 
 	
 	@Value("${sql.script.create.user.1}")
@@ -45,6 +48,8 @@ class NotificationCTest {
 	private String sqlAddUser2;
 	@Value("${sql.script.create.notification}")
 	private String sqlAddNotification;
+	@Value("${sql.script.create.notification.2}")
+	private String sqlAddNotification2;
 	@Value("${sql.script.truncate.users}")
 	private String sqlTruncateUsers;
 	@Value("${sql.script.truncate.notifications}")
@@ -68,6 +73,7 @@ class NotificationCTest {
 		jdbc.update(sqlAddUser1);
 		jdbc.update(sqlAddUser2);
 		jdbc.update(sqlAddNotification);
+		jdbc.update(sqlAddNotification2);
 	}
 	
 	@Test
@@ -77,12 +83,11 @@ class NotificationCTest {
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.list", hasSize(1)))
+				.andExpect(jsonPath("$.list", hasSize(2)))
 				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
-				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1)));
-	
+				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(2)));
 	}
 	
 	
@@ -94,6 +99,17 @@ class NotificationCTest {
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.message", is(messUtils.getMessage("generic.delete-ok"))));
+	}
+	
+	@Test
+	void deleteAllOk() throws Exception{
+		String token = jwtService.generateToken(matiAuth);
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/notifications")
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8));
+		
+		assertEquals(0, notiDao.findAll().size(), "there should be none notification");
 	}
 	
 	@AfterEach
