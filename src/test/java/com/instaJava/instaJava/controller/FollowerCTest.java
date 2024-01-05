@@ -257,6 +257,34 @@ class FollowerCTest {
 				.andExpect(jsonPath("$.message", is(messUtils.getMessage("follow.follower-not-same"))));
 	}
 	
+	//updateFollowStatusByFollower
+	@Test
+	void putUpdateFollowStatusByFollowerOk() throws Exception{
+		String token = jwtService.generateToken(matiasUserAuth);
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/updateFollowStatus/byFollowerId")
+				.header("Authorization", "Bearer " + token)
+				.param("followerId", "2")
+				.param("followStatus", "ACCEPTED"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.followStatus", is(FollowStatus.ACCEPTED.toString())));
+	}
+	
+	@Test
+	void putUpdateFollowStatusByFollowerBadRequest() throws Exception{
+		String token = jwtService.generateToken(rociUserAuth);
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/updateFollowStatus/byFollowerId")
+				.header("Authorization", "Bearer " + token)
+				.param("followerId", "1")
+				.param("followStatus", "ACCEPTED"))
+				.andExpect(status().isNotFound())
+				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.error",is(HttpStatus.NOT_FOUND.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("follow.not-found"))));
+	}
+	
+	
+	
 	@AfterEach
 	void setUpAfterTransaction() {
 		jdbc.execute(sqlRefIntegrityFalse);

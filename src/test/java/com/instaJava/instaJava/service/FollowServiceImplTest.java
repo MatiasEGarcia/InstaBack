@@ -258,8 +258,58 @@ class FollowServiceImplTest {
 		verify(followDao).save(followToSave);
 	}
 
+	//getFollowStatusByFollowerId
+	@Test
+	void updateFollowStatusByFollowerParamFollowerIdNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> followService.updateFollowStatusByFollower(null, FollowStatus.ACCEPTED));
+	}
 	
-	//findById, A PARTIR DE ACA
+	@Test
+	void updateFollowStatusByFollowerParamFollowStatusNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> followService.updateFollowStatusByFollower(1L, null));
+	}
+	
+	@Test
+	void updateFollowStatusByFollowerFollowRecordNotFoundThrow() {
+		Long followerId = 1L;
+		User userFollowedWhoAuth = User.builder().userId(2L).build();
+		//auth user.
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userFollowedWhoAuth);
+		
+		when(followDao.findOneByFollowedUserIdAndFollowerUserId(userFollowedWhoAuth.getUserId(), followerId)).thenReturn(Optional.empty());
+		
+		assertThrows(RecordNotFoundException.class, () -> followService.updateFollowStatusByFollower(followerId, FollowStatus.ACCEPTED));
+		
+		verify(followMapper,never()).followToFollowDto(any(Follow.class));
+	}
+	
+	@Test
+	void updateFollowStatusByFollowerReturnsNotNull() {
+		Long followerId = 1L;
+		FollowStatus newFollowStatus = FollowStatus.ACCEPTED;
+		User userFollowedWhoAuth = User.builder().userId(2L).build();
+		Follow follow = new Follow();
+		FollowDto followDto = FollowDto.builder().followStatus(newFollowStatus).build();
+		
+		//auth user.
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userFollowedWhoAuth);
+		//dao
+		when(followDao.findOneByFollowedUserIdAndFollowerUserId(userFollowedWhoAuth.getUserId(), followerId)).thenReturn(Optional.of(follow));
+		//setting new follow statuts
+		follow.setFollowStatus(newFollowStatus);
+		when(followDao.save(any(Follow.class))).thenReturn(follow);
+		//mapper
+		when(followMapper.followToFollowDto(any(Follow.class))).thenReturn(followDto);
+		
+		assertNotNull(followService.updateFollowStatusByFollower(followerId, FollowStatus.ACCEPTED));
+	}
+	
+	
+	//findById
 	@Test
 	void findByIdParamIdNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> followService.findById(null));
@@ -358,16 +408,6 @@ class FollowServiceImplTest {
 	void getFollowStatusByFollowedIdIdNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> followService.getFollowStatusByFollowedId(null));
 	}
-
-	@Test
-	void getFollowStatusByFollowedIdUserVisibleReturnAccepted() {
-		UserDto userDto = UserDto.builder().visible(true).build();
-		when(userService.getById(1L)).thenReturn(userDto);
-		FollowStatus followStatus = followService.getFollowStatusByFollowedId(1L);
-		if (!followStatus.equals(FollowStatus.ACCEPTED))
-			fail("if the user is visible/public true then should return accepted");
-		verify(followDao, never()).findOneByFollowedUserIdAndFollowerUserId(null,null);
-	}
 	
 	@Test
 	void getFollowStatusByFollowedIdUserNoVisibleFollowedRecordNoExistReturnNotAsked() {
@@ -400,6 +440,33 @@ class FollowServiceImplTest {
 		when(followDao.findOneByFollowedUserIdAndFollowerUserId(followedId, userWhoAuth.getUserId())).thenReturn(Optional.of(follow));
 		
 		assertNotNull(followService.getFollowStatusByFollowedId(1L));
+		
+	}
+	
+	//getFollowStatusByFollowerId
+	@Test
+	void getFollowStatusByFollowerIdParamIdNullThrow() {
+		assertThrows(IllegalArgumentException.class , () -> followService.getFollowStatusByFollowerId(null));
+	}
+
+	@Test
+	void getFollowStatusByFollowerIdReturnsNotNull() {
+		User userWhoAuth = User.builder().userId(2L).visible(false).build();
+		UserDto userDtoFollwer = UserDto.builder().userId("1").visible(false).build();
+		Follow follow = Follow.builder().followStatus(FollowStatus.IN_PROCESS).build();
+		Long followerId = 1L;
+		
+		//user service
+		when(userService.getById(followerId)).thenReturn(userDtoFollwer);
+		//auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
+		//follow dao
+		when(followDao.findOneByFollowedUserIdAndFollowerUserId(userWhoAuth.getUserId(), followerId))
+			.thenReturn(Optional.of(follow));
+		
+		assertNotNull(followService.getFollowStatusByFollowerId(followerId));
 		
 	}
 

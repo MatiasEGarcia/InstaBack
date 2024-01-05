@@ -39,7 +39,7 @@ public class FollowServiceImpl implements FollowService {
 	private final PageableUtils pagUtils;
 	private final NotificationService notificationService;
 
-	// checkear tests
+	
 	@Override
 	@Transactional
 	public FollowDto save(Long followedId) {
@@ -104,6 +104,26 @@ public class FollowServiceImpl implements FollowService {
 	}
 
 	@Override
+	@Transactional
+	public FollowDto updateFollowStatusByFollower(Long followerUserId, FollowStatus newStatus) {
+		if(followerUserId == null ||  newStatus == null) throw new IllegalArgumentException("generic.arg-not-null");
+		User authUser;
+		Follow follow;
+		userService.getById(followerUserId);//if the user no exists throw exception.
+		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
+		//getting follow record
+		follow = followDao.findOneByFollowedUserIdAndFollowerUserId(authUser.getUserId(), followerUserId)
+				.orElseThrow(() -> new RecordNotFoundException(messUtils.getMessage("follow.not-found"),HttpStatus.NOT_FOUND));
+		//updating follow recod
+		follow.setFollowStatus(newStatus);
+		follow = followDao.save(follow);
+		//mapping
+		return followMapper.followToFollowDto(follow);
+	}
+	
+	
+	@Override
 	@Transactional(readOnly = true)
 	public FollowDto findById(Long id) {
 		if(id == null) throw new IllegalArgumentException("generic.arg-not-null");
@@ -136,25 +156,45 @@ public class FollowServiceImpl implements FollowService {
 		followDao.delete(followMapper.followDtoToFollow(foll));
 	}
 
-	//check tests
+	
+	
 	@Override
 	@Transactional(readOnly = true)
 	public FollowStatus getFollowStatusByFollowedId(Long id) {
 		if (id == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
-		UserDto userFollowed;
 		Optional<Follow> optFollow;
 		User userFollower;
 		
-		userFollowed = userService.getById(id);
-		if (userFollowed.isVisible())
-			return FollowStatus.ACCEPTED; // if the user is public/visible, then we return accepted
+		//checking that followed user exists.
+		userService.getById(id);
 		
 		userFollower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		
 		optFollow = followDao.findOneByFollowedUserIdAndFollowerUserId(id, userFollower.getUserId());
 		
 		if (optFollow.isEmpty())
+			return FollowStatus.NOT_ASKED;
+		return optFollow.get().getFollowStatus();
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public FollowStatus getFollowStatusByFollowerId(Long followerId) {
+		if(followerId == null) {
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+		}
+		Optional<Follow> optFollow;
+		User userFollowed;
+		
+		//checking that follower user exists
+		userService.getById(followerId);
+		
+		userFollowed = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
+		optFollow = followDao.findOneByFollowedUserIdAndFollowerUserId(userFollowed.getUserId(), followerId);
+		
+		if(optFollow.isEmpty())
 			return FollowStatus.NOT_ASKED;
 		return optFollow.get().getFollowStatus();
 	}

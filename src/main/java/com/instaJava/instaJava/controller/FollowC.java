@@ -1,6 +1,7 @@
 package com.instaJava.instaJava.controller;
 
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -68,7 +69,7 @@ public class FollowC {
 	 * To update the follow status in Follow records.
 	 * 
 	 * @param followStatus. Kind of followStatus to update to.
-	 * @param id. follow id from the record to updated.
+	 * @param followId. follow id from the record to updated.
 	 * @return follow record updated
 	 */
 	@PutMapping(value="/updateFollowStatus", produces = "application/json")
@@ -89,4 +90,33 @@ public class FollowC {
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
 
+	
+	/**
+	 * Method to update follow status on follow record by authenticated user and follower or followed id.
+	 * @param followerId
+	 * @param followedId
+	 * @return follow record updated
+	 */
+	@PutMapping(value = "/updateFollowStatus/byFollowerId" , produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<FollowDto> updateFollowStatusByFollower(
+			@RequestParam(name = "followerId") Long followerId,
+			@RequestParam(name = "followStatus") FollowStatus followStatus){
+		FollowDto f = follService.updateFollowStatusByFollower(followerId, followStatus);
+		return ResponseEntity.ok().body(f);
+	}
+	
+
+	
 }
+
+
+
+
+
+
+
+
+
+
+
+

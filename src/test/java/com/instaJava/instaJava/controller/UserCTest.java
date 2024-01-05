@@ -588,7 +588,8 @@ class UserCTest {
 				.andExpect(jsonPath("$.social.numberPublications", is("1")))
 				.andExpect(jsonPath("$.social.numberFollowers", is("0")))
 				.andExpect(jsonPath("$.social.numberFollowed", is("0")))// is in IN_PROCESS status , so is 0 followed
-				.andExpect(jsonPath("$.social.followStatus", is(FollowStatus.NOT_ASKED.toString())));
+				.andExpect(jsonPath("$.social.followerFollowStatus", is(FollowStatus.NOT_ASKED.toString())))
+				.andExpect(jsonPath("$.social.followedFollowStatus", is(FollowStatus.IN_PROCESS.toString())));
 	}
 	
 	

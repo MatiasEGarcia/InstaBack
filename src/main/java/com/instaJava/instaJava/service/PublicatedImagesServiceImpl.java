@@ -78,21 +78,19 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		publicatedImagesDao.deleteById(id);
 	}
 
-	//CHECKEAR TESTSSS
 	@Override
 	@Transactional(readOnly = true)
 	public PublicatedImageDto getById(Long id) {
 		if (id == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
-		Long ownerId;
 		FollowStatus followStatus;
 		PublicatedImage publicatedImage = publicatedImagesDao.findById(id).orElseThrow(() -> 
 				new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"), List.of(id.toString()), HttpStatus.NOT_FOUND));
-		ownerId = publicatedImage.getUserOwner().getUserId();
-		followStatus = followService.getFollowStatusByFollowedId(ownerId);
 		
-		//check en tests esto
-		if(followStatus != FollowStatus.ACCEPTED) {
+		followStatus = followService.getFollowStatusByFollowedId( publicatedImage.getUserOwner().getUserId() );
+		
+		//check ownerUser visibility and follow status
+		if(!publicatedImage.getUserOwner().isVisible() && followStatus != FollowStatus.ACCEPTED) {
 			throw new InvalidActionException(messUtils.getMessage("publiImage.follow-status-not-accepted"), HttpStatus.BAD_REQUEST);
 		}
 		

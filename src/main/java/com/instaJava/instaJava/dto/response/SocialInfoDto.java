@@ -27,5 +27,7 @@ public class SocialInfoDto implements Serializable {
 	
 	private String numberFollowed; // is a number, but I don't return longs, so I send it as String.
 	
-	private FollowStatus followStatus;//follow status between the auth user and the user searched.
+	private FollowStatus followerFollowStatus;//follow status between the auth user and the user searched.where authenticated user is the follower
+	
+	private FollowStatus followedFollowStatus; // follow status between the auth user and the user searched.where authenticated user is the followed
 }

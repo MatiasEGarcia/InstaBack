@@ -208,7 +208,8 @@ public class UserC {
 		UserDto userDto = userService.getById(id); //throws an exception if user don't exist
 		FollowStatus followStatus = FollowStatus.ACCEPTED;
 		SocialInfoDto socialInfoDto = new SocialInfoDto();
-		socialInfoDto.setFollowStatus(followService.getFollowStatusByFollowedId(id));
+		socialInfoDto.setFollowerFollowStatus(followService.getFollowStatusByFollowedId(id));
+		socialInfoDto.setFollowedFollowStatus(followService.getFollowStatusByFollowerId(id));
 		numberFollowed = followService.countByFollowStatusAndFollowed(followStatus, id).toString();
 		socialInfoDto.setNumberFollowed(numberFollowed);
 		numberFollower = followService.countByFollowStatusAndFollower(followStatus, id).toString();

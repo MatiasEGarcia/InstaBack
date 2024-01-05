@@ -46,7 +46,17 @@ public interface FollowService {
 	 *                                  followed user in the Follow record.
 	 */
 	FollowDto updateFollowStatusById(Long id, FollowStatus newStatus);
-
+	
+	/**
+	 * Method to update follow status on follow record where auth user is the followed and the otherUser follower.
+	 * 
+	 * @param followerUserId - follower user
+	 * @param flag - flag to know if the other user is follower or followed. other user is follower = true, otherwise false.
+	 * @param newStatus - new follow status.
+	 * @return FollowDto object with Follow record updated info.
+	 */
+	FollowDto updateFollowStatusByFollower(Long followerUserId, FollowStatus newStatus);
+	
 	/**
 	 * 
 	 * Find Follow record by id.
@@ -83,9 +93,16 @@ public interface FollowService {
 	 * user.
 	 * 
 	 * @throws IllegalArgumentException if @param id is null;
-	 * @return FollowStatus between authUser and user onwer of id given.
+	 * @return FollowStatus between authUser and user onwer of id given. Where authenticated user is the follower user.
 	 */
 	FollowStatus getFollowStatusByFollowedId(Long followedId);
+	
+	/**
+	 * 
+	 * @param followerId
+	 * @return FollowStatus between authUser and user onwer of id given. Where authenticated user is the followed user.
+	 */
+	FollowStatus getFollowStatusByFollowerId(Long followerId);
 
 	/**
 	 * Count how many follow records there are by followed user and follow status.
