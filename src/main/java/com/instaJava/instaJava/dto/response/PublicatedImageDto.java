@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+import com.instaJava.instaJava.dto.CommentDto;
 import com.instaJava.instaJava.dto.UserDto;
 
 import lombok.AllArgsConstructor;
@@ -37,4 +38,6 @@ public class PublicatedImageDto implements Serializable{
 	private String description;
 	
 	private UserDto userOwner;
+	
+	private ResPaginationG<CommentDto> rootComments;
 }

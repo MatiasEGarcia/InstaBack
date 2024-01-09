@@ -11,11 +11,3 @@ public class InstaJavaApplication {
 	}
 
 }
-
-/**
-* - getFollowStatusByFollowerId
-* - updateFollowStatusByFollower
-*
-*
-*
-*/

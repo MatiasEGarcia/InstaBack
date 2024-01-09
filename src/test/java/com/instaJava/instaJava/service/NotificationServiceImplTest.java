@@ -47,8 +47,10 @@ import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.ChatUser;
+import com.instaJava.instaJava.entity.Comment;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
+import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.NotificationType;
 import com.instaJava.instaJava.enums.RolesEnum;
@@ -247,6 +249,127 @@ class NotificationServiceImplTest {
 		assertTrue(destinationValues.contains("3"));
 	}
 
+	//saveNotificationOfComment
+	@Test
+	void saveNotificationOfCommentParamCommentOwnerUserNullThrow() {	
+		PublicatedImage associatedImg = PublicatedImage.builder()
+				.userOwner(user)
+				.build();
+		//comment without owner user.
+		Comment comment = Comment.builder()
+				.associatedImg(associatedImg)
+				.build();
+		
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfComment(comment, "randomMessage"));
+	}
+	
+	@Test
+	void saveNotificationOfCommentParamCommentOwnerUserIdNullThrow() {	
+		PublicatedImage associatedImg = PublicatedImage.builder()
+				.userOwner(user)
+				.build();		
+		//comment with user without id.
+		Comment comment = Comment.builder()
+				.associatedImg(associatedImg)
+				.ownerUser(new User())
+				.build();
+		
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfComment(comment, "randomMessage"));
+	}
+	
+	@Test
+	void saveNotificationOfCommentParamCommentWithoutAssociatedImgNullThrow() {	
+		//comment without associatedImage.
+		Comment comment = Comment.builder()
+				.ownerUser(new User(5L))
+				.build();
+		
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfComment(comment, "randomMessage"));
+	}
+	
+	@Test
+	void saveNotificationOfCommentParamCommentAssociatedImgWithoutUserNullThrow() {	
+		//comment with user without id.
+		Comment comment = Comment.builder()
+				.associatedImg(new PublicatedImage())
+				.ownerUser(new User(5L))
+				.build();
+		
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfComment(comment, "randomMessage"));
+	}
+	
+	@Test
+	void saveNotificationOfCommentParamCommentAssociatedImgUserOwnerIdNullThrow() {	
+		PublicatedImage associatedImg = PublicatedImage.builder()
+				.userOwner(new User())
+				.build();		
+		//comment with user without id.
+		Comment comment = Comment.builder()
+				.associatedImg(associatedImg)
+				.ownerUser(new User(5L))
+				.build();
+		
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfComment(comment, "randomMessage"));
+	}
+	
+	@Test
+	void saveNotificationOfCommentParamCustomMessageNullThrow() {	
+		PublicatedImage associatedImg = PublicatedImage.builder()
+				.userOwner(user)
+				.build();		
+		//comment with user without id.
+		Comment comment = Comment.builder()
+				.associatedImg(associatedImg)
+				.ownerUser(new User(5L))
+				.build();
+		
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfComment(comment, null));
+	}
+	
+	@Test
+	void saveNotificationOfCommentParamCustomMessageBlankThrow() {	
+		PublicatedImage associatedImg = PublicatedImage.builder()
+				.userOwner(user)
+				.build();		
+		//comment with user without id.
+		Comment comment = Comment.builder()
+				.associatedImg(associatedImg)
+				.ownerUser(new User(5L))
+				.build();
+		
+		assertThrows(IllegalArgumentException.class, () -> notiService.saveNotificationOfComment(comment, ""));
+	}
+	
+	@Test
+	void saveNotification() {	
+		PublicatedImage associatedImg = PublicatedImage.builder()
+				.userOwner(user)
+				.build();		
+		//comment with user without id.
+		Comment comment = Comment.builder()
+				.associatedImg(associatedImg)
+				.ownerUser(new User(5L))
+				.build();
+		UserDto userDto = UserDto.builder().userId(user.getUserId().toString()).build();
+		Notification noti = Notification.builder().toWho(user).build();
+		NotificationDto notiDto = NotificationDto.builder()
+				.toWho(userDto)
+				.build();
+		
+		//clock
+		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
+		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
+		//dao
+		when(notiDao.save(any(Notification.class))).thenReturn(noti);
+		//mapper
+		when(notiMapper.notificationToNotificationDtoWithToWho(noti)).thenReturn(notiDto);
+		
+		notiService.saveNotificationOfComment(comment, "customMessage");
+		
+		verify(messTemplate).convertAndSendToUser(notiDto.getToWho().getUserId(),"/private" , notiDto);
+	}
+	
+	
 	// getNotificationByAuthUser
 	@Test
 	void getNotificationsByAuthUserParamPageInfoDtoNullThrow() {

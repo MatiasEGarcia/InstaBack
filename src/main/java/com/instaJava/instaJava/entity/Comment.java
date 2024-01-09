@@ -4,15 +4,17 @@ import java.time.ZonedDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
@@ -28,20 +30,44 @@ public class Comment{
 	@Column(name= "id")
 	private Long commentId;
 	
-	@Column(name = "status")
+	@Column(name = "body")
 	private String body;
 	
-	@Column(name = "user_owner")
-	private String associatedUser;
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "owner_user")
+	private User ownerUser;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "img")
 	private PublicatedImage associatedImg;
 	
-	@Column(name = "parent_id")
-	private Long parentId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "parent")
+	private Comment parent;
 	
 	@Column(name = "created_At")
 	private ZonedDateTime createdAt;
 
+	@Transient
+	private Long associateCN; //number of commentaries associated
+
+	public Comment(Long id) {
+		this.commentId = id;
+	}
+
+	/**
+	 * Constructor  with associated commentaries number.
+	 * @param c - Comment record.
+	 * @param associateCN - associate commentaries number.
+	 */
+	public Comment(Comment c, Long associateCN) {
+		this.commentId = c.getCommentId();
+		this.body = c.getBody();
+		this.ownerUser = c.getOwnerUser();
+		this.associatedImg = c.getAssociatedImg();
+		this.parent = c.getParent();
+		this.createdAt = c.getCreatedAt();
+		this.associateCN = associateCN;
+	}
+	
 }

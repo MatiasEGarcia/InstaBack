@@ -36,7 +36,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.instaJava.instaJava.dao.CommentDao;
 import com.instaJava.instaJava.dao.PublicatedImagesDao;
+import com.instaJava.instaJava.dto.CommentDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.response.PublicatedImageDto;
@@ -47,6 +49,7 @@ import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
+import com.instaJava.instaJava.mapper.CommentMapper;
 import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
@@ -67,11 +70,15 @@ class PublicatedImagesServiceImplTest {
 	@Mock
 	private PublicatedImagesDao publicatedImagesDao;
 	@Mock
+	private CommentDao commentDao;
+	@Mock
 	private FollowService followService;
 	@Mock
 	private UserService userService;
 	@Mock
 	private PublicatedImageMapper publicatedImageMapper;
+	@Mock
+	private CommentMapper commentMapper;
 	@Mock
 	private SpecificationService<PublicatedImage> specService;
 	@InjectMocks
@@ -199,13 +206,16 @@ class PublicatedImagesServiceImplTest {
 
 		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id));
 		verify(publicatedImageMapper, never()).publicatedImageToPublicatedImageDto(publicatedImage);
+		verify(commentDao, never()).getRootCommentsByAssociatedImage(eq(id), any(Pageable.class));
 	}
 
 	@Test
-	void getByIdOwnerVisibleStatusRejectedReturnNotNull() {
-		Long id = 1L;
+	void getByIdOwnerVisibleStatusRejectedReturnNotNull() {/////////////////////
+		Long id = 5L;
 		User userOnwer = User.builder().userId(2L).visible(true).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
+
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
@@ -213,6 +223,13 @@ class PublicatedImagesServiceImplTest {
 		// mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
+		// Pageable
+		when(pageUtils.getPageable(any(PageInfoDto.class))).thenReturn(Pageable.unpaged());
+		// commentDao
+		when(commentDao.getRootCommentsByAssociatedImage(eq(id), any(Pageable.class))).thenReturn(Page.empty());
+		// comment mapper
+		when(commentMapper.pageAndPageInfoDtoToResPaginationG(eq(Page.empty()), any(PageInfoDto.class)))
+				.thenReturn(commentResPaginationG);
 
 		assertNotNull(publicatedImagesService.getById(id));
 	}
@@ -229,6 +246,7 @@ class PublicatedImagesServiceImplTest {
 
 		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id));
 		verify(publicatedImageMapper, never()).publicatedImageToPublicatedImageDto(publicatedImage);
+		verify(commentDao, never()).getRootCommentsByAssociatedImage(eq(id), any(Pageable.class));
 	}
 
 	@Test
@@ -236,14 +254,22 @@ class PublicatedImagesServiceImplTest {
 		Long id = 1L;
 		User userOnwer = User.builder().userId(2L).visible(true).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
+
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
 		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.IN_PROCESS);
-
 		// mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
+		// Pageable
+		when(pageUtils.getPageable(any(PageInfoDto.class))).thenReturn(Pageable.unpaged());
+		// commentDao
+		when(commentDao.getRootCommentsByAssociatedImage(eq(id), any(Pageable.class))).thenReturn(Page.empty());
+		// comment mapper
+		when(commentMapper.pageAndPageInfoDtoToResPaginationG(eq(Page.empty()), any(PageInfoDto.class)))
+				.thenReturn(commentResPaginationG);
 
 		assertNotNull(publicatedImagesService.getById(id));
 	}
@@ -260,6 +286,7 @@ class PublicatedImagesServiceImplTest {
 
 		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id));
 		verify(publicatedImageMapper, never()).publicatedImageToPublicatedImageDto(publicatedImage);
+		verify(commentDao, never()).getRootCommentsByAssociatedImage(eq(id), any(Pageable.class));
 	}
 
 	@Test
@@ -267,23 +294,32 @@ class PublicatedImagesServiceImplTest {
 		Long id = 1L;
 		User userOnwer = User.builder().userId(2L).visible(true).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
+
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
 		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.NOT_ASKED);
-
 		// mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
+		// Pageable
+		when(pageUtils.getPageable(any(PageInfoDto.class))).thenReturn(Pageable.unpaged());
+		// commentDao
+		when(commentDao.getRootCommentsByAssociatedImage(eq(id), any(Pageable.class))).thenReturn(Page.empty());
+		// comment mapper
+		when(commentMapper.pageAndPageInfoDtoToResPaginationG(eq(Page.empty()), any(PageInfoDto.class)))
+				.thenReturn(commentResPaginationG);
 
 		assertNotNull(publicatedImagesService.getById(id));
 	}
 
 	@Test
-	void getByIdOwnerNoVisibleReturnsNotNull() {
+	void getByIdOwnerNoVisibleFollowStatusAcceptedReturnsNotNull() {
 		Long id = 1L;
 		User userOnwer = User.builder().userId(2L).visible(false).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
@@ -291,15 +327,23 @@ class PublicatedImagesServiceImplTest {
 		// mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
+		// Pageable
+		when(pageUtils.getPageable(any(PageInfoDto.class))).thenReturn(Pageable.unpaged());
+		// commentDao
+		when(commentDao.getRootCommentsByAssociatedImage(eq(id), any(Pageable.class))).thenReturn(Page.empty());
+		// comment mapper
+		when(commentMapper.pageAndPageInfoDtoToResPaginationG(eq(Page.empty()), any(PageInfoDto.class)))
+				.thenReturn(commentResPaginationG);
 
 		assertNotNull(publicatedImagesService.getById(id));
 	}
-	
+
 	@Test
 	void getByIdOwnerVisibleReturnsNotNull() {
 		Long id = 1L;
 		User userOnwer = User.builder().userId(2L).visible(true).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
@@ -307,6 +351,13 @@ class PublicatedImagesServiceImplTest {
 		// mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
+		// Pageable
+		when(pageUtils.getPageable(any(PageInfoDto.class))).thenReturn(Pageable.unpaged());
+		// commentDao
+		when(commentDao.getRootCommentsByAssociatedImage(eq(id), any(Pageable.class))).thenReturn(Page.empty());
+		// comment mapper
+		when(commentMapper.pageAndPageInfoDtoToResPaginationG(eq(Page.empty()), any(PageInfoDto.class)))
+				.thenReturn(commentResPaginationG);
 
 		assertNotNull(publicatedImagesService.getById(id));
 	}

@@ -21,6 +21,7 @@ import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
+import com.instaJava.instaJava.entity.Comment;
 import com.instaJava.instaJava.entity.Follow;
 import com.instaJava.instaJava.entity.Notification;
 import com.instaJava.instaJava.entity.User;
@@ -108,6 +109,31 @@ public class NotificationServiceImpl implements NotificationService {
 
 	}
 
+	
+	@Override
+	@Transactional
+	public void saveNotificationOfComment(Comment comment, String customMessage) {
+		if(comment.getOwnerUser() == null || comment.getOwnerUser().getUserId() == null || comment.getAssociatedImg() == null ||
+				comment.getAssociatedImg().getUserOwner() == null || comment.getAssociatedImg().getUserOwner().getUserId() == null ||
+				customMessage == null || customMessage.isBlank()) {
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
+		}
+		NotificationDto notiDto;
+		Notification notification = Notification.builder()
+				.fromWho(comment.getOwnerUser())
+				.toWho(comment.getAssociatedImg().getUserOwner())
+				.type(NotificationType.COMMENT)
+				.createdAt(ZonedDateTime.now(clock))
+				.notiMessage(customMessage)
+				.build();
+		//dao
+		notification = notiDao.save(notification);
+		//mapper
+		notiDto = notificationMapper.notificationToNotificationDtoWithToWho(notification);
+		//socket
+		messTemplate.convertAndSendToUser(notiDto.getToWho().getUserId(),"/private", notiDto);
+		
+	}
 	
 	@Override
 	@Transactional(readOnly = true)

@@ -53,11 +53,13 @@ CREATE TABLE chats_users(
 CREATE TABLE comments(
 	id int primary key auto_increment not null,
     body varchar(100) not null,
-    associate_user varchar(20) not null,
+    owner_user int not null,
     img int not null,
-    parent_id int,
+    parent int,
     created_at datetime not null, 
-	foreign key (img) references publicated_images(id) on delete cascade
+	foreign key (img) references publicated_images(id) on delete cascade,
+	foreign key (owner_user) references users(id) on delete cascade,
+	foreign key (parent) references comments(id) on delete cascade
 );
 
 CREATE TABLE follow(

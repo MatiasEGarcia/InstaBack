@@ -10,8 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.Clock;
-import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -63,6 +61,8 @@ class PublicatedImageCTest {
 	private String sqlUpdateUser1;
 	@Value("${sql.script.create.publicatedImage}")
 	private String sqlAddPublicatedImage;
+	@Value("${sql.script.create.comment.1}")
+	private String sqlAddComment;
 	@Value("${sql.script.create.publicatedImage.2}")
 	private String sqlAddPublicatedImage2;
 	@Value("${sql.script.create.follow.statusInProcess}")
@@ -175,17 +175,6 @@ class PublicatedImageCTest {
 	@Test
 	void deleteDeleteByIdStatusOk() throws Exception {
 		String token = jwtService.generateToken(userAuthMati);
-		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", 
-				 MediaType.IMAGE_JPEG_VALUE, 
-		        "Hello, World!".getBytes()
-		      );
-		String imgBase64 = Base64.getEncoder().encodeToString(img.getBytes());
-		publicatedImagesDao.save(PublicatedImage.builder()
-				.image(imgBase64)
-				.createdAt(ZonedDateTime.now(Clock.systemUTC()))
-				.description("random")
-				.userOwner(userAuthMati)
-				.build());
 		
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/publicatedImages/{id}",1)
 				.header("authorization", "Bearer " + token))
@@ -211,6 +200,7 @@ class PublicatedImageCTest {
 	@Test
 	void getGetByIdOk() throws Exception {
 		jdbc.execute(updateFollow1ToAccepted);//now follow has status accepted, so roci can get mati publications
+		jdbc.execute(sqlAddComment);
 		String token = jwtService.generateToken(userAuthRoci);
 		
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/publicatedImages/{id}",1)
@@ -218,7 +208,8 @@ class PublicatedImageCTest {
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is("1")))
-				.andExpect(jsonPath("$.userOwner.userId", is("1")));
+				.andExpect(jsonPath("$.userOwner.userId", is("1")))
+				.andExpect(jsonPath("$.rootComments.list", hasSize(1)));
 	}
 	
 	@Test

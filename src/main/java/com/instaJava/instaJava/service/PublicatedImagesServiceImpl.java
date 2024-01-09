@@ -7,23 +7,28 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.instaJava.instaJava.dao.CommentDao;
 import com.instaJava.instaJava.dao.PublicatedImagesDao;
+import com.instaJava.instaJava.dto.CommentDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.response.PublicatedImageDto;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.entity.Comment;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
+import com.instaJava.instaJava.mapper.CommentMapper;
 import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
@@ -36,11 +41,13 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 
 	private final Clock clock;
 	private final PublicatedImagesDao publicatedImagesDao;
+	private final CommentDao commentDao;
 	private final MessagesUtils messUtils;
 	private final PageableUtils pagUtils;
 	private final FollowService followService;
 	private final UserService userService;
 	private final PublicatedImageMapper publicatedImageMapper;
+	private final CommentMapper commentMapper;
 
 	
 	@Override
@@ -78,11 +85,16 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		publicatedImagesDao.deleteById(id);
 	}
 
+	//check test
 	@Override
 	@Transactional(readOnly = true)
 	public PublicatedImageDto getById(Long id) {
 		if (id == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+		PageInfoDto commentsPageInfoDto;
+		PublicatedImageDto publicatedImageDto;
+		ResPaginationG<CommentDto> commentResPaginationG;
+		Page<Comment> commentsPage;
 		FollowStatus followStatus;
 		PublicatedImage publicatedImage = publicatedImagesDao.findById(id).orElseThrow(() -> 
 				new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"), List.of(id.toString()), HttpStatus.NOT_FOUND));
@@ -94,7 +106,22 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 			throw new InvalidActionException(messUtils.getMessage("publiImage.follow-status-not-accepted"), HttpStatus.BAD_REQUEST);
 		}
 		
-		return publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage);
+		publicatedImageDto = publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage);
+		
+		//getting root comments
+		commentsPageInfoDto = new PageInfoDto();
+		commentsPageInfoDto.setPageNo(0);
+		commentsPageInfoDto.setPageSize(20);
+		commentsPageInfoDto.setSortField("createdAt");
+		commentsPageInfoDto.setSortDir(Direction.DESC);
+		
+		//getting from dao
+		commentsPage = commentDao.getRootCommentsByAssociatedImage(id, pagUtils.getPageable(commentsPageInfoDto));
+		//mapping
+		commentResPaginationG = commentMapper.pageAndPageInfoDtoToResPaginationG(commentsPage, commentsPageInfoDto);
+		//set
+		publicatedImageDto.setRootComments(commentResPaginationG);
+		return publicatedImageDto;
 	}
 	
 	@Override

@@ -87,7 +87,7 @@ public class ExceptionHandlerController {//TENGO QUE AGREGAR EL MANEJO DE HttpRe
 	}
 
 	/**
-	 * This Exception will be throw when The requestBody is not fulfilled.
+	 * This Exception will be throw when The requestBody recive an object but its parts is not fulfilled.
 	 * 
 	 * @param e. exception that we need to handle.
 	 * @return ResponseEntity.
@@ -174,8 +174,8 @@ public class ExceptionHandlerController {//TENGO QUE AGREGAR EL MANEJO DE HttpRe
 
 	/**
 	 * This exception occurs : when I post an object that needs an enum, but the
-	 * string value is not the same any enum values. when the client don't pass the
-	 * object that have the requestBody
+	 * string value is not the same any enum values. 
+	 * When the client don't pass the object that have the requestBody
 	 * @param e. exception that we need to handle.
 	 * @return ResponseEntity.
 	 */
