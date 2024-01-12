@@ -60,13 +60,23 @@ public class PublicatedImageC {
 	}
 
 	/**
-	 * Get all publication info by id.
+	 * Get all publication info by id.(with root comments)
 	 * @param id - publication's info.
+	 * @param pageNo.    For comments pagination, number of the page.
+	 * @param pageSize.  For comments pagination, size of the elements in the same page.
+	 * @param sortField. For comments pagination, sorted by..
+	 * @param sortDir.   In what direction is sorted, asc or desc.
 	 * @return all publication info.
 	 */
 	@GetMapping(value = "/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PublicatedImageDto> getById(@PathVariable("id") Long id){
-		return  ResponseEntity.ok().body(publicatedImageService.getById(id));
+	public ResponseEntity<PublicatedImageDto> getById(@PathVariable("id") Long id ,
+			@RequestParam(name = "page", defaultValue = "0") String pageNo,
+			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
+			@RequestParam(name = "sortField", defaultValue = "commentId") String sortField,
+			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
+		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
+				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
+		return  ResponseEntity.ok().body(publicatedImageService.getById(id,pageInfoDto));
 	}
 	
 	

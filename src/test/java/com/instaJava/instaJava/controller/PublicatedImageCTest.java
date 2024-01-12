@@ -187,7 +187,7 @@ class PublicatedImageCTest {
 	
 	//getById
 	@Test
-	void getGetByIdBadRequest() throws Exception {///////////////////////////////////////////////////////////////////////////////////////
+	void getGetByIdBadRequest() throws Exception {
 		jdbc.execute(sqlUpdateUser1); //now mati is not visible.
 		String token = jwtService.generateToken(userAuthRoci);//this user don't have follow status accepted with the publication owner.
 		

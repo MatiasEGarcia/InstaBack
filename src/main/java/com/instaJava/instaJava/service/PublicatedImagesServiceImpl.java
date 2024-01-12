@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -77,9 +76,10 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		if (id == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User authUser;
-		PublicatedImageDto publiImageDto = getById(id);
+		PublicatedImage publiImage = publicatedImagesDao.findById(id).orElseThrow(() ->
+				new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"),HttpStatus.NOT_FOUND));
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (!publiImageDto.getUserOwner().getUserId().equals(authUser.getUserId().toString())) {
+		if (!publiImage.getUserOwner().getUserId().equals(authUser.getUserId())) {
 			throw new InvalidActionException(messUtils.getMessage("generic.auth-user-no-owner"),HttpStatus.BAD_REQUEST);
 		}
 		publicatedImagesDao.deleteById(id);
@@ -88,10 +88,9 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	//check test
 	@Override
 	@Transactional(readOnly = true)
-	public PublicatedImageDto getById(Long id) {
-		if (id == null)
+	public PublicatedImageDto getById(Long id, PageInfoDto pageInfoDtoComments) {
+		if (id == null || pageInfoDtoComments == null || pageInfoDtoComments.getSortDir() == null || pageInfoDtoComments.getSortField() == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
-		PageInfoDto commentsPageInfoDto;
 		PublicatedImageDto publicatedImageDto;
 		ResPaginationG<CommentDto> commentResPaginationG;
 		Page<Comment> commentsPage;
@@ -109,16 +108,11 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		publicatedImageDto = publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage);
 		
 		//getting root comments
-		commentsPageInfoDto = new PageInfoDto();
-		commentsPageInfoDto.setPageNo(0);
-		commentsPageInfoDto.setPageSize(20);
-		commentsPageInfoDto.setSortField("createdAt");
-		commentsPageInfoDto.setSortDir(Direction.DESC);
 		
 		//getting from dao
-		commentsPage = commentDao.getRootCommentsByAssociatedImage(id, pagUtils.getPageable(commentsPageInfoDto));
+		commentsPage = commentDao.getRootCommentsByAssociatedImage(id, pagUtils.getPageable(pageInfoDtoComments));
 		//mapping
-		commentResPaginationG = commentMapper.pageAndPageInfoDtoToResPaginationG(commentsPage, commentsPageInfoDto);
+		commentResPaginationG = commentMapper.pageAndPageInfoDtoToResPaginationG(commentsPage, pageInfoDtoComments);
 		//set
 		publicatedImageDto.setRootComments(commentResPaginationG);
 		return publicatedImageDto;

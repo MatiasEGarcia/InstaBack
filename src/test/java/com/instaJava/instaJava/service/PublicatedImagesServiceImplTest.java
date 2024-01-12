@@ -6,10 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +45,7 @@ import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.exception.InvalidActionException;
+import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.CommentMapper;
 import com.instaJava.instaJava.mapper.PublicatedImageMapper;
@@ -137,27 +135,23 @@ class PublicatedImagesServiceImplTest {
 	@Test
 	void deleteByIdNoExistsThrow() {
 		Long id = 1L;
-		PublicatedImagesServiceImpl spyPublicatedImageService = spy(publicatedImagesService);
-		doThrow(RecordNotFoundException.class).when(spyPublicatedImageService).getById(id);
-		assertThrows(RecordNotFoundException.class, () -> spyPublicatedImageService.deleteById(id));
+		when(publicatedImagesDao.findById(id)).thenReturn(Optional.empty());
+		assertThrows(RecordNotFoundException.class, () -> publicatedImagesService.deleteById(id));
 		verify(publicatedImagesDao, never()).deleteById(id);
 	}
 
 	@Test
 	void deleteByIdExistsNotSameUserThrow() {
 		Long id = 1L;
-		PublicatedImagesServiceImpl spyPublicatedImageService = spy(publicatedImagesService);
-		UserDto userDto = UserDto.builder() // different user than the auth user.
-				.userId("3").build();
-		PublicatedImageDto publiImageDto = PublicatedImageDto.builder().id("1").userOwner(userDto).build();
+		PublicatedImage publiImage = PublicatedImage.builder().publImgId(1L).userOwner(new User(3L)).build();
 
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 
-		doReturn(publiImageDto).when(spyPublicatedImageService).getById(id);
+		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publiImage));
 
-		assertThrows(InvalidActionException.class, () -> spyPublicatedImageService.deleteById(id));
+		assertThrows(InvalidException.class, () -> publicatedImagesService.deleteById(id));
 
 		verify(publicatedImagesDao, never()).deleteById(id);
 	}
@@ -165,38 +159,64 @@ class PublicatedImagesServiceImplTest {
 	@Test
 	void deleteById() {
 		Long id = 1L;
-		PublicatedImagesServiceImpl spyPublicatedImageService = spy(publicatedImagesService);
-		UserDto userDto = UserDto.builder() // same user than the auth user.
-				.userId("1").build();
-		PublicatedImageDto publiImageDto = PublicatedImageDto.builder().id("1").userOwner(userDto).build();
+		PublicatedImage publiImage = PublicatedImage.builder().publImgId(1L).userOwner(user).build();
 
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		doReturn(publiImageDto).when(spyPublicatedImageService).getById(id);
-		;
+		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publiImage));
 
-		spyPublicatedImageService.deleteById(id);
+		publicatedImagesService.deleteById(id);
 
 		verify(publicatedImagesDao).deleteById(id);
 	}
 
 	// getById
 	@Test
-	void getByIdArgNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getById(null));
+	void getByIdParamIdNullThrow() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.sortField("random")
+				.build();
+		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getById(null,pageInfoDto));
+	}
+	@Test
+	void getByIdParamPageInfoDtoCommentsNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getById(1L,null));
+	}
+	@Test
+	void getByIdParamPageInfoDtoCommentsSortDirNullThrow() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortField("random")
+				.build();
+		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getById(null,pageInfoDto));
+	}
+	@Test
+	void getByIdParamPageInfoDtoCommentsSortFieldNullThrow() {
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.build();
+		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.getById(null,pageInfoDto));
 	}
 
 	@Test
-	void getByIdNoExistThrow() {///
+	void getByIdNoExistThrow() {
 		Long id = 1L;
-		assertThrows(RecordNotFoundException.class, () -> publicatedImagesService.getById(id));
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.sortField("random")
+				.build();
+		assertThrows(RecordNotFoundException.class, () -> publicatedImagesService.getById(id,pageInfoDto));
 		verify(publicatedImagesDao).findById(id);
 	}
-
+	
 	@Test
 	void getByIdOwnerNoVisibleStatusRejectedThrow() {
 		Long id = 1L;
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.sortField("random")
+				.build();
 		User userOnwer = User.builder().userId(2L).visible(false).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
 		// dao
@@ -204,14 +224,18 @@ class PublicatedImagesServiceImplTest {
 		// follow
 		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.REJECTED);
 
-		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id));
+		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id,pageInfoDto));
 		verify(publicatedImageMapper, never()).publicatedImageToPublicatedImageDto(publicatedImage);
 		verify(commentDao, never()).getRootCommentsByAssociatedImage(eq(id), any(Pageable.class));
 	}
 
 	@Test
-	void getByIdOwnerVisibleStatusRejectedReturnNotNull() {/////////////////////
+	void getByIdOwnerVisibleStatusRejectedReturnNotNull() {
 		Long id = 5L;
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.sortField("random")
+				.build();
 		User userOnwer = User.builder().userId(2L).visible(true).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
 		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
@@ -231,12 +255,16 @@ class PublicatedImagesServiceImplTest {
 		when(commentMapper.pageAndPageInfoDtoToResPaginationG(eq(Page.empty()), any(PageInfoDto.class)))
 				.thenReturn(commentResPaginationG);
 
-		assertNotNull(publicatedImagesService.getById(id));
+		assertNotNull(publicatedImagesService.getById(id,pageInfoDto));
 	}
 
 	@Test
 	void getByIdOwnerNoVisibleStatusInProcessThrow() {
 		Long id = 1L;
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.sortField("random")
+				.build();
 		User userOnwer = User.builder().userId(2L).visible(false).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
 		// dao
@@ -244,7 +272,7 @@ class PublicatedImagesServiceImplTest {
 		// follow
 		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.IN_PROCESS);
 
-		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id));
+		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id, pageInfoDto));
 		verify(publicatedImageMapper, never()).publicatedImageToPublicatedImageDto(publicatedImage);
 		verify(commentDao, never()).getRootCommentsByAssociatedImage(eq(id), any(Pageable.class));
 	}
@@ -252,6 +280,10 @@ class PublicatedImagesServiceImplTest {
 	@Test
 	void getByIdOwnerVisibleStatusInProcessReturnNotNull() {
 		Long id = 1L;
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.sortField("random")
+				.build();
 		User userOnwer = User.builder().userId(2L).visible(true).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
 		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
@@ -271,12 +303,16 @@ class PublicatedImagesServiceImplTest {
 		when(commentMapper.pageAndPageInfoDtoToResPaginationG(eq(Page.empty()), any(PageInfoDto.class)))
 				.thenReturn(commentResPaginationG);
 
-		assertNotNull(publicatedImagesService.getById(id));
+		assertNotNull(publicatedImagesService.getById(id, pageInfoDto));
 	}
 
 	@Test
 	void getByIdOwnerNoVisibleStatusNotAskedThrow() {
 		Long id = 1L;
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.sortField("random")
+				.build();
 		User userOnwer = User.builder().userId(2L).visible(false).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
 		// dao
@@ -284,7 +320,7 @@ class PublicatedImagesServiceImplTest {
 		// follow
 		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.NOT_ASKED);
 
-		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id));
+		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id, pageInfoDto));
 		verify(publicatedImageMapper, never()).publicatedImageToPublicatedImageDto(publicatedImage);
 		verify(commentDao, never()).getRootCommentsByAssociatedImage(eq(id), any(Pageable.class));
 	}
@@ -292,6 +328,10 @@ class PublicatedImagesServiceImplTest {
 	@Test
 	void getByIdOwnerVisibleStatusNotAskedReturnNotNull() {
 		Long id = 1L;
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.sortField("random")
+				.build();
 		User userOnwer = User.builder().userId(2L).visible(true).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
 		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
@@ -311,12 +351,16 @@ class PublicatedImagesServiceImplTest {
 		when(commentMapper.pageAndPageInfoDtoToResPaginationG(eq(Page.empty()), any(PageInfoDto.class)))
 				.thenReturn(commentResPaginationG);
 
-		assertNotNull(publicatedImagesService.getById(id));
+		assertNotNull(publicatedImagesService.getById(id, pageInfoDto));
 	}
 
 	@Test
 	void getByIdOwnerNoVisibleFollowStatusAcceptedReturnsNotNull() {
 		Long id = 1L;
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.sortField("random")
+				.build();
 		User userOnwer = User.builder().userId(2L).visible(false).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
 		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
@@ -335,12 +379,16 @@ class PublicatedImagesServiceImplTest {
 		when(commentMapper.pageAndPageInfoDtoToResPaginationG(eq(Page.empty()), any(PageInfoDto.class)))
 				.thenReturn(commentResPaginationG);
 
-		assertNotNull(publicatedImagesService.getById(id));
+		assertNotNull(publicatedImagesService.getById(id, pageInfoDto));
 	}
 
 	@Test
 	void getByIdOwnerVisibleReturnsNotNull() {
 		Long id = 1L;
+		PageInfoDto pageInfoDto = PageInfoDto.builder()
+				.sortDir(Direction.ASC)
+				.sortField("random")
+				.build();
 		User userOnwer = User.builder().userId(2L).visible(true).build();
 		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
 		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
@@ -359,7 +407,7 @@ class PublicatedImagesServiceImplTest {
 		when(commentMapper.pageAndPageInfoDtoToResPaginationG(eq(Page.empty()), any(PageInfoDto.class)))
 				.thenReturn(commentResPaginationG);
 
-		assertNotNull(publicatedImagesService.getById(id));
+		assertNotNull(publicatedImagesService.getById(id , pageInfoDto));
 	}
 
 	// findById

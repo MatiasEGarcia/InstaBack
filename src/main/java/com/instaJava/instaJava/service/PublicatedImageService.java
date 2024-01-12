@@ -33,20 +33,23 @@ public interface PublicatedImageService {
 	 * 
 	 * @param id. is the pubImaId of the PublicatedImage record wanted to delete.
 	 * @throws IllegalArgumentException if @param id is null.
+	 * @throws RecordNotFoundException if the publication wanted to delete was not found.
 	 * @throws InvalidActionException   if the user authenticated is not the same
 	 *                                  owner of the PublicatedImage record.
 	 */
 	void deleteById(Long id);
 	
 	/**
-	 * Find PublicatedImage by its id(pubImaId)
+	 * Find PublicatedImage by its id(pubImaId) and getting it's root comments.
 	 * 
+	 * @param id - publication's id
+	 * @param pageInfoDtoComments - pagination info for publication's root comments.
 	 * @return PublicatedImageDto with PublicatedImage record info.
 	 * @throws RecordNotFoundException if PublicatedImage record was not found.
 	 * @throws IllegalArgumentException if @param id is null.
 	 * @throws InvalidActionException if authenticated user is not following the publication owner.
 	 */
-	PublicatedImageDto getById(Long id);
+	PublicatedImageDto getById(Long id, PageInfoDto pageInfoDtoComments);
 	
 	/**
 	 * Find PublicatedImage by its id(pubImaId)
