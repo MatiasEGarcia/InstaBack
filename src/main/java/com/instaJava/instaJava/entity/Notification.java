@@ -41,6 +41,9 @@ public class Notification{
 	@Column(name= "type")
 	private NotificationType type;
 	
+	@Column(name = "element_id")
+	private Long elementId;
+	
 	@Column(name = "noti_message")
 	private String notiMessage; //to make more especific notifications
 	

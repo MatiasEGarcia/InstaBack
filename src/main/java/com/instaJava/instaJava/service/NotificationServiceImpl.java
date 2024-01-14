@@ -58,13 +58,16 @@ public class NotificationServiceImpl implements NotificationService {
 		NotificationDto notiDto;
 		ZonedDateTime znDate = ZonedDateTime.now(clock);
 		Notification newNoti = Notification.builder().fromWho(follow.getFollower()).toWho(follow.getFollowed())
-				.type(NotificationType.FOLLOW).createdAt(znDate).notiMessage(customMessage).build();
+				.type(NotificationType.FOLLOW).createdAt(znDate).notiMessage(customMessage)
+				.elementId(follow.getFollowId())
+				.build();
 		newNoti = notiDao.save(newNoti);
 
 		// web socket event message.
 		notiDto = NotificationDto.builder().notiId(newNoti.getNotiId().toString())
 				.notificationType(NotificationType.FOLLOW).createdAt(znDate).watched(newNoti.isWatched())
-				.fromWho(userMapper.userToUserDto(follow.getFollower())).notiMessage(customMessage).build();
+				.fromWho(userMapper.userToUserDto(follow.getFollower())).notiMessage(customMessage)
+				.elementId(follow.getFollowId().toString()).build();
 		messTemplate.convertAndSendToUser(follow.getFollowed().getUserId().toString(), "/private", notiDto);
 	}
 
@@ -77,6 +80,7 @@ public class NotificationServiceImpl implements NotificationService {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		}
 		ChatDto chatDto;
+		Long elementId = Long.parseLong(messageDto.getMessageId());
 		List<NotificationDto> notificationsDto;
 		List<Notification> notifications = new ArrayList<>();
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -87,6 +91,7 @@ public class NotificationServiceImpl implements NotificationService {
 			if(user.getUserId() != authUser.getUserId()) {
 				Notification newNoti = Notification.builder().fromWho(authUser).toWho(user)
 						.type(NotificationType.MESSAGE).createdAt(ZonedDateTime.now(clock)).notiMessage(messUtils.getMessage("socket.new-message"))
+						.elementId(elementId)
 						.build();	
 				notifications.add(newNoti);
 			}
@@ -125,6 +130,7 @@ public class NotificationServiceImpl implements NotificationService {
 				.type(NotificationType.COMMENT)
 				.createdAt(ZonedDateTime.now(clock))
 				.notiMessage(customMessage)
+				.elementId(comment.getCommentId())
 				.build();
 		//dao
 		notification = notiDao.save(notification);

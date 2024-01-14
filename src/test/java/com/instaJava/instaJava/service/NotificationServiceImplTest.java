@@ -109,7 +109,7 @@ class NotificationServiceImplTest {
 		User followerUser = User.builder().userId(1L).build();
 		User followedUser = User.builder().userId(2L).build();
 		Notification notiSaved = Notification.builder().notiId(1L).build();
-		Follow follow = Follow.builder().followed(followedUser).follower(followerUser).build();
+		Follow follow = Follow.builder().followId(1L).followed(followedUser).follower(followerUser).build();
 		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
 		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
 		when(userMapper.userToUserDto(followerUser)).thenReturn(new UserDto());
@@ -189,6 +189,7 @@ class NotificationServiceImplTest {
 				.build();
 		MessageDto messageDto = MessageDto.builder()
 				.body("randomMessage")
+				.messageId("1")
 				.build();
 		NotificationDto notiDto2 = NotificationDto.builder()
 				.toWho(userDto2)
@@ -217,12 +218,14 @@ class NotificationServiceImplTest {
 				.toWho(new User(userId2))
 				.createdAt(ZonedDateTime.now(clock))
 				.type(NotificationType.MESSAGE)
+				.elementId(1L)
 				.build();
 		notification2 = Notification.builder()
 				.fromWho(user)
 				.toWho(new User(userId3))
 				.createdAt(ZonedDateTime.now(clock))
 				.type(NotificationType.MESSAGE)
+				.elementId(1L)
 				.build();
 		notificationList = List.of(notification1 ,notification2);
 		

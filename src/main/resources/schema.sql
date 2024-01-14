@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS notifications(
     from_who int not null,
     to_who int not null,
     type ENUM('FOLLOW','MESSAGE','LIKE','COMMENT','PUBLICATION'),
+    element_id int not null, -- will have the id of the elemente created, like follow's id or comment's id
     noti_message varchar(50), -- to make more especific notifications
     created_at datetime not null,
     watched boolean DEFAULT 0,  -- false 
