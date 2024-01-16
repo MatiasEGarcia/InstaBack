@@ -170,7 +170,7 @@ public class UserC {
 	public ResponseEntity<ResPaginationG<UserDto>> searchUsersWithOneCondition(@Valid @RequestBody ReqSearch reqSearch,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue = "userId") String sortField,
+			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
@@ -192,7 +192,7 @@ public class UserC {
 	public ResponseEntity<ResPaginationG<UserDto>> searchUsersWithManyConditions(@Valid @RequestBody ReqSearchList reqSearchList,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue = "userId") String sortField,
+			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
@@ -210,9 +210,9 @@ public class UserC {
 		SocialInfoDto socialInfoDto = new SocialInfoDto();
 		socialInfoDto.setFollowerFollowStatus(followService.getFollowStatusByFollowedId(id));
 		socialInfoDto.setFollowedFollowStatus(followService.getFollowStatusByFollowerId(id));
-		numberFollowed = followService.countByFollowStatusAndFollowed(followStatus, id).toString();
+		numberFollowed = followService.countByFollowStatusAndFollower(followStatus, id).toString();
+		numberFollower = followService.countByFollowStatusAndFollowed(followStatus, id).toString();
 		socialInfoDto.setNumberFollowed(numberFollowed);
-		numberFollower = followService.countByFollowStatusAndFollower(followStatus, id).toString();
 		socialInfoDto.setNumberFollowers(numberFollower);
 		numberPublications = publicatedImageService.countPublicationsByOwnerId(id).toString();
 		socialInfoDto.setNumberPublications(numberPublications);

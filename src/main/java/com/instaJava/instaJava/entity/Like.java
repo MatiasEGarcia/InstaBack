@@ -30,7 +30,7 @@ public class Like {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	private Long likeId;
+	private Long id;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "item_type")

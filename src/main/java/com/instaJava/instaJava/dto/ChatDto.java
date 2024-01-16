@@ -18,7 +18,7 @@ public class ChatDto implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
-	private String chatId;
+	private String id;
 	
 	private String name;
 	
@@ -33,7 +33,7 @@ public class ChatDto implements Serializable{
 	private String lastMessage;
 	
 	public ChatDto(String id) {
-		chatId = id;
+		this.id = id;
 	}
 	
 }

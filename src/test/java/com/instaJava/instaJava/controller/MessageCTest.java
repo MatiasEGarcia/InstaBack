@@ -76,7 +76,7 @@ class MessageCTest {
 	private String sqlRefIntegrityTrue;
 	
 	// this user is in the bdd , because we save it with sqlAddUser1
-	private User matiasUserAuth = User.builder().userId(1L).username("matias").password("123456")
+	private User matiasUserAuth = User.builder().id(1L).username("matias").password("123456")
 				.role(RolesEnum.ROLE_USER).build();
 	
 	@BeforeEach
@@ -136,12 +136,12 @@ class MessageCTest {
 				.andExpect(jsonPath("$.body", is(message)));
 	}
 	
-	//getMessagesByChat
+	//getMessagesByChatId
 	@Test
 	void getMessagesByChatWhithoutParamsThereIsMatchesOk() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		String chatId= "1";
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/messages/{chatId}",chatId)
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/messages/getMessagesByChatId/{id}",chatId)
 				.header("Authorization", "Bearer "+ token))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -150,7 +150,7 @@ class MessageCTest {
 				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(2))) //default value if the user don't pass any param
-				.andExpect(jsonPath("$.pageInfoDto.sortField", is("messageId"))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("id"))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString()))); //default value if the user don't pass any param
 	}
 	@Test
@@ -159,12 +159,13 @@ class MessageCTest {
 		jdbc.update(sqlDeleteMessage1);
 		jdbc.update(sqlDeleteMessage2);
 		String chatId= "1";
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/messages/{chatId}",chatId)
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/messages/getMessagesByChatId/{id}",chatId)
 				.header("Authorization", "Bearer "+ token))
 				.andExpect(status().isNoContent())
 				.andExpect(header().string(messUtils.getMessage("key.header-detail-exception"), messUtils.getMessage("message.group-not-found")));
 	}
 	
+	//messagesWatched
 	@Test
 	void putMessagesWatchedStatusOk() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
@@ -176,16 +177,17 @@ class MessageCTest {
 				.contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("chatId", is("1")))//messages are from chat with id = 1
+				.andExpect(jsonPath("id", is("1")))//messages are from chat with id = 1
 				.andExpect(jsonPath("messagesNoWatched", is("0"))); //now , there are not messages in this chat not watched by the auth user.
 		
 	}
 	
+	//watchedAllByChatId
 	@Test
 	void putWatchedAllStatusOk() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		
-		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/messages/watchedAll/{chatId}", 1)
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/messages/watchedAllByChatId/{id}", 1)
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))

@@ -77,7 +77,7 @@ public class ChatServiceImpl implements ChatService {
 		ResPaginationG<ChatDto> resPagChatDto = new ResPaginationG<ChatDto>();
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		Pageable page = PageRequest.of(pageInfoDto.getPageNo(), pageInfoDto.getPageSize());
-		Page<Chat> pageChat = chatDao.findChatsByUser(authUser.getUserId(), authUser.getUsername(), page);
+		Page<Chat> pageChat = chatDao.findChatsByUser(authUser.getId(), authUser.getUsername(), page);
 		if (pageChat.getContent().isEmpty()) {
 			throw new RecordNotFoundException(messUtils.getMessage("chat.group-not-found"), HttpStatus.NO_CONTENT);
 		}
@@ -248,7 +248,7 @@ public class ChatServiceImpl implements ChatService {
 				() -> new RecordNotFoundException(messUtils.getMessage("chat.not-found"), HttpStatus.NOT_FOUND));
 		authUserIsAdmin(chat);
 		chatUserDao.deleteByChatIdAndUserUsernameIn(chatId, Set.copyOf(reqDelUserFromChat.getUsersUsername()));
-		chat.setChatUsers(chatUserDao.findByChatChatId(chatId));
+		chat.setChatUsers(chatUserDao.findByChatId(chatId));
 		chatDto = new ChatDto();
 		setMessagesNotWatched(chatDto, chat);
 		return chatDto;
@@ -263,7 +263,7 @@ public class ChatServiceImpl implements ChatService {
 		}
 		ChatDto chatDto;
 		Chat chat;
-		ChatUser ch = chatUserDao.findByChatChatIdAndUserUserId(chatId, userId).orElseThrow(
+		ChatUser ch = chatUserDao.findByChatIdAndUserId(chatId, userId).orElseThrow(
 				() -> new RecordNotFoundException(messUtils.getMessage("chatUser.not-found"), HttpStatus.NOT_FOUND));
 		chat = ch.getChat();
 		authUserIsAdmin(chat);
@@ -286,9 +286,9 @@ public class ChatServiceImpl implements ChatService {
 			int middlePosition = (int) Math.ceil((low + high) / 2.0);
 			Chat middleChat = chats.get(middlePosition);
 			
-			if(middleChat.getChatId() == chatIdToFind) {
+			if(middleChat.getId() == chatIdToFind) {
 				return middlePosition;
-			}else if(middleChat.getChatId() < chatIdToFind) {
+			}else if(middleChat.getId() < chatIdToFind) {
 				low = middlePosition + 1.0;
 			}else {
 				high = middlePosition - 1.0;
@@ -370,7 +370,7 @@ public class ChatServiceImpl implements ChatService {
 
 		for (User user : users) {
 			if (!user.isVisible()) {
-				FollowStatus status = followService.getFollowStatusByFollowedId(user.getUserId());
+				FollowStatus status = followService.getFollowStatusByFollowedId(user.getId());
 				// only if auth user follow the user and the status is accepted can add it to
 				// the group.
 				if (!status.equals(FollowStatus.ACCEPTED)) {
@@ -455,7 +455,7 @@ public class ChatServiceImpl implements ChatService {
 		Long nMessagesNoWatched = 0L;
 
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		List<Long[]> countMessages = messageService.getMessagesNotWatchedCountByChatIds(List.of(chat.getChatId()),
+		List<Long[]> countMessages = messageService.getMessagesNotWatchedCountByChatIds(List.of(chat.getId()),
 				authUser.getUsername());
 		if (!countMessages.isEmpty()) {
 			nMessagesNoWatched = countMessages.get(0)[1];
@@ -483,7 +483,7 @@ public class ChatServiceImpl implements ChatService {
 
 		// getting chats ids.
 		for (Chat chat : listChat) {
-			listChatsIds.add(chat.getChatId());
+			listChatsIds.add(chat.getId());
 		}
 		
 		countMessages = messageService.getMessagesNotWatchedCountByChatIds(listChatsIds, authUsername);

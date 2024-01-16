@@ -13,9 +13,9 @@ import com.instaJava.instaJava.entity.ChatUser;
 
 public interface ChatUserDao extends JpaRepository<ChatUser, Long>  {
 
-	List<ChatUser> findByChatChatId(Long chatId);
+	List<ChatUser> findByChatId(Long id);
 	
-	Optional<ChatUser> findByChatChatIdAndUserUserId(Long chatId, Long userId);
+	Optional<ChatUser> findByChatIdAndUserId(Long id, Long userId);
 	
 	@Modifying
 	@Query("DELETE FROM ChatUser ch WHERE ch.chat IN (SELECT c FROM Chat c WHERE c.id= :chatId) "

@@ -93,9 +93,9 @@ class FollowServiceImplTest {
 	@Test
 	void saveFollowRecordAlreadyExistsThrow() {
 		User userFollower = User.builder() // who is authenticated and wants to create follow record.
-				.userId(2L).build();
-		UserDto userFollowed = UserDto.builder().userId("1").visible(true).build();
-		Long userFollowedLongId = Long.parseLong(userFollowed.getUserId());
+				.id(2L).build();
+		UserDto userFollowed = UserDto.builder().id("1").visible(true).build();
+		Long userFollowedLongId = Long.parseLong(userFollowed.getId());
 
 		FollowServiceImpl followServiceSpy = spy(followService);
 
@@ -116,27 +116,27 @@ class FollowServiceImplTest {
 	@Test
 	void saveFollowReturnsNotNull() {
 		// who is authenticated and wants to create follow record.
-		User userFollower = User.builder().userId(2L).visible(true).build();
-		UserDto userDtoFollowed = UserDto.builder().userId("1").visible(true).build();
-		User userFollowed = User.builder().userId(Long.parseLong(userDtoFollowed.getUserId())).visible(true).build();
+		User userFollower = User.builder().id(2L).visible(true).build();
+		UserDto userDtoFollowed = UserDto.builder().id("1").visible(true).build();
+		User userFollowed = User.builder().id(Long.parseLong(userDtoFollowed.getId())).visible(true).build();
 		// follow saved and returned by followDao.
 		Follow follow = Follow.builder().follower(userFollower).followed(userFollowed)
 				.followStatus(FollowStatus.ACCEPTED).build();
 		FollowDto followDto = new FollowDto();
 		FollowServiceImpl followServiceSpy = spy(followService);
 
-		when(userService.getById(userFollowed.getUserId())).thenReturn(userDtoFollowed);
+		when(userService.getById(userFollowed.getId())).thenReturn(userDtoFollowed);
 		// setting authenticated user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userFollower);
-		doReturn(false).when(followServiceSpy).existsByFollowedAndFollower(userFollowed.getUserId());
+		doReturn(false).when(followServiceSpy).existsByFollowedAndFollower(userFollowed.getId());
 		when(followDao.save(any(Follow.class))).thenReturn(follow);
 		when(followMapper.followToFollowDto(follow)).thenReturn(followDto);
 
-		assertNotNull(followServiceSpy.save(userFollowed.getUserId()));
+		assertNotNull(followServiceSpy.save(userFollowed.getId()));
 
-		verify(userService).getById(userFollowed.getUserId());
+		verify(userService).getById(userFollowed.getId());
 		verify(notificationService).saveNotificationOfFollow(any(Follow.class), eq("A new user is following you"));
 		verify(followDao).save(any(Follow.class));
 	}
@@ -220,8 +220,8 @@ class FollowServiceImplTest {
 	
 	@Test
 	void updateFollowStatusByIdAuhtUserAndFollowedInFollowRecordNotSameThrow() {
-		User authUser = User.builder().userId(2L).build();
-		UserDto otherUserFollowed = UserDto.builder().userId("3").build();
+		User authUser = User.builder().id(2L).build();
+		UserDto otherUserFollowed = UserDto.builder().id("3").build();
 		FollowDto followDto = FollowDto.builder().followed(otherUserFollowed).followStatus(FollowStatus.ACCEPTED).build();
 		FollowServiceImpl spyFollowService = spy(followService);
 		
@@ -238,8 +238,8 @@ class FollowServiceImplTest {
 
 	@Test
 	void updateFollowStatusByIdReturnNotNull() {
-		User userFollowedWhoAuth = User.builder().userId(2L).build();
-		UserDto userAuthFollowedDto = UserDto.builder().userId("2").build();
+		User userFollowedWhoAuth = User.builder().id(2L).build();
+		UserDto userAuthFollowedDto = UserDto.builder().id("2").build();
 		FollowDto followDto = FollowDto.builder().followed(userAuthFollowedDto).followStatus(FollowStatus.ACCEPTED).build();
 		FollowServiceImpl spyFollowService = spy(followService);
 		Follow followToSave = new Follow();
@@ -272,13 +272,13 @@ class FollowServiceImplTest {
 	@Test
 	void updateFollowStatusByFollowerFollowRecordNotFoundThrow() {
 		Long followerId = 1L;
-		User userFollowedWhoAuth = User.builder().userId(2L).build();
+		User userFollowedWhoAuth = User.builder().id(2L).build();
 		//auth user.
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userFollowedWhoAuth);
 		
-		when(followDao.findOneByFollowedUserIdAndFollowerUserId(userFollowedWhoAuth.getUserId(), followerId)).thenReturn(Optional.empty());
+		when(followDao.findOneByFollowedIdAndFollowerId(userFollowedWhoAuth.getId(), followerId)).thenReturn(Optional.empty());
 		
 		assertThrows(RecordNotFoundException.class, () -> followService.updateFollowStatusByFollower(followerId, FollowStatus.ACCEPTED));
 		
@@ -289,7 +289,7 @@ class FollowServiceImplTest {
 	void updateFollowStatusByFollowerReturnsNotNull() {
 		Long followerId = 1L;
 		FollowStatus newFollowStatus = FollowStatus.ACCEPTED;
-		User userFollowedWhoAuth = User.builder().userId(2L).build();
+		User userFollowedWhoAuth = User.builder().id(2L).build();
 		Follow follow = new Follow();
 		FollowDto followDto = FollowDto.builder().followStatus(newFollowStatus).build();
 		
@@ -298,7 +298,7 @@ class FollowServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userFollowedWhoAuth);
 		//dao
-		when(followDao.findOneByFollowedUserIdAndFollowerUserId(userFollowedWhoAuth.getUserId(), followerId)).thenReturn(Optional.of(follow));
+		when(followDao.findOneByFollowedIdAndFollowerId(userFollowedWhoAuth.getId(), followerId)).thenReturn(Optional.of(follow));
 		//setting new follow statuts
 		follow.setFollowStatus(newFollowStatus);
 		when(followDao.save(any(Follow.class))).thenReturn(follow);
@@ -341,22 +341,22 @@ class FollowServiceImplTest {
 
 	@Test
 	void existsByFollowedAndFollowerRecordNoExistReturnsFalse() {
-		User userWhoAuth = User.builder().userId(2L).visible(false).build();
+		User userWhoAuth = User.builder().id(2L).visible(false).build();
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
-		when(followDao.existsByFollowedUserIdAndFollowerUserId(anyLong(), eq(userWhoAuth.getUserId()))).thenReturn(false);
+		when(followDao.existsByFollowedIdAndFollowerId(anyLong(), eq(userWhoAuth.getId()))).thenReturn(false);
 
 		assertFalse(followService.existsByFollowedAndFollower(1L));
 	}
 
 	@Test
 	void existsByFollowedAndFollowerRecordExistReturnsTrue() {
-		User userWhoAuth = User.builder().userId(2L).visible(false).build();
+		User userWhoAuth = User.builder().id(2L).visible(false).build();
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
-		when(followDao.existsByFollowedUserIdAndFollowerUserId(anyLong(), eq(userWhoAuth.getUserId()))).thenReturn(true);
+		when(followDao.existsByFollowedIdAndFollowerId(anyLong(), eq(userWhoAuth.getId()))).thenReturn(true);
 
 		assertTrue(followService.existsByFollowedAndFollower(1L));
 	}
@@ -369,8 +369,8 @@ class FollowServiceImplTest {
 
 	@Test
 	void deleteByIdFollowerNotSameThrow() {
-		User userWhoAuth = User.builder().userId(2L).visible(false).build();
-		UserDto followDtoOwn = UserDto.builder().userId("3").visible(false).build();
+		User userWhoAuth = User.builder().id(2L).visible(false).build();
+		UserDto followDtoOwn = UserDto.builder().id("3").visible(false).build();
 		FollowDto followDto = FollowDto.builder().follower(followDtoOwn).build(); // I will only compare follower owner with the
 																		// auth user.
 		FollowServiceImpl follSerSpy = spy(followService);
@@ -385,8 +385,8 @@ class FollowServiceImplTest {
 	@Test
 	void deleteById() {
 		//same userId, same user follower
-		User userWhoAuth = User.builder().userId(2L).visible(false).build();
-		UserDto followDtoOwn = UserDto.builder().userId("2").visible(false).build();
+		User userWhoAuth = User.builder().id(2L).visible(false).build();
+		UserDto followDtoOwn = UserDto.builder().id("2").visible(false).build();
 		Follow followToDelete = Follow.builder().follower(userWhoAuth).build();
 		FollowDto followDto = FollowDto.builder().follower(followDtoOwn).build(); 
 		
@@ -411,15 +411,15 @@ class FollowServiceImplTest {
 	
 	@Test
 	void getFollowStatusByFollowedIdUserNoVisibleFollowedRecordNoExistReturnNotAsked() {
-		User userWhoAuth = User.builder().userId(2L).visible(false).build();
-		UserDto userDtoFollwed = UserDto.builder().userId("1").visible(false).build();
+		User userWhoAuth = User.builder().id(2L).visible(false).build();
+		UserDto userDtoFollwed = UserDto.builder().id("1").visible(false).build();
 		Long followedId = 1L;
 		
 		when(userService.getById(1L)).thenReturn(userDtoFollwed);
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
-		when(followDao.findOneByFollowedUserIdAndFollowerUserId(followedId, userWhoAuth.getUserId())).thenReturn(Optional.empty());
+		when(followDao.findOneByFollowedIdAndFollowerId(followedId, userWhoAuth.getId())).thenReturn(Optional.empty());
 		
 		FollowStatus followStatus = followService.getFollowStatusByFollowedId(1L);
 		
@@ -428,8 +428,8 @@ class FollowServiceImplTest {
 	}
 	@Test
 	void getFollowStatusByFollowedIdUserNoVisibleFollowedRecordExistReturnNotNull() {
-		User userWhoAuth = User.builder().userId(2L).visible(false).build();
-		UserDto userDtoFollwed = UserDto.builder().userId("1").visible(false).build();
+		User userWhoAuth = User.builder().id(2L).visible(false).build();
+		UserDto userDtoFollwed = UserDto.builder().id("1").visible(false).build();
 		Follow follow = Follow.builder().followStatus(FollowStatus.IN_PROCESS).build();
 		Long followedId = 1L;
 		
@@ -437,7 +437,7 @@ class FollowServiceImplTest {
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
-		when(followDao.findOneByFollowedUserIdAndFollowerUserId(followedId, userWhoAuth.getUserId())).thenReturn(Optional.of(follow));
+		when(followDao.findOneByFollowedIdAndFollowerId(followedId, userWhoAuth.getId())).thenReturn(Optional.of(follow));
 		
 		assertNotNull(followService.getFollowStatusByFollowedId(1L));
 		
@@ -451,8 +451,8 @@ class FollowServiceImplTest {
 
 	@Test
 	void getFollowStatusByFollowerIdReturnsNotNull() {
-		User userWhoAuth = User.builder().userId(2L).visible(false).build();
-		UserDto userDtoFollwer = UserDto.builder().userId("1").visible(false).build();
+		User userWhoAuth = User.builder().id(2L).visible(false).build();
+		UserDto userDtoFollwer = UserDto.builder().id("1").visible(false).build();
 		Follow follow = Follow.builder().followStatus(FollowStatus.IN_PROCESS).build();
 		Long followerId = 1L;
 		
@@ -463,7 +463,7 @@ class FollowServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
 		//follow dao
-		when(followDao.findOneByFollowedUserIdAndFollowerUserId(userWhoAuth.getUserId(), followerId))
+		when(followDao.findOneByFollowedIdAndFollowerId(userWhoAuth.getId(), followerId))
 			.thenReturn(Optional.of(follow));
 		
 		assertNotNull(followService.getFollowStatusByFollowerId(followerId));
@@ -475,19 +475,19 @@ class FollowServiceImplTest {
 	void countByFollowStatusAndFollowedParamFollowStatusNullThrow() {
 		Long followedId = 1L;
 		assertThrows(IllegalArgumentException.class, () -> followService.countByFollowStatusAndFollowed(null, followedId));
-		verify(followDao, never()).countByFollowedUserIdAndFollowStatus(followedId, null);
+		verify(followDao, never()).countByFollowedIdAndFollowStatus(followedId, null);
 	}
 	@Test
 	void countByFollowStatusAndFollowedParamFollowedIdNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> followService.countByFollowStatusAndFollowed(FollowStatus.ACCEPTED, null));
-		verify(followDao, never()).countByFollowedUserIdAndFollowStatus(null, FollowStatus.ACCEPTED);
+		verify(followDao, never()).countByFollowedIdAndFollowStatus(null, FollowStatus.ACCEPTED);
 	}
 	@Test
 	void countByFollowStatusAndFollowedReturnsNotNull() {
 		Long followedId = 1L;
 		FollowStatus followStatus = FollowStatus.ACCEPTED;
 		Long count = 2L;
-		when(followDao.countByFollowedUserIdAndFollowStatus(followedId, followStatus)).thenReturn(count);
+		when(followDao.countByFollowedIdAndFollowStatus(followedId, followStatus)).thenReturn(count);
 		
 		assertNotNull(followService.countByFollowStatusAndFollowed(followStatus, followedId));
 	}
@@ -498,19 +498,19 @@ class FollowServiceImplTest {
 	void countByFollowStatusAndFollowerParamFollowStatusNullThrow() {
 		Long followerId = 1L;
 		assertThrows(IllegalArgumentException.class, () -> followService.countByFollowStatusAndFollower(null, followerId));
-		verify(followDao, never()).countByFollowedUserIdAndFollowStatus(followerId, null);
+		verify(followDao, never()).countByFollowedIdAndFollowStatus(followerId, null);
 	}
 	@Test
 	void countByFollowStatusAndFollowerParamFollowedIdNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> followService.countByFollowStatusAndFollower(FollowStatus.ACCEPTED, null));
-		verify(followDao, never()).countByFollowedUserIdAndFollowStatus(null, FollowStatus.ACCEPTED);
+		verify(followDao, never()).countByFollowedIdAndFollowStatus(null, FollowStatus.ACCEPTED);
 	}
 	@Test
 	void countByFollowStatusAndFollowerReturnsNotNull() {
 		Long followerId = 1L;
 		FollowStatus followStatus = FollowStatus.ACCEPTED;
 		Long count = 2L;
-		when(followDao.countByFollowerUserIdAndFollowStatus(followerId, followStatus)).thenReturn(count);
+		when(followDao.countByFollowerIdAndFollowStatus(followerId, followStatus)).thenReturn(count);
 		
 		assertNotNull(followService.countByFollowStatusAndFollower(followStatus, followerId));
 	}

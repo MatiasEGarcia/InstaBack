@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 public class UserDto implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
-	private String userId;
+	private String id;
 	
 	private String username;
 	
@@ -31,6 +31,6 @@ public class UserDto implements Serializable{
 	private boolean admin;//for chat purposes
 	
 	public UserDto(String userId) {
-		this.userId = userId;
+		this.id = userId;
 	}
 }

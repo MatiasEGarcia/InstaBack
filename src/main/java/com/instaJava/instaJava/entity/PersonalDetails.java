@@ -24,7 +24,7 @@ public class PersonalDetails{
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	@Column(name = "id")
-	private Long perDetId;
+	private Long id;
 	
 	@Column(name = "name")
 	private String name;

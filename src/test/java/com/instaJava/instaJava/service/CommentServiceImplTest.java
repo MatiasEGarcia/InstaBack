@@ -70,7 +70,7 @@ class CommentServiceImplTest {
 	private CommentServiceImpl commentService;
 
 	// auth user.
-	private final User user = User.builder().userId(1L).username("Mati").role(RolesEnum.ROLE_USER).build();
+	private final User user = User.builder().id(1L).username("Mati").role(RolesEnum.ROLE_USER).build();
 
 	// Save
 	@Test
@@ -338,30 +338,30 @@ class CommentServiceImplTest {
 
 	@Test
 	void deleteCommentAuthUserNoOwnerThrow() {
-		Comment comment = Comment.builder().commentId(1L).ownerUser(new User()) // different user than auht user.
+		Comment comment = Comment.builder().id(1L).ownerUser(new User()) // different user than auht user.
 				.build();
 
 		// find comment
-		when(commentDao.findById(comment.getCommentId())).thenReturn(Optional.of(comment));
+		when(commentDao.findById(comment.getId())).thenReturn(Optional.of(comment));
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 
-		assertThrows(InvalidActionException.class, () -> commentService.deleteById(comment.getCommentId()));
+		assertThrows(InvalidActionException.class, () -> commentService.deleteById(comment.getId()));
 
-		verify(commentDao, never()).deleteById(comment.getCommentId());
+		verify(commentDao, never()).deleteById(comment.getId());
 	}
 
 	@Test
 	void delete() {
 		ZonedDateTime commentCreationDate = ZonedDateTime.parse("2020-12-01T10:04:23.653Z[Europe/Prague]");
 
-		Comment comment = Comment.builder().commentId(1L).ownerUser(user) // same user than auht user.
+		Comment comment = Comment.builder().id(1L).ownerUser(user) // same user than auht user.
 				.createdAt(commentCreationDate).build();
 
 		// find comment
-		when(commentDao.findById(comment.getCommentId())).thenReturn(Optional.of(comment));
+		when(commentDao.findById(comment.getId())).thenReturn(Optional.of(comment));
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -370,9 +370,9 @@ class CommentServiceImplTest {
 		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
 		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));// just a 1 min after creation time
 
-		commentService.deleteById(comment.getCommentId());
+		commentService.deleteById(comment.getId());
 
-		verify(commentDao).deleteById(comment.getCommentId());
+		verify(commentDao).deleteById(comment.getId());
 	}
 
 }

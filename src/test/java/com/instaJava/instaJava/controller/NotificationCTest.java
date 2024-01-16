@@ -62,7 +62,7 @@ class NotificationCTest {
 	private static final MediaType APPLICATION_JSON_UTF8 = MediaType.APPLICATION_JSON;
 	//this user is in the bdd , because we save it with sqlAddUser1
 	private User matiAuth = User.builder()
-			.userId(1L)
+			.id(1L)
 			.username("matias")
 			.password("123456")
 			.role(RolesEnum.ROLE_USER)

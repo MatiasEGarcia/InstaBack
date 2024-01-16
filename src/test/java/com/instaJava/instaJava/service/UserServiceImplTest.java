@@ -80,14 +80,14 @@ class UserServiceImplTest {
 		String image64 = Base64.getEncoder().encodeToString(multipartFile.getBytes());
 		
 		user = User.builder()
-				.userId(1L)
+				.id(1L)
 				.username("Mati")
 				.image(image64)
 				.visible(true)
 				.build();
 		
 		userDto = UserDto.builder()
-				.userId("1")
+				.id("1")
 				.username("Mati")
 				.image(image64)
 				.visible(true)

@@ -74,14 +74,14 @@ class FollowerCTest {
 	private static final MediaType APPLICATION_JSON_UTF8 = MediaType.APPLICATION_JSON;
 	//this user is in the bdd , because we save it with sqlAddUser1
 	private  User matiasUserAuth = User.builder()
-			.userId(1L)
+			.id(1L)
 			.username("matias")
 			.password("123456")
 			.role(RolesEnum.ROLE_USER)
 			.build();
 	
 	private User rociUserAuth = User.builder()
-			.userId(2L)
+			.id(2L)
 			.username("rocio")
 			.password("123456")
 			.role(RolesEnum.ROLE_USER)
@@ -115,7 +115,7 @@ class FollowerCTest {
 		String token = jwtService.generateToken(matiasUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/follow")
 				.header("Authorization", "Bearer " + token)
-				.param("followed", "2"))
+				.param("followedId", "2"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.followStatus", is(FollowStatus.IN_PROCESS.toString()))); //is accepted because user 2 is visible = false
 	}
@@ -159,7 +159,7 @@ class FollowerCTest {
 	void postGetAllFollowByOk() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		ReqSearch reqSearch = ReqSearch.builder()
-				.column("userId")
+				.column("id")
 				.value("2")
 				.dateValue(false)
 				.joinTable("follower")
@@ -181,7 +181,7 @@ class FollowerCTest {
 	void postGetAllFollowByNoContent() throws Exception {
 		String token = jwtService.generateToken(matiasUserAuth);
 		ReqSearch reqSearch = ReqSearch.builder()
-				.column("userId")
+				.column("id")
 				.value("5")
 				.dateValue(false)
 				.joinTable("follower")
@@ -208,10 +208,10 @@ class FollowerCTest {
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/updateFollowStatus")
 				.header("Authorization", "Bearer " + token)
 				.param("followStatus", FollowStatus.ACCEPTED.toString())
-				.param("followId", "1"))
+				.param("id", "1"))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.followId", is("1")))
+				.andExpect(jsonPath("$.id", is("1")))
 				.andExpect(jsonPath("$.followStatus", is(FollowStatus.ACCEPTED.toString())));
 		
 		
@@ -257,13 +257,13 @@ class FollowerCTest {
 				.andExpect(jsonPath("$.message", is(messUtils.getMessage("follow.follower-not-same"))));
 	}
 	
-	//updateFollowStatusByFollower
+	//updateFollowStatusByFollowerById
 	@Test
-	void putUpdateFollowStatusByFollowerOk() throws Exception{
+	void putUpdateFollowStatusByFollowerByIdOk() throws Exception{
 		String token = jwtService.generateToken(matiasUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/updateFollowStatus/byFollowerId")
 				.header("Authorization", "Bearer " + token)
-				.param("followerId", "2")
+				.param("id", "2")
 				.param("followStatus", "ACCEPTED"))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
@@ -271,11 +271,11 @@ class FollowerCTest {
 	}
 	
 	@Test
-	void putUpdateFollowStatusByFollowerBadRequest() throws Exception{
+	void putUpdateFollowStatusByFollowerByIdBadRequest() throws Exception{
 		String token = jwtService.generateToken(rociUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/follow/updateFollowStatus/byFollowerId")
 				.header("Authorization", "Bearer " + token)
-				.param("followerId", "1")
+				.param("id", "1")
 				.param("followStatus", "ACCEPTED"))
 				.andExpect(status().isNotFound())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))

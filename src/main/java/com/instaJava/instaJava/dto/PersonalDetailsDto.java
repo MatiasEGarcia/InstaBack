@@ -26,7 +26,7 @@ public class PersonalDetailsDto implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 	
-	private String perDetId;
+	private String id;
 
 	@NotBlank(message = "{vali.name-not-blank}")
 	private String name;

@@ -19,7 +19,7 @@ public class MessageDto implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 
-	private String messageId;
+	private String id;
 	
 	private String body;
 	

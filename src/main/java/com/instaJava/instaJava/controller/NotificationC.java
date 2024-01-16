@@ -45,7 +45,7 @@ public class NotificationC {
 	public ResponseEntity<ResPaginationG<NotificationDto>> getNotificationsByAuthUser(
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue = "notiId") String sortField,
+			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();

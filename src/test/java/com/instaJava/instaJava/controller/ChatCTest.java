@@ -101,9 +101,9 @@ class ChatCTest {
 	private String sqlRefIntegrityTrue;
 
 	// this user is in the bdd , because we save it with sqlAddUser1
-	private User matiasUserAuth = User.builder().userId(1L).username("matias").password("123456")
+	private User matiasUserAuth = User.builder().id(1L).username("matias").password("123456")
 			.role(RolesEnum.ROLE_USER).build();
-	private User julioUserAuth = User.builder().userId(3L).username("julio").password("123456")
+	private User julioUserAuth = User.builder().id(3L).username("julio").password("123456")
 			.role(RolesEnum.ROLE_USER).build();
 
 	@BeforeEach
@@ -174,7 +174,7 @@ class ChatCTest {
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/chats/image/{chatId}", 1).file(img)
 				.header("Authorization", "Bearer " + token).contentType(MediaType.MULTIPART_FORM_DATA))
 				.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("$.chatId", is("1")));
+				.andExpect(jsonPath("$.id", is("1")));
 	}
 
 	// create
@@ -204,7 +204,7 @@ class ChatCTest {
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/chats").header("Authorization", "Bearer " + token)
 				.content(objectMapper.writeValueAsString(reqChat)).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("$.chatId", is("2"))); // is the second chat to be created, it depends of how many I
+				.andExpect(jsonPath("$.id", is("2"))); // is the second chat to be created, it depends of how many I
 															// add in dbbSetUp for each.
 	}
 
@@ -217,7 +217,7 @@ class ChatCTest {
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/chats/name/{name}/{id}", newName, 1).header("Authorization",
 				"Bearer " + token)).andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-				.andExpect(jsonPath("$.chatId", is("1"))).andExpect(jsonPath("$.name", is(newName)));
+				.andExpect(jsonPath("$.id", is("1"))).andExpect(jsonPath("$.name", is(newName)));
 	}
 
 	@Test
@@ -306,7 +306,7 @@ class ChatCTest {
 					.content(objectMapper.writeValueAsString(reqAddUserChat)))
 					.andExpect(status().isOk())
 					.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-					.andExpect(jsonPath("$.chatId", is("1")))
+					.andExpect(jsonPath("$.id", is("1")))
 					.andExpect(jsonPath("$.users" , hasSize(3)));
 	}
 	
@@ -339,7 +339,7 @@ class ChatCTest {
 					.content(objectMapper.writeValueAsString(reqDelUserFromChat)))
 					.andExpect(status().isOk())
 					.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-					.andExpect(jsonPath("$.chatId", is("1")))
+					.andExpect(jsonPath("$.id", is("1")))
 					.andExpect(jsonPath("$.users" , hasSize(2)));
 	}
 	
@@ -351,8 +351,8 @@ class ChatCTest {
 				.header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-				.andExpect(jsonPath("$.chatId", is("1")))
-				.andExpect(jsonPath("$.users[1].userId",is("3")))//user with id 3 is the second in the list of users
+				.andExpect(jsonPath("$.id", is("1")))
+				.andExpect(jsonPath("$.users[1].id",is("3")))//user with id 3 is the second in the list of users
 				.andExpect(jsonPath("$.users[1].admin",is(true)));
 	}
 	

@@ -12,7 +12,7 @@ import com.instaJava.instaJava.entity.Message;
 
 public interface MessageDao extends JpaRepository<Message,Long> {
 
-	Page<Message> findByChatChatId(Long chatId, Pageable pageable);
+	Page<Message> findByChatId(Long id, Pageable pageable);
 	
 	/**
 	 * Will count how many messages were not watched from the user(by username) in an specific chat.

@@ -79,7 +79,7 @@ class ChatServiceImplTest {
 	@InjectMocks
 	private ChatServiceImpl chatService;
 
-	private final User user = User.builder().userId(1L).username("Mati").role(RolesEnum.ROLE_USER).build();
+	private final User user = User.builder().id(1L).username("Mati").role(RolesEnum.ROLE_USER).build();
 
 	// getById
 	@Test
@@ -120,7 +120,7 @@ class ChatServiceImplTest {
 	@Test
 	void getAuthUserChatsParamPageInfoDtoNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> chatService.getAuthUserChats(null));
-		verify(chatDao, never()).findByChatUsersUserUserId(eq(1L), any(Pageable.class));
+		verify(chatDao, never()).findByChatUsersUserId(eq(1L), any(Pageable.class));
 	}
 
 	@Test
@@ -129,7 +129,7 @@ class ChatServiceImplTest {
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		when(chatDao.findChatsByUser(eq(user.getUserId()),eq(user.getUsername()),any(Pageable.class))).thenReturn(Page.empty());
+		when(chatDao.findChatsByUser(eq(user.getId()),eq(user.getUsername()),any(Pageable.class))).thenReturn(Page.empty());
 
 		assertThrows(RecordNotFoundException.class, () -> chatService.getAuthUserChats(pageInfoDto));
 		
@@ -205,8 +205,8 @@ class ChatServiceImplTest {
 		List<ReqUserChat> usersToAdd = List.of(reqUserChat1, reqUserChat2);
 		Set<String> setUsersUsername = Set.of(reqUserChat1.getUsername(), reqUserChat2.getUsername());
 		// two users who where found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
-		User user2 = User.builder().username("username2").userId(3L).visible(true).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
+		User user2 = User.builder().username("username2").id(3L).visible(true).build();
 
 		ReqCreateChat reqChat = ReqCreateChat.builder().usersToAdd(usersToAdd).type(ChatTypeEnum.PRIVATE).build();
 		// auth user
@@ -215,13 +215,13 @@ class ChatServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		when(userService.getByUsernameIn(setUsersUsername)).thenReturn(List.of(user1, user2));
 		// search follow status with user1 , which is the one with visible false
-		when(followService.getFollowStatusByFollowedId(user1.getUserId())).thenReturn(FollowStatus.REJECTED);
+		when(followService.getFollowStatusByFollowedId(user1.getId())).thenReturn(FollowStatus.REJECTED);
 
 		assertThrows(UserNotApplicableForChatException.class, () -> chatService.create(reqChat),
 				"if one user to add in chat is not visible and its follow status authUser -> otherUser is rejected , should throw UserNotApplicableForChatException");
 
 		verify(userService).getByUsernameIn(setUsersUsername);
-		verify(followService).getFollowStatusByFollowedId(user1.getUserId());
+		verify(followService).getFollowStatusByFollowedId(user1.getId());
 		verify(chatDao, never()).save(any(Chat.class));
 	}
 
@@ -234,8 +234,8 @@ class ChatServiceImplTest {
 		Set<String> setUsersUsername = Set.of(reqUserChat1.getUsername(), reqUserChat2.getUsername());
 
 		// two users who where found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
-		User user2 = User.builder().username("username2").userId(3L).visible(true).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
+		User user2 = User.builder().username("username2").id(3L).visible(true).build();
 
 		ReqCreateChat reqChat = ReqCreateChat.builder().usersToAdd(usersToAdd).type(ChatTypeEnum.PRIVATE).build();
 		// auth user
@@ -244,13 +244,13 @@ class ChatServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		when(userService.getByUsernameIn(setUsersUsername)).thenReturn(List.of(user1, user2));
 		// search follow status with user1 , which is the one with visible false
-		when(followService.getFollowStatusByFollowedId(user1.getUserId())).thenReturn(FollowStatus.IN_PROCESS);
+		when(followService.getFollowStatusByFollowedId(user1.getId())).thenReturn(FollowStatus.IN_PROCESS);
 
 		assertThrows(UserNotApplicableForChatException.class, () -> chatService.create(reqChat),
 				"if one user to add in chat is not visible and its follow status authUser -> otherUser is in process , should throw UserNotApplicableForChatException");
 
 		verify(userService).getByUsernameIn(setUsersUsername);
-		verify(followService).getFollowStatusByFollowedId(user1.getUserId());
+		verify(followService).getFollowStatusByFollowedId(user1.getId());
 		verify(chatDao, never()).save(any(Chat.class));
 	}
 
@@ -262,8 +262,8 @@ class ChatServiceImplTest {
 		List<ReqUserChat> usersToAdd = List.of(reqUserChat1, reqUserChat2);
 		Set<String> setUsersUsername = Set.of(reqUserChat1.getUsername(), reqUserChat2.getUsername());
 		// two users who where found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
-		User user2 = User.builder().username("username2").userId(3L).visible(true).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
+		User user2 = User.builder().username("username2").id(3L).visible(true).build();
 
 		ReqCreateChat reqChat = ReqCreateChat.builder().usersToAdd(usersToAdd).type(ChatTypeEnum.PRIVATE).build();
 		// auth user
@@ -272,13 +272,13 @@ class ChatServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		when(userService.getByUsernameIn(setUsersUsername)).thenReturn(List.of(user1, user2));
 		// search follow status with user1 , which is the one with visible false
-		when(followService.getFollowStatusByFollowedId(user1.getUserId())).thenReturn(FollowStatus.NOT_ASKED);
+		when(followService.getFollowStatusByFollowedId(user1.getId())).thenReturn(FollowStatus.NOT_ASKED);
 
 		assertThrows(UserNotApplicableForChatException.class, () -> chatService.create(reqChat),
 				"if one user to add in chat is not visible and its follow status authUser -> otherUser is not asked , should throw UserNotApplicableForChatException");
 
 		verify(userService).getByUsernameIn(setUsersUsername);
-		verify(followService).getFollowStatusByFollowedId(user1.getUserId());
+		verify(followService).getFollowStatusByFollowedId(user1.getId());
 		verify(chatDao, never()).save(any(Chat.class));
 	}
 
@@ -290,8 +290,8 @@ class ChatServiceImplTest {
 		List<ReqUserChat> usersToAdd = List.of(reqUserChat1, reqUserChat2);
 		Set<String> setUsersUsername = Set.of(reqUserChat1.getUsername(), reqUserChat2.getUsername());
 		// two users who where found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
-		User user2 = User.builder().username("username2").userId(3L).visible(true).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
+		User user2 = User.builder().username("username2").id(3L).visible(true).build();
 
 		ReqCreateChat reqChat = ReqCreateChat.builder().usersToAdd(usersToAdd).type(ChatTypeEnum.PRIVATE).build();
 
@@ -300,11 +300,11 @@ class ChatServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		// search follow status with user1 , which is the one with visible false
-		when(followService.getFollowStatusByFollowedId(user1.getUserId())).thenReturn(FollowStatus.ACCEPTED);
+		when(followService.getFollowStatusByFollowedId(user1.getId())).thenReturn(FollowStatus.ACCEPTED);
 		assertThrows(InvalidActionException.class, () -> chatService.create(reqChat));
 
 		verify(userService).getByUsernameIn(setUsersUsername);
-		verify(followService).getFollowStatusByFollowedId(user1.getUserId());
+		verify(followService).getFollowStatusByFollowedId(user1.getId());
 		verify(chatDao, never()).save(any(Chat.class));
 	}
 
@@ -315,7 +315,7 @@ class ChatServiceImplTest {
 		List<ReqUserChat> usersToAdd = List.of(reqUserChat1);
 		Set<String> setUsersUsername = Set.of(reqUserChat1.getUsername());
 		// Users who where found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
 		ChatDto chatDto = new ChatDto();
 		// chat which will be save.
 		Chat chat = Chat.builder().build();
@@ -327,14 +327,14 @@ class ChatServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		when(userService.getByUsernameIn(setUsersUsername)).thenReturn(List.of(user1));
 		// search follow status with user1 , which is the one with visible false
-		when(followService.getFollowStatusByFollowedId(user1.getUserId())).thenReturn(FollowStatus.ACCEPTED);
+		when(followService.getFollowStatusByFollowedId(user1.getId())).thenReturn(FollowStatus.ACCEPTED);
 		when(chatDao.save(any(Chat.class))).thenReturn(chat);
 		when(chatMapper.chatToChatDto(any(Chat.class))).thenReturn(chatDto);
 
 		assertNotNull(chatService.create(reqChat));
 
 		verify(userService).getByUsernameIn(setUsersUsername);
-		verify(followService).getFollowStatusByFollowedId(user1.getUserId());
+		verify(followService).getFollowStatusByFollowedId(user1.getId());
 		verify(chatDao).save(any(Chat.class));
 	}
 
@@ -347,8 +347,8 @@ class ChatServiceImplTest {
 		Set<String> setUsersUsername = Set.of(reqUserChat1.getUsername(), reqUserChat2.getUsername());
 
 		// two users who where found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
-		User user2 = User.builder().username("username2").userId(3L).visible(true).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
+		User user2 = User.builder().username("username2").id(3L).visible(true).build();
 		ChatDto chatDto = new ChatDto();
 		// chat which will be save.
 		Chat chat = Chat.builder().build();
@@ -361,14 +361,14 @@ class ChatServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		// search follow status with user1 , which is the one with visible false
-		when(followService.getFollowStatusByFollowedId(user1.getUserId())).thenReturn(FollowStatus.ACCEPTED);
+		when(followService.getFollowStatusByFollowedId(user1.getId())).thenReturn(FollowStatus.ACCEPTED);
 		when(chatDao.save(any(Chat.class))).thenReturn(chat);
 		when(chatMapper.chatToChatDto(any(Chat.class))).thenReturn(chatDto);
 
 		assertNotNull(chatService.create(reqChat));
 
 		verify(userService).getByUsernameIn(setUsersUsername);
-		verify(followService).getFollowStatusByFollowedId(user1.getUserId());
+		verify(followService).getFollowStatusByFollowedId(user1.getId());
 		verify(chatDao).save(any(Chat.class));
 
 	}
@@ -414,7 +414,7 @@ class ChatServiceImplTest {
 		Long messArr[] = { chatId, 2L };
 		List<Long[]> listMessArr = new ArrayList<>();
 		listMessArr.add(messArr);
-		Chat chat = Chat.builder().chatId(chatId).type(ChatTypeEnum.GROUP).build();
+		Chat chat = Chat.builder().id(chatId).type(ChatTypeEnum.GROUP).build();
 		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
 
 		MultipartFile multipartFile = new MockMultipartFile("file", "test.txt", "text/plain", "testing".getBytes());
@@ -478,7 +478,7 @@ class ChatServiceImplTest {
 		listMessArr.add(messArr);
 		String chatName = "chatName";
 		ChatUser chatUser = ChatUser.builder().user(user).admin(true).build();
-		Chat chat = Chat.builder().chatId(chatId).chatUsers(List.of(chatUser)).build();
+		Chat chat = Chat.builder().id(chatId).chatUsers(List.of(chatUser)).build();
 		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
 
 		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
@@ -551,7 +551,7 @@ class ChatServiceImplTest {
 		Long chatId = 1L;
 		ChatUser chatUser = ChatUser.builder().user(user).admin(true).build();
 		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
-		UserDto userDto = UserDto.builder().userId(user.getUserId().toString()).build();
+		UserDto userDto = UserDto.builder().id(user.getId().toString()).build();
 
 		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
 		when(chatMapper.chatUserListToUserDtoList(chat.getChatUsers())).thenReturn(List.of(userDto));
@@ -628,7 +628,7 @@ class ChatServiceImplTest {
 		ChatUser chatUser = ChatUser.builder().user(user).admin(true).build();// auth user is admin
 		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
 		// only user who was found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
 
 		when(chatDao.findById(Long.parseLong(chatId))).thenReturn(Optional.of(chat));
 		when(securityContext.getAuthentication()).thenReturn(auth);
@@ -650,8 +650,8 @@ class ChatServiceImplTest {
 		ChatUser chatUser = ChatUser.builder().user(user).admin(true).build();// auth user is admin
 		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
 		// only user who was found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
-		User user2 = User.builder().userId(3L).username("username2").visible(true).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
+		User user2 = User.builder().id(3L).username("username2").visible(true).build();
 
 		when(chatDao.findById(Long.parseLong(chatId))).thenReturn(Optional.of(chat));
 		// auth user
@@ -661,7 +661,7 @@ class ChatServiceImplTest {
 		// getting users
 		when(userService.getByUsernameIn(anySet())).thenReturn(List.of(user1, user2));
 		// checking if users are applicable
-		when(followService.getFollowStatusByFollowedId(user1.getUserId())).thenReturn(FollowStatus.REJECTED);
+		when(followService.getFollowStatusByFollowedId(user1.getId())).thenReturn(FollowStatus.REJECTED);
 
 		assertThrows(UserNotApplicableForChatException.class, () -> chatService.addUsers(reqAddUserChat));
 		verify(chatDao, never()).save(any(Chat.class));
@@ -677,8 +677,8 @@ class ChatServiceImplTest {
 		ChatUser chatUser = ChatUser.builder().user(user).admin(true).build();// auth user is admin
 		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
 		// only user who was found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
-		User user2 = User.builder().userId(3L).username("username2").visible(true).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
+		User user2 = User.builder().id(3L).username("username2").visible(true).build();
 
 		when(chatDao.findById(Long.parseLong(chatId))).thenReturn(Optional.of(chat));
 		// auth user
@@ -688,7 +688,7 @@ class ChatServiceImplTest {
 		// getting users
 		when(userService.getByUsernameIn(anySet())).thenReturn(List.of(user1, user2));
 		// checking if users are applicable
-		when(followService.getFollowStatusByFollowedId(user1.getUserId())).thenReturn(FollowStatus.NOT_ASKED);
+		when(followService.getFollowStatusByFollowedId(user1.getId())).thenReturn(FollowStatus.NOT_ASKED);
 
 		assertThrows(UserNotApplicableForChatException.class, () -> chatService.addUsers(reqAddUserChat));
 		verify(chatDao, never()).save(any(Chat.class));
@@ -704,8 +704,8 @@ class ChatServiceImplTest {
 		ChatUser chatUser = ChatUser.builder().user(user).admin(true).build();// auth user is admin
 		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
 		// only user who was found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
-		User user2 = User.builder().userId(3L).username("username2").visible(true).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
+		User user2 = User.builder().id(3L).username("username2").visible(true).build();
 
 		when(chatDao.findById(Long.parseLong(chatId))).thenReturn(Optional.of(chat));
 		// auth user
@@ -715,7 +715,7 @@ class ChatServiceImplTest {
 		// getting users
 		when(userService.getByUsernameIn(anySet())).thenReturn(List.of(user1, user2));
 		// checking if users are applicable
-		when(followService.getFollowStatusByFollowedId(user1.getUserId())).thenReturn(FollowStatus.IN_PROCESS);
+		when(followService.getFollowStatusByFollowedId(user1.getId())).thenReturn(FollowStatus.IN_PROCESS);
 
 		assertThrows(UserNotApplicableForChatException.class, () -> chatService.addUsers(reqAddUserChat));
 		verify(chatDao, never()).save(any(Chat.class));
@@ -736,11 +736,11 @@ class ChatServiceImplTest {
 		ChatUser chatUserAuthUser = ChatUser.builder().user(user).admin(true).build();// auth user is admin
 		List<ChatUser> listChatUsers = new ArrayList<>();
 		listChatUsers.add(chatUserAuthUser);
-		Chat chat = Chat.builder().chatId(chatIdLong).chatUsers(listChatUsers).build();
+		Chat chat = Chat.builder().id(chatIdLong).chatUsers(listChatUsers).build();
 		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
 		// only user who was found.
-		User user1 = User.builder().userId(2L).username("username1").visible(false).build();
-		User user2 = User.builder().userId(3L).username("username2").visible(true).build();
+		User user1 = User.builder().id(2L).username("username1").visible(false).build();
+		User user2 = User.builder().id(3L).username("username2").visible(true).build();
 		List<User> listUsersFound = new ArrayList<>();
 		listUsersFound.add(user1);
 		listUsersFound.add(user2);
@@ -839,7 +839,7 @@ class ChatServiceImplTest {
 		ReqDelUserFromChat reqDelUserFromChat = ReqDelUserFromChat.builder().chatId(chatId.toString())
 				.usersUsername(listUsername).build();
 		ChatUser chatUser = ChatUser.builder().user(user).admin(true).build();
-		Chat chat = Chat.builder().chatId(chatId).chatUsers(List.of(chatUser)).build();
+		Chat chat = Chat.builder().id(chatId).chatUsers(List.of(chatUser)).build();
 		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
 
 		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
@@ -853,7 +853,7 @@ class ChatServiceImplTest {
 		assertNotNull(chatService.quitUsersFromChat(reqDelUserFromChat));
 		
 		verify(chatUserDao).deleteByChatIdAndUserUsernameIn(eq(chatId), anySet());
-		verify(chatUserDao).findByChatChatId(chatId);
+		verify(chatUserDao).findByChatId(chatId);
 		verify(chatMapper).chatToChatDto(chat, chatDto);
 	}
 
@@ -872,7 +872,7 @@ class ChatServiceImplTest {
 	void changeAdminStatusChatUserNotFoundThrow() {
 		Long chatId = 1L;
 		Long userId = 1L;
-		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.empty());
+		when(chatUserDao.findByChatIdAndUserId(chatId, userId)).thenReturn(Optional.empty());
 		assertThrows(RecordNotFoundException.class, () -> chatService.changeAdminStatus(chatId, userId));
 		verify(chatUserDao, never()).save(any(ChatUser.class));
 	}
@@ -891,7 +891,7 @@ class ChatServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 
-		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
+		when(chatUserDao.findByChatIdAndUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
 
 		assertThrows(InvalidActionException.class, () -> chatService.changeAdminStatus(chatId, userId));
 
@@ -911,7 +911,7 @@ class ChatServiceImplTest {
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
+		when(chatUserDao.findByChatIdAndUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
 
 		assertThrows(InvalidActionException.class, () -> chatService.changeAdminStatus(chatId, userId));
 
@@ -926,7 +926,7 @@ class ChatServiceImplTest {
 		List<Long[]> listMessArr = new ArrayList<>();
 		listMessArr.add(messArr);
 		ChatUser chatUserAuthUser = ChatUser.builder().user(user).admin(true).build();
-		Chat chat = Chat.builder().chatId(chatId).chatUsers(List.of(chatUserAuthUser)).build();
+		Chat chat = Chat.builder().id(chatId).chatUsers(List.of(chatUserAuthUser)).build();
 		ChatDto chatDto = ChatDto.builder().messagesNoWatched("2").build();
 		ChatUser chatUserFound = ChatUser.builder().chat(chat).admin(false) // at the end, should be true.
 				.build();
@@ -936,7 +936,7 @@ class ChatServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 
-		when(chatUserDao.findByChatChatIdAndUserUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
+		when(chatUserDao.findByChatIdAndUserId(chatId, userId)).thenReturn(Optional.of(chatUserFound));
 		// get messages not watched count.
 		when(messageService.getMessagesNotWatchedCountByChatIds(List.of(chatId), user.getUsername()))
 				.thenReturn(listMessArr);
@@ -966,28 +966,28 @@ class ChatServiceImplTest {
 	
 	@Test
 	void bynarySearchByChatIdReturnCorrectIndex() {
-		Chat chat1 = Chat.builder().chatId(1L).build();
-		Chat chat2 = Chat.builder().chatId(2L).build();
-		Chat chat3 = Chat.builder().chatId(3L).build();
-		Chat chat4 = Chat.builder().chatId(4L).build();
+		Chat chat1 = Chat.builder().id(1L).build();
+		Chat chat2 = Chat.builder().id(2L).build();
+		Chat chat3 = Chat.builder().id(3L).build();
+		Chat chat4 = Chat.builder().id(4L).build();
 		List<Chat> chats = List.of(chat1,chat2,chat3,chat4);
 		assertEquals(1, chatService.bynarySearchByChatId(chats, 2L),"should return index 1");
 	}
 	
 	@Test
 	void bynarySearchByChatIdReturnCorrectIndex2Items() {
-		Chat chat1 = Chat.builder().chatId(1L).build();
-		Chat chat2 = Chat.builder().chatId(2L).build();
+		Chat chat1 = Chat.builder().id(1L).build();
+		Chat chat2 = Chat.builder().id(2L).build();
 		List<Chat> chats = List.of(chat1,chat2);
 		assertEquals(0, chatService.bynarySearchByChatId(chats, 1L),"should return index 0");
 	}
 	
 	@Test
 	void bynarySearchByChatIdReturnNegative1ChatNotFound() {
-		Chat chat1 = Chat.builder().chatId(1L).build();
-		Chat chat2 = Chat.builder().chatId(2L).build();
-		Chat chat3 = Chat.builder().chatId(3L).build();
-		Chat chat4 = Chat.builder().chatId(4L).build();
+		Chat chat1 = Chat.builder().id(1L).build();
+		Chat chat2 = Chat.builder().id(2L).build();
+		Chat chat3 = Chat.builder().id(3L).build();
+		Chat chat4 = Chat.builder().id(4L).build();
 		List<Chat> chats = List.of(chat1,chat2,chat3,chat4);
 		assertEquals(-1, chatService.bynarySearchByChatId(chats, 5L),"if chat was not found should return -1");
 	}

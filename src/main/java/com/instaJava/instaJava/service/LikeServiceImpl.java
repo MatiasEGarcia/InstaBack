@@ -58,7 +58,7 @@ public class LikeServiceImpl implements LikeService {
 		if (type == null || itemId == null || ownerLikeId == null)
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 
-		return likeDao.existsByItemTypeAndItemIdAndOwnerLikeUserId(type, itemId, ownerLikeId);
+		return likeDao.existsByItemTypeAndItemIdAndOwnerLikeId(type, itemId, ownerLikeId);
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class LikeServiceImpl implements LikeService {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		}
 		User userOwner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		validateReqLike(reqLike, userOwner.getUserId());
+		validateReqLike(reqLike, userOwner.getId());
 		if (!reqLike.isValid())
 			throw new InvalidActionException(messUtils.getMessage("like.not-valid"),HttpStatus.BAD_REQUEST);
 		

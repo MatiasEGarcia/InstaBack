@@ -24,7 +24,7 @@ public class InvToken{
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	@Column(name= "id")
-	private Long invTokenid;
+	private Long id;
 	
 	@Column(name= "token")
 	private String token;

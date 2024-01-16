@@ -17,8 +17,8 @@ public class ReqUpdateComment implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	
-	@NotNull(message ="{vali.commentId-not-null}")
-	private Long commentId;
+	@NotNull(message ="{vali.id-not-null}")
+	private Long id;
 	@NotBlank(message = "{vali.body-not-blank}")
 	private String body;
 }

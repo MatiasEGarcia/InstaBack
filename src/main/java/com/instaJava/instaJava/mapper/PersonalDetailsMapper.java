@@ -11,14 +11,12 @@ import com.instaJava.instaJava.entity.User;
 
 @Mapper(componentModel = "spring")
 public interface PersonalDetailsMapper {
-
-	@Mapping(target="perDetId" , source = "perDetId")
+
 	PersonalDetailsDto personalDetailsToPersonalDetailsDto(PersonalDetails per);
-	
-	@Mapping(target="perDetId" , source = "perDetId")
+	
 	PersonalDetails personalDetailsDtoToPersonalDetails(PersonalDetailsDto per);
 	
 	@Mapping(target="user", source="user")
-	@Mapping(target="perDetId", source="user.personalDetails.perDetId")
+	@Mapping(target="id", source="user.personalDetails.id")
 	PersonalDetails personalDetailsDtoAndUserToPersonalDetails(PersonalDetailsDto per, User user);
 }

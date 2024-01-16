@@ -62,7 +62,7 @@ class LikeCTest {
 	private static final MediaType APPLICATION_JSON_UTF8 = MediaType.APPLICATION_JSON;
 	//this user is in the bdd , because we save it with sqlAddUser1
 	private  User matiasUserAuth = User.builder()
-			.userId(1L)
+			.id(1L)
 			.username("matias")
 			.password("123456")
 			.role(RolesEnum.ROLE_USER)
@@ -124,7 +124,7 @@ class LikeCTest {
 				.contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.likeId", is("1")))
+				.andExpect(jsonPath("$.id", is("1")))
 				.andExpect(jsonPath("$.itemType", is(TypeItemLikedEnum.PULICATED_IMAGE.toString())))
 				.andExpect(jsonPath("$.itemId", is("1")))
 				.andExpect(jsonPath("$.decision", is(true)))

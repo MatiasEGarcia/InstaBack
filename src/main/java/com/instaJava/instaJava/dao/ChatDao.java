@@ -11,7 +11,7 @@ import com.instaJava.instaJava.entity.Chat;
 
 public interface ChatDao extends JpaRepository<Chat, Long>, JpaSpecificationExecutor<Chat>{
 
-	Page<Chat> findByChatUsersUserUserId(Long userId, Pageable page);
+	Page<Chat> findByChatUsersUserId(Long userId, Pageable page);
 	
 	
 	//Thing to have in consideration, if there are 2 messages with the same sendedAt, can I get 2 chats ,but they are the same
@@ -27,12 +27,12 @@ public interface ChatDao extends JpaRepository<Chat, Long>, JpaSpecificationExec
 	@Query(value = "SELECT NEW com.instaJava.instaJava.entity.Chat(c, m.body as lastMessage) "
 			+ "FROM Chat c "
 			+ "JOIN ChatUser ch "
-			+ "ON c.chatId = ch.chat.chatId "
+			+ "ON c.id = ch.chat.id "
 			+ "JOIN Message m "
-			+ "ON c.chatId = m.chat.chatId "
-			+ "AND m.sendedAt = (SELECT MAX(m2.sendedAt) FROM Message m2 WHERE m2.chat.chatId = c.chatId) "
-			+ "WHERE ch.user.userId = :userId "
-			+ "ORDER BY (SELECT MAX(m3.sendedAt) FROM Message m3 WHERE m3.chat.chatId = c.chatId AND m3.userOwner = :userOnwer) "
+			+ "ON c.id = m.chat.id "
+			+ "AND m.sendedAt = (SELECT MAX(m2.sendedAt) FROM Message m2 WHERE m2.chat.id = c.id) "
+			+ "WHERE ch.user.id = :userId "
+			+ "ORDER BY (SELECT MAX(m3.sendedAt) FROM Message m3 WHERE m3.chat.id = c.id AND m3.userOwner = :userOnwer) "
 			+ "DESC ")
 	Page<Chat> findChatsByUser(@Param(value = "userId")Long userId, @Param(value = "userOnwer")String userUsername, Pageable page);
 }

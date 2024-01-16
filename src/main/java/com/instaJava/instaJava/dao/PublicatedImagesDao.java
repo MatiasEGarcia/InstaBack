@@ -13,9 +13,9 @@ public interface PublicatedImagesDao extends JpaRepository<PublicatedImage, Long
 	
 	Page<PublicatedImage> findByUserOwnerVisible(Boolean visible, Pageable pageable);
 	
-	Page<PublicatedImage> findByUserOwnerUserId(Long ownerId, Pageable pageable);
+	Page<PublicatedImage> findByUserOwnerId(Long ownerId, Pageable pageable);
 	
-	Long countByUserOwnerUserId(Long userOwnerId);
+	Long countByUserOwnerId(Long userOwnerId);
 	
 	/**
 	 * To get publications from users followed by authenticated user.
@@ -28,7 +28,7 @@ public interface PublicatedImagesDao extends JpaRepository<PublicatedImage, Long
 			+ "FROM PublicatedImage p "
 			+ "JOIN Follow f "
 			+ "ON p.userOwner = f.followed "
-			+ "WHERE f.follower.userId = :authUserId "
+			+ "WHERE f.follower.Id = :authUserId "
 			+ "AND f.followStatus = ACCEPTED")
 	Page<PublicatedImage> findPublicationsFromUsersFollowed(@Param(value = "authUserId")Long authUserId, Pageable pageable);
 }

@@ -90,7 +90,7 @@ class NotificationServiceImplTest {
 	@InjectMocks
 	private NotificationServiceImpl notiService;
 	// As auth user
-	private final User user = User.builder().userId(1L).username("random").password("random").role(RolesEnum.ROLE_USER)
+	private final User user = User.builder().id(1L).username("random").password("random").role(RolesEnum.ROLE_USER)
 			.build();
 
 	// saveNotificationOfFollow
@@ -106,10 +106,10 @@ class NotificationServiceImplTest {
 
 	@Test
 	void saveNotificationOfFollow() {
-		User followerUser = User.builder().userId(1L).build();
-		User followedUser = User.builder().userId(2L).build();
-		Notification notiSaved = Notification.builder().notiId(1L).build();
-		Follow follow = Follow.builder().followId(1L).followed(followedUser).follower(followerUser).build();
+		User followerUser = User.builder().id(1L).build();
+		User followedUser = User.builder().id(2L).build();
+		Notification notiSaved = Notification.builder().id(1L).build();
+		Follow follow = Follow.builder().id(1L).followed(followedUser).follower(followerUser).build();
 		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
 		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
 		when(userMapper.userToUserDto(followerUser)).thenReturn(new UserDto());
@@ -118,7 +118,7 @@ class NotificationServiceImplTest {
 		notiService.saveNotificationOfFollow(follow, "some message");
 
 		verify(notiDao).save(any(Notification.class));
-		verify(messTemplate).convertAndSendToUser(eq(followedUser.getUserId().toString()), eq("/private"),
+		verify(messTemplate).convertAndSendToUser(eq(followedUser.getId().toString()), eq("/private"),
 				any(NotificationDto.class));
 	}
 
@@ -189,7 +189,7 @@ class NotificationServiceImplTest {
 				.build();
 		MessageDto messageDto = MessageDto.builder()
 				.body("randomMessage")
-				.messageId("1")
+				.id("1")
 				.build();
 		NotificationDto notiDto2 = NotificationDto.builder()
 				.toWho(userDto2)
@@ -353,7 +353,7 @@ class NotificationServiceImplTest {
 				.associatedImg(associatedImg)
 				.ownerUser(new User(5L))
 				.build();
-		UserDto userDto = UserDto.builder().userId(user.getUserId().toString()).build();
+		UserDto userDto = UserDto.builder().id(user.getId().toString()).build();
 		Notification noti = Notification.builder().toWho(user).build();
 		NotificationDto notiDto = NotificationDto.builder()
 				.toWho(userDto)
@@ -369,7 +369,7 @@ class NotificationServiceImplTest {
 		
 		notiService.saveNotificationOfComment(comment, "customMessage");
 		
-		verify(messTemplate).convertAndSendToUser(notiDto.getToWho().getUserId(),"/private" , notiDto);
+		verify(messTemplate).convertAndSendToUser(notiDto.getToWho().getId(),"/private" , notiDto);
 	}
 	
 	
@@ -403,7 +403,7 @@ class NotificationServiceImplTest {
 		// pageable
 		when(pageUtils.getPageable(pag)).thenReturn(pageable);
 		// dao
-		when(notiDao.findByToWhoUserId(user.getUserId(), pageable)).thenReturn(Page.empty());
+		when(notiDao.findByToWhoId(user.getId(), pageable)).thenReturn(Page.empty());
 
 		assertThrows(RecordNotFoundException.class, () -> notiService.getNotificationsByAuthUser(pag));
 	}
@@ -423,7 +423,7 @@ class NotificationServiceImplTest {
 		// pageable
 		when(pageUtils.getPageable(pag)).thenReturn(pageable);
 		// dao
-		when(notiDao.findByToWhoUserId(user.getUserId(), pageable)).thenReturn(page);
+		when(notiDao.findByToWhoId(user.getId(), pageable)).thenReturn(page);
 		// mapper
 		when(notiMapper.pageAndPageInfoDtoToResPaginationG(page, pag)).thenReturn(resPagG);
 

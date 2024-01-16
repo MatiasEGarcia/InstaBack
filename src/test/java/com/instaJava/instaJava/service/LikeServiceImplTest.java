@@ -62,7 +62,7 @@ class LikeServiceImplTest {
 	private SpecificationService<Like> specService;
 	@InjectMocks
 	private LikeServiceImpl likeService;
-	private User user = User.builder().userId(1L).username("random").password("random").role(RolesEnum.ROLE_USER)
+	private User user = User.builder().id(1L).username("random").password("random").role(RolesEnum.ROLE_USER)
 			.build();
 
 	// deleteById
@@ -128,14 +128,14 @@ class LikeServiceImplTest {
 
 	@Test
 	void existReturnTrue() {
-		when(likeDao.existsByItemTypeAndItemIdAndOwnerLikeUserId(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L)).thenReturn(true);
+		when(likeDao.existsByItemTypeAndItemIdAndOwnerLikeId(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L)).thenReturn(true);
 		
 		assertTrue(likeService.exist(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L));
 	}
 
 	@Test
 	void existReturnFalse() {
-		when(likeDao.existsByItemTypeAndItemIdAndOwnerLikeUserId(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L)).thenReturn(false);
+		when(likeDao.existsByItemTypeAndItemIdAndOwnerLikeId(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L)).thenReturn(false);
 		
 		assertFalse(likeService.exist(TypeItemLikedEnum.PULICATED_IMAGE, 1L, 1L));
 	}
@@ -161,7 +161,7 @@ class LikeServiceImplTest {
 	@Test
 	void saveLikeTypePublicatedImageNoExistSoNotValidThrow() {
 		User authUser = User.builder() // who is authenticated and wants to create follow record.
-				.userId(2L).build();
+				.id(2L).build();
 		ReqLike reqLike = ReqLike.builder().itemId(1L).type(TypeItemLikedEnum.PULICATED_IMAGE).build();
 
 		// setting authenticated user
@@ -180,7 +180,7 @@ class LikeServiceImplTest {
 	@Test
 	void saveLikeTypePublicatedImageExistButLikeRecordAlreadyExistsSoNotValidThrow() {
 		User authUser = User.builder() // who is authenticated and wants to create follow record.
-				.userId(2L).build();
+				.id(2L).build();
 		ReqLike reqLike = ReqLike.builder().itemId(1L).type(TypeItemLikedEnum.PULICATED_IMAGE).build();
 		LikeServiceImpl spyLikeService = spy(likeService);
 		PublicatedImage pubImage = new PublicatedImage();
@@ -193,7 +193,7 @@ class LikeServiceImplTest {
 		// checking item existence.
 		when(publiImaService.findById(reqLike.getItemId())).thenReturn(Optional.of(pubImage));
 		// cheking if like already exist (in this test exist)
-		doReturn(true).when(spyLikeService).exist(reqLike.getType(), reqLike.getItemId(), authUser.getUserId());
+		doReturn(true).when(spyLikeService).exist(reqLike.getType(), reqLike.getItemId(), authUser.getId());
 
 		assertThrows(InvalidActionException.class, () -> spyLikeService.save(reqLike));
 
@@ -205,9 +205,9 @@ class LikeServiceImplTest {
 		Long itemId = 2L;
 		TypeItemLikedEnum itemType = TypeItemLikedEnum.PULICATED_IMAGE;
 		User authUser = User.builder() // who is authenticated and wants to create follow record.
-				.userId(2L).build();
+				.id(2L).build();
 		UserDto userDto = UserDto.builder()
-				.userId("2")
+				.id("2")
 				.build();
 		ReqLike reqLike = ReqLike.builder().itemId(itemId).type(itemType)
 				.decision(true)
@@ -224,7 +224,7 @@ class LikeServiceImplTest {
 		// checking item existence.
 		when(publiImaService.findById(reqLike.getItemId())).thenReturn(Optional.of(pubImage));
 		// cheking if like already exist (in this test exist)
-		doReturn(false).when(spyLikeService).exist(reqLike.getType(), reqLike.getItemId(), authUser.getUserId());
+		doReturn(false).when(spyLikeService).exist(reqLike.getType(), reqLike.getItemId(), authUser.getId());
 
 		// set the clock values //random
 		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));

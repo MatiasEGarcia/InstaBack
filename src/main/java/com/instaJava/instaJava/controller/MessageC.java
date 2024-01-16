@@ -56,11 +56,11 @@ public class MessageC {
 	 * @param sortDir. In what direction is sorted, asc or desc.
 	 * @return messages with pagination info.
 	 */
-	@GetMapping(value="/{chatId}" , produces= MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResPaginationG<MessageDto>> getMessagesByChat(@PathVariable("chatId") Long chatId,
+	@GetMapping(value="/getMessagesByChatId/{id}" , produces= MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResPaginationG<MessageDto>> getMessagesByChatId(@PathVariable("id") Long chatId,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue = "messageId") String sortField,
+			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
@@ -84,8 +84,8 @@ public class MessageC {
 	 * @param chatId the ID of the chat
 	 * @return a ResponseEntity containing a response message
 	 */
-	@PutMapping(value ="/watchedAll/{chatId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResMessage> watchedAll(@PathVariable Long chatId){
+	@PutMapping(value ="/watchedAllByChatId/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResMessage> watchedAllByChatId(@PathVariable("id") Long chatId){
 		msgService.setAllMessagesNotWatchedAsWatchedByChatId(chatId);
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("message.watched-all-in-chat")));
 	}

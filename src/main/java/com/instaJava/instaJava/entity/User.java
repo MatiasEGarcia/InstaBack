@@ -37,7 +37,7 @@ public class User implements UserDetails{
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	@Column(name = "id")
-	private Long userId;
+	private Long id;
 	
 	@Column(name = "username")
 	private String username;
@@ -59,7 +59,7 @@ public class User implements UserDetails{
 	private PersonalDetails personalDetails;
 	
 	public User(Long id) {
-		this.userId = id;
+		this.id = id;
 	}
 	
 	@Override

@@ -100,7 +100,7 @@ class UserCTest {
 	private static final MediaType APPLICATION_JSON_UTF8 = MediaType.APPLICATION_JSON;
 	//this user is in the bdd , because we save it with sqlAddUser1
 	private User matiAuth = User.builder()
-			.userId(1L)
+			.id(1L)
 			.username("matias")
 			.password("123456")
 			.role(RolesEnum.ROLE_USER)
@@ -429,7 +429,7 @@ class UserCTest {
 				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) //default value if the user don't pass any param
-				.andExpect(jsonPath("$.pageInfoDto.sortField", is("userId"))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("id"))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString()))); //default value if the user don't pass any param
 		//we only save 1 user with that username, we save in dbbSetUp method
 	}
@@ -508,7 +508,7 @@ class UserCTest {
 				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) //default value if the user don't pass any param
-				.andExpect(jsonPath("$.pageInfoDto.sortField", is("userId"))) //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("id"))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString()))); //default value if the user don't pass any param;
 		//this user data we save it as sqlAddUser1 in dbSetUp method
 	}
@@ -584,7 +584,7 @@ class UserCTest {
 				.header("Authorization", "Bearer " + token))
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.user.userId", is("2")))
+				.andExpect(jsonPath("$.user.id", is("2")))
 				.andExpect(jsonPath("$.social.numberPublications", is("1")))
 				.andExpect(jsonPath("$.social.numberFollowers", is("0")))
 				.andExpect(jsonPath("$.social.numberFollowed", is("0")))// is in IN_PROCESS status , so is 0 followed

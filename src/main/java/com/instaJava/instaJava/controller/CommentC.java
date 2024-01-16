@@ -48,7 +48,7 @@ public class CommentC {
 	/**
 	 * TO get comments by publication id.
 	 * 
-	 * @param publicationId - publication's id
+	 * @param id - publication's id
 	 * @param pageNo.    For pagination, number of the page.
 	 * @param pageSize.  For pagination, size of the elements in the same page.
 	 * @param sortField. For pagination, sorted by..
@@ -57,21 +57,21 @@ public class CommentC {
 	 */
 	@GetMapping(value="/manyByPublicationId",produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResPaginationG<CommentDto>> getManyByPublicationId(
-			@RequestParam(name = "publicationId") Long publicationId,
+			@RequestParam(name = "id") Long id,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue = "commentId") String sortField,
+			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		ResPaginationG<CommentDto> page = commentService.getRootCommentsByPublicationImageId(publicationId, pageInfoDto);
+		ResPaginationG<CommentDto> page = commentService.getRootCommentsByPublicationImageId(id, pageInfoDto);
 		return ResponseEntity.ok().body(page);
 	}
 	
 	/**
 	 * TO get comments by parent id
 	 * 
-	 * @param parentId - parent's id
+	 * @param id - parent's id
 	 * @param pageNo.    For pagination, number of the page.
 	 * @param pageSize.  For pagination, size of the elements in the same page.
 	 * @param sortField. For pagination, sorted by..
@@ -80,25 +80,25 @@ public class CommentC {
 	 */
 	@GetMapping(value="/manyByParentId",produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResPaginationG<CommentDto>> getManyByParentId(
-			@RequestParam(name = "parentId") Long parentId,
+			@RequestParam(name = "id") Long id,
 			@RequestParam(name = "page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue = "commentId") String sortField,
+			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		ResPaginationG<CommentDto> page = commentService.getAssociatedCommentsByParentCommentId(parentId, pageInfoDto);
+		ResPaginationG<CommentDto> page = commentService.getAssociatedCommentsByParentCommentId(id, pageInfoDto);
 		return ResponseEntity.ok().body(page);
 	}
 	
 	/**
 	 * To delete a comment by id.
-	 * @param commentId - comment's id.
+	 * @param id - comment's id.
 	 * @return a message with information.
 	 */
-	@DeleteMapping(value="/byId/{commentId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResMessage> deleteById(@PathVariable(name = "commentId") Long commentId){
-		commentService.deleteById(commentId);
+	@DeleteMapping(value="/byId/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResMessage> deleteById(@PathVariable(name = "id") Long id){
+		commentService.deleteById(id);
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
 	
@@ -109,7 +109,7 @@ public class CommentC {
 	 */
 	@PutMapping(value="/byId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<CommentDto> updateById(@RequestBody ReqUpdateComment reqUpdateComment){
-		CommentDto commmentUpdated = commentService.updateById(reqUpdateComment.getCommentId(),reqUpdateComment.getBody());
+		CommentDto commmentUpdated = commentService.updateById(reqUpdateComment.getId(),reqUpdateComment.getBody());
 		return ResponseEntity.ok().body(commmentUpdated);
 	}
 	

@@ -84,7 +84,7 @@ class PublicatedImageCTest {
 	private static final MediaType APPLICATION_JSON_UTF8 = MediaType.APPLICATION_JSON;
 	//same user that sqlAddUser1
 	private User userAuthMati = User.builder()
-			.userId(1L)
+			.id(1L)
 			.username("matias")
 			.password("$2a$10$Z/mAWx8fyvjzn2V.xDDge.SnMkyVyFfAcLlEJUHQ0DqXfqrao8wke")
 			.visible(true)
@@ -92,7 +92,7 @@ class PublicatedImageCTest {
 			.build();
 	//same user that sqlAddUser2
 	private User userAuthRoci = User.builder()
-			.userId(2L)
+			.id(2L)
 			.username("rocio")
 			.password("$2a$10$Z/mAWx8fyvjzn2V.xDDge.SnMkyVyFfAcLlEJUHQ0DqXfqrao8wke")
 			.visible(false)
@@ -135,7 +135,7 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.createdAt",instanceOf(String.class)))
 				.andExpect(jsonPath("$.image", is(imgBase64)))
 				.andExpect(jsonPath("$.description",is(description)))
-				.andExpect(jsonPath("$.userOwner.userId",is(userAuthMati.getUserId().toString())));
+				.andExpect(jsonPath("$.userOwner.id",is(userAuthMati.getId().toString())));
 		assertNotNull(publicatedImagesDao.findById(1L));
 	}
 	@Test
@@ -208,7 +208,7 @@ class PublicatedImageCTest {
 				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is("1")))
-				.andExpect(jsonPath("$.userOwner.userId", is("1")))
+				.andExpect(jsonPath("$.userOwner.id", is("1")))
 				.andExpect(jsonPath("$.rootComments.list", hasSize(1)));
 	}
 	
@@ -234,7 +234,7 @@ class PublicatedImageCTest {
 				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
-				.andExpect(jsonPath("$.pageInfoDto.sortField", is("publImgId")))  //default value if the user don't pass any param
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("id")))  //default value if the user don't pass any param
 				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));   //default value if the user don't pass any param
 	}
 	@Test
@@ -278,7 +278,7 @@ class PublicatedImageCTest {
 		        .andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
 		        .andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
 		        .andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
-		        .andExpect(jsonPath("$.pageInfoDto.sortField", is("publImgId")))  //default value if the user don't pass any param
+		        .andExpect(jsonPath("$.pageInfoDto.sortField", is("id")))  //default value if the user don't pass any param
 		        .andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));   //default value if the user don't pass any param
 	}
 	@Test
@@ -318,7 +318,7 @@ class PublicatedImageCTest {
         		.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) //default value if the user don't pass any param
         		.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1))) 
         		.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1))) 
-        		.andExpect(jsonPath("$.pageInfoDto.sortField", is("publImgId")))  //default value if the user don't pass any param
+        		.andExpect(jsonPath("$.pageInfoDto.sortField", is("id")))  //default value if the user don't pass any param
         		.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));   //default value if the user don't pass any param
 	}
 	

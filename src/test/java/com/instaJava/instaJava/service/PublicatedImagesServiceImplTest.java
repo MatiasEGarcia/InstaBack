@@ -81,7 +81,7 @@ class PublicatedImagesServiceImplTest {
 	private SpecificationService<PublicatedImage> specService;
 	@InjectMocks
 	PublicatedImagesServiceImpl publicatedImagesService;
-	private final User user = User.builder().userId(1L).username("random").password("random").role(RolesEnum.ROLE_USER)
+	private final User user = User.builder().id(1L).username("random").password("random").role(RolesEnum.ROLE_USER)
 			.build();
 
 	// save
@@ -106,7 +106,7 @@ class PublicatedImagesServiceImplTest {
 		String imgBase64 = Base64.getEncoder().encodeToString(img.getBytes());
 
 		String description = "someDescription";
-		UserDto userDto = UserDto.builder().userId("1").username("random").build();
+		UserDto userDto = UserDto.builder().id("1").username("random").build();
 
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -143,7 +143,7 @@ class PublicatedImagesServiceImplTest {
 	@Test
 	void deleteByIdExistsNotSameUserThrow() {
 		Long id = 1L;
-		PublicatedImage publiImage = PublicatedImage.builder().publImgId(1L).userOwner(new User(3L)).build();
+		PublicatedImage publiImage = PublicatedImage.builder().id(1L).userOwner(new User(3L)).build();
 
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -159,7 +159,7 @@ class PublicatedImagesServiceImplTest {
 	@Test
 	void deleteById() {
 		Long id = 1L;
-		PublicatedImage publiImage = PublicatedImage.builder().publImgId(1L).userOwner(user).build();
+		PublicatedImage publiImage = PublicatedImage.builder().id(1L).userOwner(user).build();
 
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -217,12 +217,12 @@ class PublicatedImagesServiceImplTest {
 				.sortDir(Direction.ASC)
 				.sortField("random")
 				.build();
-		User userOnwer = User.builder().userId(2L).visible(false).build();
-		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		User userOnwer = User.builder().id(2L).visible(false).build();
+		PublicatedImage publicatedImage = PublicatedImage.builder().id(id).userOwner(userOnwer).build();
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
-		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.REJECTED);
+		when(followService.getFollowStatusByFollowedId(userOnwer.getId())).thenReturn(FollowStatus.REJECTED);
 
 		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id,pageInfoDto));
 		verify(publicatedImageMapper, never()).publicatedImageToPublicatedImageDto(publicatedImage);
@@ -236,14 +236,14 @@ class PublicatedImagesServiceImplTest {
 				.sortDir(Direction.ASC)
 				.sortField("random")
 				.build();
-		User userOnwer = User.builder().userId(2L).visible(true).build();
-		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		User userOnwer = User.builder().id(2L).visible(true).build();
+		PublicatedImage publicatedImage = PublicatedImage.builder().id(id).userOwner(userOnwer).build();
 		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
 
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
-		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.REJECTED);
+		when(followService.getFollowStatusByFollowedId(userOnwer.getId())).thenReturn(FollowStatus.REJECTED);
 		// mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
@@ -265,12 +265,12 @@ class PublicatedImagesServiceImplTest {
 				.sortDir(Direction.ASC)
 				.sortField("random")
 				.build();
-		User userOnwer = User.builder().userId(2L).visible(false).build();
-		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		User userOnwer = User.builder().id(2L).visible(false).build();
+		PublicatedImage publicatedImage = PublicatedImage.builder().id(id).userOwner(userOnwer).build();
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
-		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.IN_PROCESS);
+		when(followService.getFollowStatusByFollowedId(userOnwer.getId())).thenReturn(FollowStatus.IN_PROCESS);
 
 		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id, pageInfoDto));
 		verify(publicatedImageMapper, never()).publicatedImageToPublicatedImageDto(publicatedImage);
@@ -284,14 +284,14 @@ class PublicatedImagesServiceImplTest {
 				.sortDir(Direction.ASC)
 				.sortField("random")
 				.build();
-		User userOnwer = User.builder().userId(2L).visible(true).build();
-		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		User userOnwer = User.builder().id(2L).visible(true).build();
+		PublicatedImage publicatedImage = PublicatedImage.builder().id(id).userOwner(userOnwer).build();
 		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
 
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
-		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.IN_PROCESS);
+		when(followService.getFollowStatusByFollowedId(userOnwer.getId())).thenReturn(FollowStatus.IN_PROCESS);
 		// mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
@@ -313,12 +313,12 @@ class PublicatedImagesServiceImplTest {
 				.sortDir(Direction.ASC)
 				.sortField("random")
 				.build();
-		User userOnwer = User.builder().userId(2L).visible(false).build();
-		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		User userOnwer = User.builder().id(2L).visible(false).build();
+		PublicatedImage publicatedImage = PublicatedImage.builder().id(id).userOwner(userOnwer).build();
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
-		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.NOT_ASKED);
+		when(followService.getFollowStatusByFollowedId(userOnwer.getId())).thenReturn(FollowStatus.NOT_ASKED);
 
 		assertThrows(InvalidActionException.class, () -> publicatedImagesService.getById(id, pageInfoDto));
 		verify(publicatedImageMapper, never()).publicatedImageToPublicatedImageDto(publicatedImage);
@@ -332,14 +332,14 @@ class PublicatedImagesServiceImplTest {
 				.sortDir(Direction.ASC)
 				.sortField("random")
 				.build();
-		User userOnwer = User.builder().userId(2L).visible(true).build();
-		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		User userOnwer = User.builder().id(2L).visible(true).build();
+		PublicatedImage publicatedImage = PublicatedImage.builder().id(id).userOwner(userOnwer).build();
 		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
 
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
-		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.NOT_ASKED);
+		when(followService.getFollowStatusByFollowedId(userOnwer.getId())).thenReturn(FollowStatus.NOT_ASKED);
 		// mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
@@ -361,13 +361,13 @@ class PublicatedImagesServiceImplTest {
 				.sortDir(Direction.ASC)
 				.sortField("random")
 				.build();
-		User userOnwer = User.builder().userId(2L).visible(false).build();
-		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		User userOnwer = User.builder().id(2L).visible(false).build();
+		PublicatedImage publicatedImage = PublicatedImage.builder().id(id).userOwner(userOnwer).build();
 		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
-		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.ACCEPTED);
+		when(followService.getFollowStatusByFollowedId(userOnwer.getId())).thenReturn(FollowStatus.ACCEPTED);
 		// mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
@@ -389,13 +389,13 @@ class PublicatedImagesServiceImplTest {
 				.sortDir(Direction.ASC)
 				.sortField("random")
 				.build();
-		User userOnwer = User.builder().userId(2L).visible(true).build();
-		PublicatedImage publicatedImage = PublicatedImage.builder().publImgId(id).userOwner(userOnwer).build();
+		User userOnwer = User.builder().id(2L).visible(true).build();
+		PublicatedImage publicatedImage = PublicatedImage.builder().id(id).userOwner(userOnwer).build();
 		ResPaginationG<CommentDto> commentResPaginationG = new ResPaginationG<>();
 		// dao
 		when(publicatedImagesDao.findById(id)).thenReturn(Optional.of(publicatedImage));
 		// follow
-		when(followService.getFollowStatusByFollowedId(userOnwer.getUserId())).thenReturn(FollowStatus.ACCEPTED);
+		when(followService.getFollowStatusByFollowedId(userOnwer.getId())).thenReturn(FollowStatus.ACCEPTED);
 		// mapper
 		when(publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage))
 				.thenReturn(new PublicatedImageDto());
@@ -499,14 +499,14 @@ class PublicatedImagesServiceImplTest {
 	void getAllByOwnerPageInfoDtoSortDirNullThrow() {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("randomSortField").build();
 		assertThrows(IllegalArgumentException.class,
-				() -> publicatedImagesService.getAllByOnwer(user.getUserId(), pageInfoDto));
+				() -> publicatedImagesService.getAllByOnwer(user.getId(), pageInfoDto));
 	}
 
 	@Test
 	void getAllByOwnerPageInfoDtoSortFieldNullThrow() {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir(Direction.ASC).build();
 		assertThrows(IllegalArgumentException.class,
-				() -> publicatedImagesService.getAllByOnwer(user.getUserId(), pageInfoDto));
+				() -> publicatedImagesService.getAllByOnwer(user.getId(), pageInfoDto));
 	}
 
 	@Test
@@ -523,13 +523,13 @@ class PublicatedImagesServiceImplTest {
 		// pageable
 		when(pageUtils.getPageable(pageInfoDto)).thenReturn(page);
 		// dao
-		when(publicatedImagesDao.findByUserOwnerUserId(user.getUserId(), page)).thenReturn(publicatedImagePage);
+		when(publicatedImagesDao.findByUserOwnerId(user.getId(), page)).thenReturn(publicatedImagePage);
 
 		assertThrows(RecordNotFoundException.class,
-				() -> publicatedImagesService.getAllByOnwer(user.getUserId(), pageInfoDto));
+				() -> publicatedImagesService.getAllByOnwer(user.getId(), pageInfoDto));
 
 		verify(followService, never()).getFollowStatusByFollowedId(anyLong());
-		verify(publicatedImagesDao).findByUserOwnerUserId(user.getUserId(), page);
+		verify(publicatedImagesDao).findByUserOwnerId(user.getId(), page);
 	}
 
 	@Test
@@ -548,20 +548,20 @@ class PublicatedImagesServiceImplTest {
 		// pageable
 		when(pageUtils.getPageable(pageInfoDto)).thenReturn(page);
 		// dao
-		when(publicatedImagesDao.findByUserOwnerUserId(user.getUserId(), page)).thenReturn(publicatedImagePage);
+		when(publicatedImagesDao.findByUserOwnerId(user.getId(), page)).thenReturn(publicatedImagePage);
 		when(publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(publicatedImagePage, pageInfoDto))
 				.thenReturn(resPag);
 
-		assertNotNull(publicatedImagesService.getAllByOnwer(user.getUserId(), pageInfoDto));
+		assertNotNull(publicatedImagesService.getAllByOnwer(user.getId(), pageInfoDto));
 
 		verify(followService, never()).getFollowStatusByFollowedId(anyLong());
-		verify(publicatedImagesDao).findByUserOwnerUserId(user.getUserId(), page);
+		verify(publicatedImagesDao).findByUserOwnerId(user.getId(), page);
 	}
 
 	@Test
 	void getAllByOwnerNotSameThanAuthUserFollowStatusNotAskedThrow() {
 		Long idDifferentFromAuthUser = 100L;
-		UserDto ownerDifferentFornAuthUserDto = UserDto.builder().userId("100").visible(false).build();
+		UserDto ownerDifferentFornAuthUserDto = UserDto.builder().id("100").visible(false).build();
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir(Direction.ASC)
 				.sortField("pubImaId").build();
 		Pageable page = Pageable.unpaged();
@@ -580,13 +580,13 @@ class PublicatedImagesServiceImplTest {
 
 		verify(userService).getById(idDifferentFromAuthUser);
 		verify(followService).getFollowStatusByFollowedId(idDifferentFromAuthUser);
-		verify(publicatedImagesDao, never()).findByUserOwnerUserId(idDifferentFromAuthUser, page);
+		verify(publicatedImagesDao, never()).findByUserOwnerId(idDifferentFromAuthUser, page);
 	}
 
 	@Test
 	void getAllByOwnerNotSameThanAuthUserFollowStatusInProcess() {
 		Long idDifferentFromAuthUser = 100L;
-		UserDto ownerDifferentFornAuthUserDto = UserDto.builder().userId("100").visible(false).build();
+		UserDto ownerDifferentFornAuthUserDto = UserDto.builder().id("100").visible(false).build();
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir(Direction.ASC)
 				.sortField("pubImaId").build();
 		Pageable page = Pageable.unpaged();
@@ -605,13 +605,13 @@ class PublicatedImagesServiceImplTest {
 
 		verify(userService).getById(idDifferentFromAuthUser);
 		verify(followService).getFollowStatusByFollowedId(idDifferentFromAuthUser);
-		verify(publicatedImagesDao, never()).findByUserOwnerUserId(idDifferentFromAuthUser, page);
+		verify(publicatedImagesDao, never()).findByUserOwnerId(idDifferentFromAuthUser, page);
 	}
 
 	@Test
 	void getAllByOwnerNotSameThanAuthUserFollowStatusRejected() {
 		Long idDifferentFromAuthUser = 100L;
-		UserDto ownerDifferentFornAuthUserDto = UserDto.builder().userId("100").visible(false).build();
+		UserDto ownerDifferentFornAuthUserDto = UserDto.builder().id("100").visible(false).build();
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir(Direction.ASC)
 				.sortField("pubImaId").build();
 		Pageable page = Pageable.unpaged();
@@ -630,13 +630,13 @@ class PublicatedImagesServiceImplTest {
 
 		verify(userService).getById(idDifferentFromAuthUser);
 		verify(followService).getFollowStatusByFollowedId(idDifferentFromAuthUser);
-		verify(publicatedImagesDao, never()).findByUserOwnerUserId(idDifferentFromAuthUser, page);
+		verify(publicatedImagesDao, never()).findByUserOwnerId(idDifferentFromAuthUser, page);
 	}
 
 	@Test
 	void getAllByOwnerNotSameThanAuthUserFollowStatusAccepted() {
 		Long idDifferentFromAuthUser = 100L;
-		UserDto ownerDifferentFornAuthUserDto = UserDto.builder().userId("100").visible(false).build();
+		UserDto ownerDifferentFornAuthUserDto = UserDto.builder().id("100").visible(false).build();
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(0).pageSize(10).sortDir(Direction.ASC)
 				.sortField("pubImaId").build();
 		Pageable page = Pageable.unpaged();
@@ -655,7 +655,7 @@ class PublicatedImagesServiceImplTest {
 		// pageUtils
 		when(pageUtils.getPageable(pageInfoDto)).thenReturn(page);
 		// dao
-		when(publicatedImagesDao.findByUserOwnerUserId(idDifferentFromAuthUser, page)).thenReturn(publicatedImagePage);
+		when(publicatedImagesDao.findByUserOwnerId(idDifferentFromAuthUser, page)).thenReturn(publicatedImagePage);
 		// mapping
 		when(publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(publicatedImagePage, pageInfoDto))
 				.thenReturn(resPag);
@@ -663,7 +663,7 @@ class PublicatedImagesServiceImplTest {
 		assertNotNull(publicatedImagesService.getAllByOnwer(idDifferentFromAuthUser, pageInfoDto));
 
 		verify(followService).getFollowStatusByFollowedId(anyLong());
-		verify(publicatedImagesDao).findByUserOwnerUserId(idDifferentFromAuthUser, page);
+		verify(publicatedImagesDao).findByUserOwnerId(idDifferentFromAuthUser, page);
 
 	}
 
@@ -671,13 +671,13 @@ class PublicatedImagesServiceImplTest {
 	@Test
 	void countPublicationsByOwnerIdParamIdNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> publicatedImagesService.countPublicationsByOwnerId(null));
-		verify(publicatedImagesDao, never()).countByUserOwnerUserId(null);
+		verify(publicatedImagesDao, never()).countByUserOwnerId(null);
 	}
 
 	@Test
 	void countPublicationsByOwnerIdReturnsNotNull() {
 		Long ownerId = 1L;
-		when(publicatedImagesDao.countByUserOwnerUserId(ownerId)).thenReturn(1L);
+		when(publicatedImagesDao.countByUserOwnerId(ownerId)).thenReturn(1L);
 		assertNotNull(publicatedImagesService.countPublicationsByOwnerId(ownerId));
 		verify(userService).getById(ownerId);
 	}
@@ -722,7 +722,7 @@ class PublicatedImagesServiceImplTest {
 		// pageUtils
 		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
 		// dao
-		when(publicatedImagesDao.findPublicationsFromUsersFollowed(eq(user.getUserId()), any(Pageable.class)))
+		when(publicatedImagesDao.findPublicationsFromUsersFollowed(eq(user.getId()), any(Pageable.class)))
 				.thenReturn(page);
 
 		assertThrows(RecordNotFoundException.class,
@@ -745,7 +745,7 @@ class PublicatedImagesServiceImplTest {
 		// pageUtils
 		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
 		// dao
-		when(publicatedImagesDao.findPublicationsFromUsersFollowed(eq(user.getUserId()), any(Pageable.class)))
+		when(publicatedImagesDao.findPublicationsFromUsersFollowed(eq(user.getId()), any(Pageable.class)))
 				.thenReturn(page);
 		// mapper
 		when(publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto)).thenReturn(resPag);

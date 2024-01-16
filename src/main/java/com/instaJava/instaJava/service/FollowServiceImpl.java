@@ -55,7 +55,7 @@ public class FollowServiceImpl implements FollowService {
 			throw new AlreadyExistsException(messUtils.getMessage("generic.create-record-already.exists"),
 					HttpStatus.BAD_REQUEST);
 		}
-		userFollowed = User.builder().userId(Long.parseLong(userDtoFollowed.getUserId())).build();
+		userFollowed = User.builder().id(Long.parseLong(userDtoFollowed.getId())).build();
 		follow = Follow.builder().followed(userFollowed).follower(userFollower).build();
 		// set follow status by visible state of the user wanted to follow
 		if (userDtoFollowed.isVisible()) {
@@ -66,10 +66,10 @@ public class FollowServiceImpl implements FollowService {
 			customMessage = "A new user wants to follow you";
 		}
 
-		Follow followCreated = followDao.save(follow);
+		follow = followDao.save(follow);
 		// save notification for the followed user
 		notificationService.saveNotificationOfFollow(follow, customMessage);
-		return followMapper.followToFollowDto(followCreated);
+		return followMapper.followToFollowDto(follow);
 	}
 
 	@Override
@@ -95,7 +95,7 @@ public class FollowServiceImpl implements FollowService {
 		User userFollowed;
 		FollowDto follower = findById(id);
 		userFollowed = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (!follower.getFollowed().getUserId().equalsIgnoreCase(userFollowed.getUserId().toString()))
+		if (!follower.getFollowed().getId().equalsIgnoreCase(userFollowed.getId().toString()))
 			throw new IllegalArgumentException(messUtils.getMessage("follow.followed-not-same"));
 		follower.setFollowStatus(newStatus);
 		Follow followCreated = followDao.save(followMapper.followDtoToFollow(follower));
@@ -113,7 +113,7 @@ public class FollowServiceImpl implements FollowService {
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
 		// getting follow record
-		follow = followDao.findOneByFollowedUserIdAndFollowerUserId(authUser.getUserId(), followerUserId).orElseThrow(
+		follow = followDao.findOneByFollowedIdAndFollowerId(authUser.getId(), followerUserId).orElseThrow(
 				() -> new RecordNotFoundException(messUtils.getMessage("follow.not-found"), HttpStatus.NOT_FOUND));
 		// updating follow recod
 		follow.setFollowStatus(newStatus);
@@ -140,7 +140,7 @@ public class FollowServiceImpl implements FollowService {
 		if (followedId == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User follower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		return followDao.existsByFollowedUserIdAndFollowerUserId(followedId, follower.getUserId());
+		return followDao.existsByFollowedIdAndFollowerId(followedId, follower.getId());
 	}
 
 	@Override
@@ -150,7 +150,7 @@ public class FollowServiceImpl implements FollowService {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		FollowDto foll = findById(id);
 		User userFollower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (!foll.getFollower().getUserId().equalsIgnoreCase(userFollower.getUserId().toString()))
+		if (!foll.getFollower().getId().equalsIgnoreCase(userFollower.getId().toString()))
 			throw new InvalidActionException(messUtils.getMessage("follow.follower-not-same"), HttpStatus.BAD_REQUEST);
 		followDao.delete(followMapper.followDtoToFollow(foll));
 	}
@@ -168,7 +168,7 @@ public class FollowServiceImpl implements FollowService {
 
 		userFollower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		optFollow = followDao.findOneByFollowedUserIdAndFollowerUserId(id, userFollower.getUserId());
+		optFollow = followDao.findOneByFollowedIdAndFollowerId(id, userFollower.getId());
 
 		if (optFollow.isEmpty())
 			return FollowStatus.NOT_ASKED;
@@ -189,7 +189,7 @@ public class FollowServiceImpl implements FollowService {
 
 		userFollowed = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		optFollow = followDao.findOneByFollowedUserIdAndFollowerUserId(userFollowed.getUserId(), followerId);
+		optFollow = followDao.findOneByFollowedIdAndFollowerId(userFollowed.getId(), followerId);
 
 		if (optFollow.isEmpty())
 			return FollowStatus.NOT_ASKED;
@@ -202,7 +202,7 @@ public class FollowServiceImpl implements FollowService {
 		if (followedId == null || followStatus == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 
-		return followDao.countByFollowedUserIdAndFollowStatus(followedId, followStatus);
+		return followDao.countByFollowedIdAndFollowStatus(followedId, followStatus);
 	}
 
 	@Override
@@ -211,7 +211,7 @@ public class FollowServiceImpl implements FollowService {
 		if (followerId == null || followStatus == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 
-		return followDao.countByFollowerUserIdAndFollowStatus(followerId, followStatus);
+		return followDao.countByFollowerIdAndFollowStatus(followerId, followStatus);
 	}
 
 }

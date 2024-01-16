@@ -25,7 +25,7 @@ public class ChatUser{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name ="id")
-	private Long chatUserid;
+	private Long id;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "associate_user")

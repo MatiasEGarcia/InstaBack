@@ -76,7 +76,7 @@ class MessageServiceImplTest {
 	private ChatMapper chatMapper;
 	@InjectMocks
 	private MessageServiceImpl messageService;
-	private final User user = User.builder().userId(1L).username("Mati").password("random").role(RolesEnum.ROLE_USER)
+	private final User user = User.builder().id(1L).username("Mati").password("random").role(RolesEnum.ROLE_USER)
 			.build();
 
 	// create
@@ -115,7 +115,7 @@ class MessageServiceImplTest {
 		Long chatId = 1L;
 		User randomUser = User.builder().username("random").build();// differente user than auth user.
 		ChatUser chatUser = ChatUser.builder().user(randomUser).build();
-		Chat chat = Chat.builder().chatId(chatId).chatUsers(List.of(chatUser)).build();
+		Chat chat = Chat.builder().id(chatId).chatUsers(List.of(chatUser)).build();
 
 		// chatDao
 		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
@@ -190,7 +190,7 @@ class MessageServiceImplTest {
 
 		assertThrows(RecordNotFoundException.class, () -> messageService.getMessagesByChat(chatId, pageInfoDto));
 
-		verify(msgDao, never()).findByChatChatId(eq(chatId), any(Pageable.class));
+		verify(msgDao, never()).findByChatId(eq(chatId), any(Pageable.class));
 	}
 
 	@Test
@@ -211,7 +211,7 @@ class MessageServiceImplTest {
 
 		assertThrows(InvalidActionException.class, () -> messageService.getMessagesByChat(chatId, pageInfoDto));
 
-		verify(msgDao, never()).findByChatChatId(eq(chatId), any(Pageable.class));
+		verify(msgDao, never()).findByChatId(eq(chatId), any(Pageable.class));
 	}
 
 	@Test
@@ -234,7 +234,7 @@ class MessageServiceImplTest {
 		// pageUtils
 		when(pagUtils.getPageable(pageInfoDto)).thenReturn(pageable);
 		// dao
-		when(msgDao.findByChatChatId(chatId, pageable)).thenReturn(page);
+		when(msgDao.findByChatId(chatId, pageable)).thenReturn(page);
 
 		assertThrows(RecordNotFoundException.class, () -> messageService.getMessagesByChat(chatId, pageInfoDto));
 	}
@@ -260,7 +260,7 @@ class MessageServiceImplTest {
 		// pageUtils
 		when(pagUtils.getPageable(pageInfoDto)).thenReturn(pageable);
 		// dao
-		when(msgDao.findByChatChatId(chatId, pageable)).thenReturn(page);
+		when(msgDao.findByChatId(chatId, pageable)).thenReturn(page);
 		// Mapper
 		when(msgMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto)).thenReturn(resPaginationG);
 
@@ -282,7 +282,7 @@ class MessageServiceImplTest {
 	void messagesWatchedNotAllMessagesWereFoundThrow() {
 		Set<String> messageWatchedIds = Set.of("1", "2");
 		// only message found.
-		Message message = Message.builder().messageId(1L).watchedBy("Julio,").build();
+		Message message = Message.builder().id(1L).watchedBy("Julio,").build();
 		List<Message> listMessages = List.of(message);
 		when(msgDao.findAllById(anyList())).thenReturn(listMessages);
 
@@ -294,10 +294,10 @@ class MessageServiceImplTest {
 	@Test
 	void messagesWatchedReturnsNotNullNoMoreMessagesNotWatched() {
 		Set<String> messageWatchedIds = Set.of("1", "2");
-		Chat chat = Chat.builder().chatId(1L).build();
+		Chat chat = Chat.builder().id(1L).build();
 		// messages found.
-		Message message1 = Message.builder().messageId(1L).chat(chat).watchedBy("Julio,").build();
-		Message message2 = Message.builder().messageId(2L).chat(chat).watchedBy("Julio,").build();
+		Message message1 = Message.builder().id(1L).chat(chat).watchedBy("Julio,").build();
+		Message message2 = Message.builder().id(2L).chat(chat).watchedBy("Julio,").build();
 		List<Message> listMessages = List.of(message1, message2);
 
 		MessageServiceImpl spyMessageService = spy(messageService);
@@ -312,7 +312,7 @@ class MessageServiceImplTest {
 		when(msgDao.saveAll(listMessages)).thenReturn(listMessages);
 
 		doReturn(Collections.emptyList()).when(spyMessageService)
-				.getMessagesNotWatchedCountByChatIds(List.of(chat.getChatId()), user.getUsername());
+				.getMessagesNotWatchedCountByChatIds(List.of(chat.getId()), user.getUsername());
 		// mapper
 		when(chatMapper.chatAndMessagesNoWatchedToChatDto(chat, 0L)).thenReturn(new ChatDto());
 
@@ -324,10 +324,10 @@ class MessageServiceImplTest {
 	@Test
 	void messagesWatchedReturnsNotNullOneMessageAlreadyWatched() {
 		Set<String> messageWatchedIds = Set.of("1", "2");
-		Chat chat = Chat.builder().chatId(1L).build();
+		Chat chat = Chat.builder().id(1L).build();
 		// messages found.
-		Message message1 = Message.builder().messageId(1L).chat(chat).watchedBy("Julio,").build();
-		Message message2 = Message.builder().messageId(2L).chat(chat).watchedBy("Mati,").build();// already watched by
+		Message message1 = Message.builder().id(1L).chat(chat).watchedBy("Julio,").build();
+		Message message2 = Message.builder().id(2L).chat(chat).watchedBy("Mati,").build();// already watched by
 																									// auth user.
 		List<Message> listMessages = List.of(message1, message2);
 
@@ -345,7 +345,7 @@ class MessageServiceImplTest {
 		when(msgDao.saveAll(listMessages)).thenReturn(listMessages);
 
 		doReturn(Collections.emptyList()).when(spyMessageService)
-				.getMessagesNotWatchedCountByChatIds(List.of(chat.getChatId()), user.getUsername());
+				.getMessagesNotWatchedCountByChatIds(List.of(chat.getId()), user.getUsername());
 		// mapper
 		when(chatMapper.chatAndMessagesNoWatchedToChatDto(chat, 0L)).thenReturn(new ChatDto());
 

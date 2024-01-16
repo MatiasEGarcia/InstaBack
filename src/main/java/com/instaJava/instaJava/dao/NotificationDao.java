@@ -14,7 +14,7 @@ import com.instaJava.instaJava.entity.User;
 
 public interface NotificationDao extends JpaRepository<Notification, Long>, JpaSpecificationExecutor<Notification>{
 
-	Page<Notification> findByToWhoUserId(Long toWhoId, Pageable pageable);
+	Page<Notification> findByToWhoId(Long toWhoId, Pageable pageable);
 	
 	@Meta(comment = "delete all notifications by who received it")
 	@Modifying

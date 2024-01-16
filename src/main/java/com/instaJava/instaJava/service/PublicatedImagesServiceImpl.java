@@ -79,7 +79,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		PublicatedImage publiImage = publicatedImagesDao.findById(id).orElseThrow(() ->
 				new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"),HttpStatus.NOT_FOUND));
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (!publiImage.getUserOwner().getUserId().equals(authUser.getUserId())) {
+		if (!publiImage.getUserOwner().getId().equals(authUser.getId())) {
 			throw new InvalidActionException(messUtils.getMessage("generic.auth-user-no-owner"),HttpStatus.BAD_REQUEST);
 		}
 		publicatedImagesDao.deleteById(id);
@@ -98,7 +98,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		PublicatedImage publicatedImage = publicatedImagesDao.findById(id).orElseThrow(() -> 
 				new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"), List.of(id.toString()), HttpStatus.NOT_FOUND));
 		
-		followStatus = followService.getFollowStatusByFollowedId( publicatedImage.getUserOwner().getUserId() );
+		followStatus = followService.getFollowStatusByFollowedId( publicatedImage.getUserOwner().getId() );
 		
 		//check ownerUser visibility and follow status
 		if(!publicatedImage.getUserOwner().isVisible() && followStatus != FollowStatus.ACCEPTED) {
@@ -151,7 +151,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		UserDto ownerUser;
 		
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if(authUser.getUserId() != ownerId) {
+		if(authUser.getId() != ownerId) {
 			ownerUser = userService.getById(ownerId);
 			//if the owner user is not visible we need to check the followStatus
 			if(!ownerUser.isVisible()) {
@@ -174,7 +174,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		
 		// if owner is the same than the user is auth then we return publications, and
 		// if the user is visible or follow status is Accepted too.
-		publicatedImageFoundPage = publicatedImagesDao.findByUserOwnerUserId(ownerId, pagUtils.getPageable(pageInfoDto));
+		publicatedImageFoundPage = publicatedImagesDao.findByUserOwnerId(ownerId, pagUtils.getPageable(pageInfoDto));
 		if(!publicatedImageFoundPage.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("publiImage.group-not-found"), HttpStatus.NO_CONTENT);
 		}
@@ -187,7 +187,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 	public Long countPublicationsByOwnerId(Long id) {
 		if(id == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		userService.getById(id);//if there is not an exception then the user exists and the request can continue.
-		return publicatedImagesDao.countByUserOwnerUserId(id);
+		return publicatedImagesDao.countByUserOwnerId(id);
 	}
 
 
@@ -200,7 +200,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		Page<PublicatedImage> page = publicatedImagesDao.findPublicationsFromUsersFollowed(authUser.getUserId(),
+		Page<PublicatedImage> page = publicatedImagesDao.findPublicationsFromUsersFollowed(authUser.getId(),
 					pagUtils.getPageable(pageInfoDto));
 		if(!page.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("publiImage.group-not-found"), HttpStatus.NO_CONTENT);

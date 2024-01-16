@@ -79,10 +79,10 @@ class CommentCTest {
 	private String sqlRefIntegrityTrue;
 
 	// this user is in the bdd , because we save it with sqlAddUser1
-	private User matiasUserAuth = User.builder().userId(1L).username("matias").password("123456")
+	private User matiasUserAuth = User.builder().id(1L).username("matias").password("123456")
 			.role(RolesEnum.ROLE_USER).build();
 
-	private User rociUserAuth = User.builder().userId(2L).username("rocio").password("123456").role(RolesEnum.ROLE_USER)
+	private User rociUserAuth = User.builder().id(2L).username("rocio").password("123456").role(RolesEnum.ROLE_USER)
 			.build();
 
 	@BeforeEach
@@ -123,7 +123,7 @@ class CommentCTest {
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/comments").header("Authorization", "Bearer " + token)
 				.content(objectMapper.writeValueAsString(reqComment)).contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpectAll(jsonPath("$.body", is(reqComment.getBody())))
-				.andExpectAll(jsonPath("$.ownerUser.userId", is(rociUserAuth.getUserId().toString())))
+				.andExpectAll(jsonPath("$.ownerUser.id", is(rociUserAuth.getId().toString())))
 				.andExpectAll(jsonPath("$.associatedImg.id", is("1")));
 	}
 
@@ -132,7 +132,7 @@ class CommentCTest {
 	void getGetManyByPublicationIdNoContent() throws Exception {
 		String token = jwtService.generateToken(rociUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/comments/manyByPublicationId")
-				.header("Authorization", "Bearer " + token).param("publicationId", "1"))
+				.header("Authorization", "Bearer " + token).param("id", "1"))
 				.andExpect(status().isNoContent());
 	}
 
@@ -149,13 +149,13 @@ class CommentCTest {
 		jdbc.update(sqlAddComment); // adding a comment on publication.
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/comments/manyByPublicationId")
-				.header("Authorization", "Bearer " + token).param("publicationId", "1")).andExpect(status().isOk())
+				.header("Authorization", "Bearer " + token).param("id", "1")).andExpect(status().isOk())
 				.andExpect(jsonPath("$.list", hasSize(1)))
 				.andExpect(jsonPath("$.pageInfoDto.pageNo", is(0))) 																					
 				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) 
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1)))
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1)))
-				.andExpect(jsonPath("$.pageInfoDto.sortField", is("commentId")))
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("id")))
 				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));
 	}
 	
@@ -165,7 +165,7 @@ class CommentCTest {
 		String token = jwtService.generateToken(rociUserAuth);
 		jdbc.update(sqlAddComment); // adding a comment on publication.
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/comments/manyByParentId")
-				.header("Authorization", "Bearer " + token).param("parentId", "1"))
+				.header("Authorization", "Bearer " + token).param("id", "1"))
 				.andExpect(status().isNoContent());
 	}
 	
@@ -174,7 +174,7 @@ class CommentCTest {
 		String token = jwtService.generateToken(rociUserAuth);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/comments/manyByParentId")
 				.header("Authorization","Bearer " + token)
-				.param("parentId", "1"))
+				.param("id", "1"))
 				.andExpect(status().isNotFound());
 	}
 	@Test
@@ -192,7 +192,7 @@ class CommentCTest {
 		jdbc.update(sqlAddComment2); // adding a comment having parent the first comment.
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/comments/manyByParentId")
 				.header("Authorization", "Bearer " + token)
-				.param("parentId", "1"))
+				.param("id", "1"))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(jsonPath("$.list", hasSize(1)))
@@ -200,7 +200,7 @@ class CommentCTest {
 				.andExpect(jsonPath("$.pageInfoDto.pageSize", is(20))) 
 				.andExpect(jsonPath("$.pageInfoDto.totalPages", is(1)))
 				.andExpect(jsonPath("$.pageInfoDto.totalElements", is(1)))
-				.andExpect(jsonPath("$.pageInfoDto.sortField", is("commentId")))
+				.andExpect(jsonPath("$.pageInfoDto.sortField", is("id")))
 				.andExpect(jsonPath("$.pageInfoDto.sortDir", is(Direction.ASC.toString())));;
 	}
 	
@@ -249,7 +249,7 @@ class CommentCTest {
 				.contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.commentId" , is("1")))
+				.andExpect(jsonPath("$.id" , is("1")))
 				.andExpect(jsonPath("$.body" , is(reqUpdateComment.getBody())));
 	}
 	

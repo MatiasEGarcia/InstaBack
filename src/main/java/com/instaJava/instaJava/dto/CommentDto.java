@@ -27,7 +27,7 @@ public class CommentDto implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	
-	private String commentId;
+	private String id;
 	
 	private String body;
 	

@@ -28,7 +28,7 @@ public class LikeDto implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 
-	private String likeId;
+	private String id;
 	
 	private TypeItemLikedEnum itemType;
 	

@@ -30,7 +30,7 @@ public class PublicatedImage{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name= "id")
-	private Long publImgId;
+	private Long id;
 	
 	@Column(name = "img", columnDefinition = "BLOB")
     private String image;
@@ -48,8 +48,8 @@ public class PublicatedImage{
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "associatedImg" , cascade = {CascadeType.REMOVE})
 	private List<Comment> comments;
 	
-	public PublicatedImage(Long publImgId) {
-		this.publImgId = publImgId;
+	public PublicatedImage(Long id) {
+		this.id = id;
 	}
 	
 }

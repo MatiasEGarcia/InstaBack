@@ -87,7 +87,7 @@ public class MessageServiceImpl implements MessageService{
 		Chat chat= chatDao.findById(chatId).orElseThrow(() ->
 			new RecordNotFoundException(messUtils.getMessage("chat.not-found"), HttpStatus.NOT_FOUND));
 		isAuthUserAUserFromChat(chat);
-		page = msgDao.findByChatChatId(chatId, pagUtils.getPageable(pageInfoDto));
+		page = msgDao.findByChatId(chatId, pagUtils.getPageable(pageInfoDto));
 		if(!page.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("message.group-not-found"), HttpStatus.NO_CONTENT);
 		}
@@ -141,7 +141,7 @@ public class MessageServiceImpl implements MessageService{
 		//all messages should be from the same chat.
 		chatOrigin = listMessages.get(0).getChat();
 		
-		messagesNotWatched = this.getMessagesNotWatchedCountByChatIds(List.of(chatOrigin.getChatId()), authUser.getUsername());
+		messagesNotWatched = this.getMessagesNotWatchedCountByChatIds(List.of(chatOrigin.getId()), authUser.getUsername());
 		//check if there some message not watched in origin chat.
 		if(!messagesNotWatched.isEmpty()) {
 			messagesNotWatchedNumber = messagesNotWatched.get(0)[1];//there should be 1 chat searched
@@ -212,7 +212,7 @@ public class MessageServiceImpl implements MessageService{
 		for(Long messageId : allMessagesId) {
 			boolean flagWasFound = false;
 			for(Message message : messagesFound) {
-				if(message.getMessageId() == messageId) {
+				if(message.getId() == messageId) {
 					flagWasFound = true;
 					break;
 				}

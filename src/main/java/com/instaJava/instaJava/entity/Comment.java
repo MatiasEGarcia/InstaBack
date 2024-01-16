@@ -28,7 +28,7 @@ public class Comment{
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	@Column(name= "id")
-	private Long commentId;
+	private Long id;
 	
 	@Column(name = "body")
 	private String body;
@@ -52,7 +52,7 @@ public class Comment{
 	private Long associateCN; //number of commentaries associated
 
 	public Comment(Long id) {
-		this.commentId = id;
+		this.id = id;
 	}
 
 	/**
@@ -61,7 +61,7 @@ public class Comment{
 	 * @param associateCN - associate commentaries number.
 	 */
 	public Comment(Comment c, Long associateCN) {
-		this.commentId = c.getCommentId();
+		this.id = c.getId();
 		this.body = c.getBody();
 		this.ownerUser = c.getOwnerUser();
 		this.associatedImg = c.getAssociatedImg();

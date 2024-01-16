@@ -19,7 +19,7 @@ import com.instaJava.instaJava.entity.ChatUser;
 @Mapper(componentModel = "spring")
 public interface ChatMapper {
 
-	@Mapping(target = "userId" , source = "chatUser.user.userId")
+	@Mapping(target = "id" , source = "chatUser.user.id")
 	@Mapping(target = "username" , source = "chatUser.user.username")
 	@Mapping(target = "image" , source = "chatUser.user.image")
 	@Mapping(target = "visible" , source = "chatUser.user.visible")
@@ -29,21 +29,21 @@ public interface ChatMapper {
 	List<UserDto> chatUserListToUserDtoList(List<ChatUser> chatUserList);
 	
 	@Named("basicChatToChatDto")
-	@Mapping(target ="chatId", source = "chat.chatId")
+	@Mapping(target ="id", source = "chat.id")
 	@Mapping(target ="name", source = "chat.name")
 	@Mapping(target ="type", source = "chat.type")
 	@Mapping(target ="image", source = "chat.image")
 	@Mapping(target ="users", source = "chat.chatUsers")
 	ChatDto chatToChatDto(Chat chat);
 	
-	@Mapping(target ="chatId", source = "chat.chatId")
+	@Mapping(target ="id", source = "chat.id")
 	@Mapping(target ="name", source = "chat.name")
 	@Mapping(target ="type", source = "chat.type")
 	@Mapping(target ="image", source = "chat.image")
 	@Mapping(target ="users", source = "chat.chatUsers")
 	void chatToChatDto(Chat chat, @MappingTarget ChatDto chatDto);
 	
-	@Mapping(target ="chatId", source = "chat.chatId")
+	@Mapping(target ="id", source = "chat.id")
 	@Mapping(target ="name", source = "chat.name")
 	@Mapping(target ="type", source = "chat.type")
 	@Mapping(target ="image", source = "chat.image")

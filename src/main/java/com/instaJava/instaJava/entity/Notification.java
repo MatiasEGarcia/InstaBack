@@ -31,7 +31,7 @@ public class Notification{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="id")
-	private Long notiId;
+	private Long id;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "from_who")

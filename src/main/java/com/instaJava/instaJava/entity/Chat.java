@@ -33,7 +33,7 @@ public class Chat{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	private Long chatId;
+	private Long id;
 
 	@Column(name = "name")
 	private String name;
@@ -56,11 +56,11 @@ public class Chat{
 	
 	
 	public Chat(Long id) {
-		this.chatId = id;
+		this.id = id;
 	}
 	
 	public Chat(Chat c, String lastMessage) {
-		this.chatId = c.getChatId();
+		this.id = c.getId();
 		this.name = c.getName();
 		this.image = c.getImage();
 		this.type = c.getType();

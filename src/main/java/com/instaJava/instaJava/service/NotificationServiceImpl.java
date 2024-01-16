@@ -59,16 +59,17 @@ public class NotificationServiceImpl implements NotificationService {
 		ZonedDateTime znDate = ZonedDateTime.now(clock);
 		Notification newNoti = Notification.builder().fromWho(follow.getFollower()).toWho(follow.getFollowed())
 				.type(NotificationType.FOLLOW).createdAt(znDate).notiMessage(customMessage)
-				.elementId(follow.getFollowId())
+				.elementId(follow.getId())
 				.build();
 		newNoti = notiDao.save(newNoti);
-
+		
 		// web socket event message.
-		notiDto = NotificationDto.builder().notiId(newNoti.getNotiId().toString())
+		notiDto = NotificationDto.builder().id(newNoti.getId().toString())
 				.notificationType(NotificationType.FOLLOW).createdAt(znDate).watched(newNoti.isWatched())
+				.toWho(userMapper.userToUserDto(follow.getFollowed()))
 				.fromWho(userMapper.userToUserDto(follow.getFollower())).notiMessage(customMessage)
-				.elementId(follow.getFollowId().toString()).build();
-		messTemplate.convertAndSendToUser(follow.getFollowed().getUserId().toString(), "/private", notiDto);
+				.elementId(follow.getId().toString()).build();
+		messTemplate.convertAndSendToUser(follow.getFollowed().getId().toString(), "/private", notiDto);
 	}
 
 	
@@ -80,7 +81,7 @@ public class NotificationServiceImpl implements NotificationService {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		}
 		ChatDto chatDto;
-		Long elementId = Long.parseLong(messageDto.getMessageId());
+		Long elementId = Long.parseLong(messageDto.getId());
 		List<NotificationDto> notificationsDto;
 		List<Notification> notifications = new ArrayList<>();
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -88,7 +89,7 @@ public class NotificationServiceImpl implements NotificationService {
 		//creating notifications to save, to each user in chatDto.
 		chat.getUsers().forEach((user) -> {
 			//authenticated user don't need the notification of new message.
-			if(user.getUserId() != authUser.getUserId()) {
+			if(user.getId() != authUser.getId()) {
 				Notification newNoti = Notification.builder().fromWho(authUser).toWho(user)
 						.type(NotificationType.MESSAGE).createdAt(ZonedDateTime.now(clock)).notiMessage(messUtils.getMessage("socket.new-message"))
 						.elementId(elementId)
@@ -104,12 +105,12 @@ public class NotificationServiceImpl implements NotificationService {
 		//sending notifications to each user subscribed by sockets.
 		notificationsDto.forEach((notificationDto) -> {
 			//chat topic
-			String destination = "/chat/" + notificationDto.getToWho().getUserId();//   /chat/userId
+			String destination = "/chat/" + notificationDto.getToWho().getId();//   /chat/userId
 			NotificationChatDto notiChatDto = new NotificationChatDto(chatDto, messageDto);
 			messTemplate.convertAndSend(destination, notiChatDto);
 			
 			//notification topic
-			messTemplate.convertAndSendToUser(notificationDto.getToWho().getUserId(), "/private", notificationDto);
+			messTemplate.convertAndSendToUser(notificationDto.getToWho().getId(), "/private", notificationDto);
 		});
 
 	}
@@ -118,8 +119,8 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	@Transactional
 	public void saveNotificationOfComment(Comment comment, String customMessage) {
-		if(comment.getOwnerUser() == null || comment.getOwnerUser().getUserId() == null || comment.getAssociatedImg() == null ||
-				comment.getAssociatedImg().getUserOwner() == null || comment.getAssociatedImg().getUserOwner().getUserId() == null ||
+		if(comment.getOwnerUser() == null || comment.getOwnerUser().getId() == null || comment.getAssociatedImg() == null ||
+				comment.getAssociatedImg().getUserOwner() == null || comment.getAssociatedImg().getUserOwner().getId() == null ||
 				customMessage == null || customMessage.isBlank()) {
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		}
@@ -130,14 +131,14 @@ public class NotificationServiceImpl implements NotificationService {
 				.type(NotificationType.COMMENT)
 				.createdAt(ZonedDateTime.now(clock))
 				.notiMessage(customMessage)
-				.elementId(comment.getCommentId())
+				.elementId(comment.getAssociatedImg().getId()) //in this case will save the publication, so the client will know where is the comemnt
 				.build();
 		//dao
 		notification = notiDao.save(notification);
 		//mapper
 		notiDto = notificationMapper.notificationToNotificationDtoWithToWho(notification);
 		//socket
-		messTemplate.convertAndSendToUser(notiDto.getToWho().getUserId(),"/private", notiDto);
+		messTemplate.convertAndSendToUser(notiDto.getToWho().getId(),"/private", notiDto);
 		
 	}
 	
@@ -149,7 +150,7 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 		User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		Page<Notification> notiPage = notiDao.findByToWhoUserId(user.getUserId(), pagUtils.getPageable(pageInfoDto));
+		Page<Notification> notiPage = notiDao.findByToWhoId(user.getId(), pagUtils.getPageable(pageInfoDto));
 		if (!notiPage.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("notif.group-not-found"), HttpStatus.NO_CONTENT);
 		}

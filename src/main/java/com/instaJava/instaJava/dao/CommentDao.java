@@ -18,8 +18,8 @@ public interface CommentDao extends JpaRepository<Comment, Long> {
 	 */
 	@Query(value = "SELECT new com.instaJava.instaJava.entity.Comment(c1, COUNT(c2)) "
 			+ "FROM Comment c1 "
-			+ "LEFT JOIN Comment c2 ON c1.commentId = c2.parent.commentId "
-			+ "WHERE c1.associatedImg.publImgId = :publImgId AND c1.parent IS NULL "
+			+ "LEFT JOIN Comment c2 ON c1.id = c2.parent.id "
+			+ "WHERE c1.associatedImg.id = :publImgId AND c1.parent IS NULL "
 			+ "GROUP BY c1")
 	Page<Comment> getRootCommentsByAssociatedImage(@Param(value="publImgId") Long associatedImage,Pageable pag);
 	

@@ -39,8 +39,8 @@ public class FollowC {
 	 * @return followStatus.
 	 */
 	@PostMapping(produces = "application/json")
-	public ResponseEntity<FollowDto> save(@RequestParam(name = "followed") Long followed){
-		return ResponseEntity.ok().body(follService.save(followed));
+	public ResponseEntity<FollowDto> save(@RequestParam(name = "followedId") Long followedId){
+		return ResponseEntity.ok().body(follService.save(followedId));
 	}
 	
 	/**
@@ -58,7 +58,7 @@ public class FollowC {
 			@Valid @RequestBody ReqSearchList reqSearchList,
 			@RequestParam(name ="page", defaultValue = "0") String pageNo,
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
-			@RequestParam(name = "sortField", defaultValue="followId") String sortField,
+			@RequestParam(name = "sortField", defaultValue="id") String sortField,
 			@RequestParam(name = "sortDir" , defaultValue = "ASC")Direction sortDir){
 		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
 				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
@@ -74,7 +74,7 @@ public class FollowC {
 	 */
 	@PutMapping(value="/updateFollowStatus", produces = "application/json")
 	public ResponseEntity<FollowDto> updateFollowStatus(@RequestParam(name = "followStatus") FollowStatus followStatus,
-			@RequestParam(name = "followId")Long id){
+			@RequestParam(name = "id")Long id){
 		return ResponseEntity.ok().body(follService.updateFollowStatusById(id, followStatus));
 	}
 
@@ -98,10 +98,10 @@ public class FollowC {
 	 * @return follow record updated
 	 */
 	@PutMapping(value = "/updateFollowStatus/byFollowerId" , produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<FollowDto> updateFollowStatusByFollower(
-			@RequestParam(name = "followerId") Long followerId,
+	public ResponseEntity<FollowDto> updateFollowStatusByFollowerById(
+			@RequestParam(name = "id") Long id,
 			@RequestParam(name = "followStatus") FollowStatus followStatus){
-		FollowDto f = follService.updateFollowStatusByFollower(followerId, followStatus);
+		FollowDto f = follService.updateFollowStatusByFollower(id, followStatus);
 		return ResponseEntity.ok().body(f);
 	}
 	
