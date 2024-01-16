@@ -112,6 +112,7 @@ class NotificationServiceImplTest {
 		Follow follow = Follow.builder().id(1L).followed(followedUser).follower(followerUser).build();
 		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
 		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
+		when(userMapper.userToUserDto(followedUser)).thenReturn(new UserDto());
 		when(userMapper.userToUserDto(followerUser)).thenReturn(new UserDto());
 		when(notiDao.save(any(Notification.class))).thenReturn(notiSaved);
 

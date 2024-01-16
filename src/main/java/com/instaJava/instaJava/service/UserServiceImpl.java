@@ -134,6 +134,18 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 		return userMapper.userToUserDto(optUser.get());
 	}
 	
+	//falta tests
+	@Override
+	@Transactional(readOnly = true)
+	public User findById(Long id) {
+		if (id == null)
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+		return userDao.findById(id).orElseThrow(() -> 
+		 	new RecordNotFoundException(messUtils.getMessage("user.not-found"),
+				HttpStatus.NOT_FOUND));
+	}
+	
+	
 	@Override
 	public UserDto getOneUserOneCondition(ReqSearch reqSearch) {
 		if (reqSearch == null)

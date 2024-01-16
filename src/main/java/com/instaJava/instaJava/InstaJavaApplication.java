@@ -12,18 +12,3 @@ public class InstaJavaApplication {
 
 }
 
-/**
-*
-*
-*
-*
-*
-**/
-
-
-/***
- * IN SOME MOMENT I HAVE TO CHANGE ALL DTO ID NAME BY ONLY ID, THAT WAY IN THE FRONTEND CAN WORK WITH ALL THE IDS IN THE
- * SAME WAY.
- * FOR EXAMPLE FOR A BINARY SEARCH.
- * 
- **/

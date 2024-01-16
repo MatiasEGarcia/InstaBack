@@ -79,6 +79,17 @@ public interface UserService {
 	 * @throws RecordNotFoundException if none user record was found.
 	 */
 	UserDto getById(Long id);
+	
+	/**
+	 * Get a User record by id.
+	 * 
+	 * @param id. id of the user record wanted.
+	 * @return User record.
+	 * @throws IllegalArgumentException if @param id is null.
+	 * @throws RecordNotFoundException if none user record was found.
+	 */
+	User findById(Long id);
+	
 
 	/**
 	 * Method to get a list of users by it's username.

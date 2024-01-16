@@ -32,7 +32,7 @@ public interface ChatDao extends JpaRepository<Chat, Long>, JpaSpecificationExec
 			+ "ON c.id = m.chat.id "
 			+ "AND m.sendedAt = (SELECT MAX(m2.sendedAt) FROM Message m2 WHERE m2.chat.id = c.id) "
 			+ "WHERE ch.user.id = :userId "
-			+ "ORDER BY (SELECT MAX(m3.sendedAt) FROM Message m3 WHERE m3.chat.id = c.id AND m3.userOwner = :userOnwer) "
+			+ "ORDER BY (SELECT MAX(m3.sendedAt) FROM Message m3 WHERE m3.chat.id = c.id AND m3.userOwner = :userOwner) "
 			+ "DESC ")
-	Page<Chat> findChatsByUser(@Param(value = "userId")Long userId, @Param(value = "userOnwer")String userUsername, Pageable page);
+	Page<Chat> findChatsByUser(@Param(value = "userId")Long userId, @Param(value = "userOwner")String userUsername, Pageable page);
 }

@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.instaJava.instaJava.dao.FollowDao;
 import com.instaJava.instaJava.dto.FollowDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Follow;
@@ -39,6 +38,7 @@ public class FollowServiceImpl implements FollowService {
 	private final PageableUtils pagUtils;
 	private final NotificationService notificationService;
 
+	//falta tests
 	@Override
 	@Transactional
 	public FollowDto save(Long followedId) {
@@ -47,18 +47,16 @@ public class FollowServiceImpl implements FollowService {
 		User userFollower;
 		Follow follow;
 		String customMessage;
-		User userFollowed;
-		UserDto userDtoFollowed = userService.getById(followedId);
+		User userFollowed = userService.findById(followedId);
 		// check if the follow record already exists.
 		userFollower = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (existsByFollowedAndFollower(followedId)) {
 			throw new AlreadyExistsException(messUtils.getMessage("generic.create-record-already.exists"),
 					HttpStatus.BAD_REQUEST);
 		}
-		userFollowed = User.builder().id(Long.parseLong(userDtoFollowed.getId())).build();
 		follow = Follow.builder().followed(userFollowed).follower(userFollower).build();
 		// set follow status by visible state of the user wanted to follow
-		if (userDtoFollowed.isVisible()) {
+		if (userFollowed.isVisible()) {
 			follow.setFollowStatus(FollowStatus.ACCEPTED);
 			customMessage = "A new user is following you";
 		} else {

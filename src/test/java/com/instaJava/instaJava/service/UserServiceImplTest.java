@@ -250,6 +250,26 @@ class UserServiceImplTest {
 		assertNotNull(userService.getById(1L));
 	}
 	
+	//findById
+	void findByIdParamIdNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> userService.findById(null));
+	}
+	
+	@Test
+	void findByIdNotFoundThrow() {
+		Long id = 1l;
+		when(userDao.findById(id)).thenReturn(Optional.empty());
+		assertThrows(RecordNotFoundException.class, () -> userService.findById(id));
+	}
+	
+	@Test
+	void findByIdReturnsNotNull() {
+		Long id = 1l;
+		User user = new User();
+		when(userDao.findById(id)).thenReturn(Optional.of(user));
+		assertNotNull(userService.findById(id));
+	}
+	
 	//getOneUserOneCondition
 	@Test
 	void getOneUserOneConditionParamReqSearchNullThrow() {

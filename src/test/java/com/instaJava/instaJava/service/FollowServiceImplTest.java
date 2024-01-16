@@ -84,7 +84,7 @@ class FollowServiceImplTest {
 	@Test
 	void saveFollowedNoExistThrow() {
 		Long followedId = 1L;
-		when(userService.getById(followedId)).thenThrow(RecordNotFoundException.class);
+		when(userService.findById(followedId)).thenThrow(RecordNotFoundException.class);
 		assertThrows(RecordNotFoundException.class, () -> followService.save(followedId));
 		verify(notificationService, never()).saveNotificationOfFollow(any(Follow.class), eq(""));
 		verify(followDao, never()).save(any(Follow.class));
@@ -94,21 +94,20 @@ class FollowServiceImplTest {
 	void saveFollowRecordAlreadyExistsThrow() {
 		User userFollower = User.builder() // who is authenticated and wants to create follow record.
 				.id(2L).build();
-		UserDto userFollowed = UserDto.builder().id("1").visible(true).build();
-		Long userFollowedLongId = Long.parseLong(userFollowed.getId());
+		User userFollowed = User.builder().id(1L).visible(true).build();
 
 		FollowServiceImpl followServiceSpy = spy(followService);
 
-		when(userService.getById(userFollowedLongId)).thenReturn(userFollowed);
+		when(userService.findById(userFollowed.getId())).thenReturn(userFollowed);
 		// setting authenticated user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userFollower);
 
-		doReturn(true).when(followServiceSpy).existsByFollowedAndFollower(userFollowedLongId);
-		assertThrows(AlreadyExistsException.class, () -> followServiceSpy.save(userFollowedLongId));
+		doReturn(true).when(followServiceSpy).existsByFollowedAndFollower(userFollowed.getId());
+		assertThrows(AlreadyExistsException.class, () -> followServiceSpy.save(userFollowed.getId()));
 
-		verify(userService).getById(userFollowedLongId);
+		verify(userService).findById(userFollowed.getId());
 		verify(notificationService, never()).saveNotificationOfFollow(any(Follow.class), eq(""));
 		verify(followDao, never()).save(any(Follow.class));
 	}
@@ -117,15 +116,14 @@ class FollowServiceImplTest {
 	void saveFollowReturnsNotNull() {
 		// who is authenticated and wants to create follow record.
 		User userFollower = User.builder().id(2L).visible(true).build();
-		UserDto userDtoFollowed = UserDto.builder().id("1").visible(true).build();
-		User userFollowed = User.builder().id(Long.parseLong(userDtoFollowed.getId())).visible(true).build();
+		User userFollowed = User.builder().id(1L).visible(true).build();
 		// follow saved and returned by followDao.
 		Follow follow = Follow.builder().follower(userFollower).followed(userFollowed)
 				.followStatus(FollowStatus.ACCEPTED).build();
 		FollowDto followDto = new FollowDto();
 		FollowServiceImpl followServiceSpy = spy(followService);
 
-		when(userService.getById(userFollowed.getId())).thenReturn(userDtoFollowed);
+		when(userService.findById(userFollowed.getId())).thenReturn(userFollowed);
 		// setting authenticated user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -136,7 +134,7 @@ class FollowServiceImplTest {
 
 		assertNotNull(followServiceSpy.save(userFollowed.getId()));
 
-		verify(userService).getById(userFollowed.getId());
+		verify(userService).findById(userFollowed.getId());
 		verify(notificationService).saveNotificationOfFollow(any(Follow.class), eq("A new user is following you"));
 		verify(followDao).save(any(Follow.class));
 	}
