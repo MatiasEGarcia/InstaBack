@@ -28,7 +28,7 @@ public interface ChatDao extends JpaRepository<Chat, Long>, JpaSpecificationExec
 			+ "FROM Chat c "
 			+ "JOIN ChatUser ch "
 			+ "ON c.id = ch.chat.id "
-			+ "JOIN Message m "
+			+ "LEFT JOIN Message m "
 			+ "ON c.id = m.chat.id "
 			+ "AND m.sendedAt = (SELECT MAX(m2.sendedAt) FROM Message m2 WHERE m2.chat.id = c.id) "
 			+ "WHERE ch.user.id = :userId "
