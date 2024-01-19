@@ -401,6 +401,40 @@ class FollowServiceImplTest {
 		verify(followDao).delete(followToDelete);
 	}
 
+	//deleteByFollwedId
+	@Test
+	void deleteByFollwedIdParamFollowedIdNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> followService.deleteByFollwedId(null));
+	}
+	
+	@Test
+	void deleteByFollowedIdFollowRecordNotFoundThrow() {
+		Long followedId = 1L;
+		User userWhoAuth = User.builder().id(2L).visible(false).build();
+		//auth
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
+		//dao
+		when(followDao.findOneByFollowedIdAndFollowerId(followedId, userWhoAuth.getId())).thenReturn(Optional.empty());
+		assertThrows(RecordNotFoundException.class, () -> followService.deleteByFollwedId(followedId));
+		verify(followDao,never()).deleteById(followedId);
+	}
+	
+	@Test
+	void deleteByFollowedId() {
+		Long followedId = 1L;
+		User userWhoAuth = User.builder().id(2L).visible(false).build();
+		//auth
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(userWhoAuth);
+		Follow followFound = new Follow(followedId);
+		when(followDao.findOneByFollowedIdAndFollowerId(followedId, userWhoAuth.getId())).thenReturn(Optional.of(followFound));
+		followService.deleteByFollwedId(followedId);
+		verify(followDao).deleteById(followedId);
+	}
+	
 	//getFollowStatusByFollowedId
 	@Test
 	void getFollowStatusByFollowedIdIdNullThrow() {

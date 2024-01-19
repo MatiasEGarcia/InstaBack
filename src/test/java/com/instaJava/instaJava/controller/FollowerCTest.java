@@ -257,6 +257,27 @@ class FollowerCTest {
 				.andExpect(jsonPath("$.message", is(messUtils.getMessage("follow.follower-not-same"))));
 	}
 	
+	//deleteByFollowedId
+	@Test
+	void deleteDeleteByFollowedIdOk() throws Exception {
+		String token = jwtService.generateToken(rociUserAuth);
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/byFollowedId/{id}",1)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("generic.delete-ok"))));
+	}
+	@Test
+	void deleteDeleteByFollowedIdNotFound() throws Exception {
+		String token = jwtService.generateToken(rociUserAuth);
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/follow/byFollowedId/{id}",100)
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.error", is(HttpStatus.NOT_FOUND.toString())))
+				.andExpect(jsonPath("$.message", is(messUtils.getMessage("follow.not-found"))));
+	}
+	
+	
+	
 	//updateFollowStatusByFollowerById
 	@Test
 	void putUpdateFollowStatusByFollowerByIdOk() throws Exception{

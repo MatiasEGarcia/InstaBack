@@ -38,7 +38,7 @@ public class FollowServiceImpl implements FollowService {
 	private final PageableUtils pagUtils;
 	private final NotificationService notificationService;
 
-	//falta tests
+	
 	@Override
 	@Transactional
 	public FollowDto save(Long followedId) {
@@ -153,6 +153,17 @@ public class FollowServiceImpl implements FollowService {
 		followDao.delete(followMapper.followDtoToFollow(foll));
 	}
 
+	//TESTS
+	@Override
+	@Transactional
+	public void deleteByFollwedId(Long followedId) {
+		if(followedId == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Follow follow = followDao.findOneByFollowedIdAndFollowerId(followedId, authUser.getId()).orElseThrow(() -> 
+			new RecordNotFoundException(messUtils.getMessage("follow.not-found"), HttpStatus.NOT_FOUND));
+		followDao.deleteById(follow.getId());
+	}
+	
 	@Override
 	@Transactional(readOnly = true)
 	public FollowStatus getFollowStatusByFollowedId(Long id) {

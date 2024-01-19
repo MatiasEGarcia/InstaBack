@@ -6,6 +6,7 @@ import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
+import com.instaJava.instaJava.exception.RecordNotFoundException;
 
 public interface FollowService {
 
@@ -86,6 +87,13 @@ public interface FollowService {
 	 * @throws InvalidActionException if follower != auth user
 	 */
 	void deleteById(Long id);
+	
+	/**
+	 * To delete a follow record by it's followed id, and auth user as follower
+	 * @param followedId - followed's id.
+	 * @throws RecordNotFoundException if none follow record was found.
+	 */
+	void deleteByFollwedId(Long followedId);
 
 	/**
 	 * 

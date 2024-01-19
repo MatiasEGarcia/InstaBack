@@ -43,4 +43,7 @@ public class Follow{
 	@Column(name = "status")
 	private FollowStatus followStatus;
 
+	public Follow(Long id) {
+		this.id = id;
+	}
 }

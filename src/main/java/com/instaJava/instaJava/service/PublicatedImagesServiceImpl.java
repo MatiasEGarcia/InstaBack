@@ -85,7 +85,6 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		publicatedImagesDao.deleteById(id);
 	}
 
-	//check test
 	@Override
 	@Transactional(readOnly = true)
 	public PublicatedImageDto getById(Long id, PageInfoDto pageInfoDtoComments) {
@@ -95,20 +94,22 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 		ResPaginationG<CommentDto> commentResPaginationG;
 		Page<Comment> commentsPage;
 		FollowStatus followStatus;
+		User authUser; 
 		PublicatedImage publicatedImage = publicatedImagesDao.findById(id).orElseThrow(() -> 
 				new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"), List.of(id.toString()), HttpStatus.NOT_FOUND));
-		
-		followStatus = followService.getFollowStatusByFollowedId( publicatedImage.getUserOwner().getId() );
-		
-		//check ownerUser visibility and follow status
-		if(!publicatedImage.getUserOwner().isVisible() && followStatus != FollowStatus.ACCEPTED) {
-			throw new InvalidActionException(messUtils.getMessage("publiImage.follow-status-not-accepted"), HttpStatus.BAD_REQUEST);
+		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		//if authUser is owner then we don't need to check the owner visibility or follow status
+		if(!publicatedImage.getUserOwner().equals(authUser)) {
+			followStatus = followService.getFollowStatusByFollowedId( publicatedImage.getUserOwner().getId() );
+			//check ownerUser visibility and follow status
+			if(!publicatedImage.getUserOwner().isVisible() && followStatus != FollowStatus.ACCEPTED) {
+				throw new InvalidActionException(messUtils.getMessage("publiImage.follow-status-not-accepted"), HttpStatus.BAD_REQUEST);
+			}
 		}
 		
 		publicatedImageDto = publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage);
 		
 		//getting root comments
-		
 		//getting from dao
 		commentsPage = commentDao.getRootCommentsByAssociatedImage(id, pagUtils.getPageable(pageInfoDtoComments));
 		//mapping

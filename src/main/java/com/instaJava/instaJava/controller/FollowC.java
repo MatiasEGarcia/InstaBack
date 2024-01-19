@@ -90,6 +90,18 @@ public class FollowC {
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
 
+	//TESTSSS
+	/**
+	 * To delete a follow record by it's followed id, and as follower the auth user.
+	 * @param id - followed's id
+	 * @return message that the record was successfully deleted.
+	 */
+	@DeleteMapping(value="/byFollowedId/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResMessage> deleteByFollowedId(@PathVariable("id") Long id){
+		follService.deleteByFollwedId(id);
+		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
+	}
+	
 	
 	/**
 	 * Method to update follow status on follow record by authenticated user and follower or followed id.
