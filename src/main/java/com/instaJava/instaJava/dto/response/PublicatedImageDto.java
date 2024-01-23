@@ -40,4 +40,6 @@ public class PublicatedImageDto implements Serializable{
 	private UserDto userOwner;
 	
 	private ResPaginationG<CommentDto> rootComments;
+	
+	private boolean liked;
 }

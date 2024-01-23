@@ -60,7 +60,7 @@ public class PublicatedImageC {
 	}
 
 	/**
-	 * Get all publication info by id.(with root comments)
+	 * Get all publication info by id.(with root comments AND if auth user like or not)
 	 * @param id - publication's info.
 	 * @param pageNo.    For comments pagination, number of the page.
 	 * @param pageSize.  For comments pagination, size of the elements in the same page.

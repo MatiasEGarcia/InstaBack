@@ -1,7 +1,10 @@
 package com.instaJava.instaJava.service;
 
+import java.util.List;
+
 import com.instaJava.instaJava.dto.request.ReqLike;
 import com.instaJava.instaJava.dto.response.LikeDto;
+import com.instaJava.instaJava.entity.IBaseEntity;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
@@ -16,6 +19,13 @@ public interface LikeService {
 	 * @throws InvalidActionException if auth user is not he owner of the like wanted to delete.
 	 */
 	void deleteById(Long likeId);
+	
+	/**
+	 * Delete like record by its publication id and auth user id.
+	 * @param publicationId - publication's id.
+	 */
+	void deleteByPublicationId(Long publicationId);
+	
 	
 	/**
 	 * 
@@ -39,4 +49,11 @@ public interface LikeService {
 	 */
 	LikeDto save(ReqLike reqLike);
 
+	/**
+	 * get like decisions by it's item and auth user.(basically to know if auth user likes or not the item)
+	 * @param listPublicatedImage
+	 */
+	void setItemDecisions(List<? extends IBaseEntity> listItems);
+	
+	void setItemDecision(IBaseEntity item);
 }

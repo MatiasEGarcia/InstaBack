@@ -67,6 +67,8 @@ class PublicatedImageCTest {
 	private String sqlAddPublicatedImage2;
 	@Value("${sql.script.create.follow.statusInProcess}")
 	private String sqlAddFollow;
+	@Value("${sql.script.create.like}")
+	private String sqlAddLike;
 	@Value("${sql.script.update.follow.statusAccepted.on.follow1}")
 	private String updateFollow1ToAccepted;
 	@Value("${sql.script.truncate.users}")
@@ -75,6 +77,8 @@ class PublicatedImageCTest {
 	private String sqlTruncatePublicatedImages;
 	@Value("${sql.script.truncate.follow}")
 	private String sqlTruncateFollow;
+	@Value("${sql.script.truncate.likes}")
+	private String sqlTruncateLikes;
 	@Value("${sql.script.ref.integrity.false}")
 	private String sqlRefIntegrityFalse;
 	@Value("${sql.script.ref.integrity.true}")
@@ -112,6 +116,7 @@ class PublicatedImageCTest {
 		jdbc.execute(sqlAddPublicatedImage); //this has as ownerUser -> sqlAddUser1
 		jdbc.execute(sqlAddPublicatedImage2); // this has as ownerUser -> sqlAddUser2
 		jdbc.execute(sqlAddFollow); //sqlAddUser1 is the followed and sqlAddUser2 is the follower
+		jdbc.execute(sqlAddLike); //first publication like, owner userAuthMati
 		
 	}
 	
@@ -209,6 +214,7 @@ class PublicatedImageCTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is("1")))
 				.andExpect(jsonPath("$.userOwner.id", is("1")))
+				.andExpect(jsonPath("$.liked", is(false)))
 				.andExpect(jsonPath("$.rootComments.list", hasSize(1)));
 	}
 	
@@ -340,6 +346,7 @@ class PublicatedImageCTest {
 		jdbc.execute(sqlTruncateUsers);
 		jdbc.execute(sqlTruncatePublicatedImages);
 		jdbc.execute(sqlTruncateFollow);
+		jdbc.execute(sqlTruncateLikes);
 		jdbc.execute(sqlRefIntegrityTrue);
 	}
 }

@@ -14,22 +14,23 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Builder
+@Data
 @Entity
 @Table(name = "publicated_images")
-public class PublicatedImage{
-
+public class PublicatedImage implements IBaseEntity{
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name= "id")
+	@GeneratedValue(strategy= GenerationType.IDENTITY)
+	@Column(name = "id")
 	private Long id;
 	
 	@Column(name = "img", columnDefinition = "BLOB")
@@ -48,8 +49,21 @@ public class PublicatedImage{
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "associatedImg" , cascade = {CascadeType.REMOVE})
 	private List<Comment> comments;
 	
+	@Transient
+	private boolean liked;//true = liked, false = not liked, null = no opinion yet.
+	
 	public PublicatedImage(Long id) {
 		this.id = id;
+	}
+
+	@Override
+	public Long getBaseEntityId() {
+		return this.id;
+	}
+
+	@Override
+	public void setItemEntityLiked(Boolean value) {
+		this.liked = value;
 	}
 	
 }

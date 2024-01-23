@@ -2,9 +2,13 @@ package com.instaJava.instaJava.service;
 
 import java.time.Clock;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -13,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.instaJava.instaJava.dao.LikeDao;
 import com.instaJava.instaJava.dto.request.ReqLike;
 import com.instaJava.instaJava.dto.response.LikeDto;
+import com.instaJava.instaJava.entity.IBaseEntity;
 import com.instaJava.instaJava.entity.Like;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
@@ -20,6 +25,7 @@ import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.LikeMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.SearchsUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,15 +37,15 @@ public class LikeServiceImpl implements LikeService {
 	private final LikeDao likeDao;
 	private final PublicatedImageService publiImaService;
 	private final MessagesUtils messUtils;
+	private final SearchsUtils searchsUtils;
 	private final LikeMapper likeMapper;
-	// cuando agrege los comentarios tengo que agregar su service
 
 	
 	@Override
 	@Transactional
 	public void deleteById(Long likeId) {
 		if (likeId == null)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		User user;
 		Optional<Like> optLike = likeDao.findById(likeId);
 		if (optLike.isEmpty()) {
@@ -51,6 +57,18 @@ public class LikeServiceImpl implements LikeService {
 		likeDao.delete(optLike.get());
 	}
 
+	//falta tests
+	@Override
+	@Transactional
+	public void deleteByPublicationId(Long publicationId) {
+		if(publicationId == null) 
+			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
+		User authUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		likeDao.deleteByItemIdAndOwnerLikeId(publicationId, authUser.getId()).orElseThrow(() -> 
+				new RecordNotFoundException(messUtils.getMessage("like.not-found"), HttpStatus.NOT_FOUND));
+	}
+	
+	
 	
 	@Override
 	@Transactional(readOnly = true)
@@ -83,8 +101,38 @@ public class LikeServiceImpl implements LikeService {
 		return likeMapper.likeToLikeDto(likeDao.save(likeToSave)); 
 	}
 
-	
+	//testsss
+	@Override
+	@Transactional(readOnly = true)
+	public void setItemDecisions(List<? extends IBaseEntity> listItems) {
+		if(listItems == null || listItems.isEmpty()) {
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
+		}
+		Map<Long, Boolean> decisions;
+		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Set<Long> setPublicatedImageIds = new HashSet<Long>();
+		for(IBaseEntity p : listItems) {
+			setPublicatedImageIds.add(p.getBaseEntityId());
+		}
+		//searching decisions
+		decisions = likeDao.getDecisionsByItemIdAndOwnerLikeId(setPublicatedImageIds,authUser.getId());
+		//seting liked opinion
+		if(listItems.size() > 1) {
+			decisions.forEach((key, value) -> {
+				int itemIndex = searchsUtils.bynarySearchById(listItems, key);
+				listItems.get(itemIndex).setItemEntityLiked(value);
+			});	
+		}else {
+			IBaseEntity item = listItems.get(0);
+			item.setItemEntityLiked(decisions.get(item.getBaseEntityId()));
+		}
+	}
 
+	//TESTSS
+	@Override
+	public void setItemDecision(IBaseEntity item) {
+		this.setItemDecisions(List.of(item));
+	}
 	
 	
 	/**
@@ -127,6 +175,8 @@ public class LikeServiceImpl implements LikeService {
 			
 		});
 	}
+
+
 
 
 

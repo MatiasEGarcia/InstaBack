@@ -40,7 +40,7 @@ public interface PublicatedImageService {
 	void deleteById(Long id);
 	
 	/**
-	 * Find PublicatedImage by its id(pubImaId) and getting it's root comments.
+	 * Find PublicatedImage by its id(pubImaId) with it's root comments and if auth user like or not.
 	 * 
 	 * @param id - publication's id
 	 * @param pageInfoDtoComments - pagination info for publication's root comments.
@@ -52,7 +52,7 @@ public interface PublicatedImageService {
 	PublicatedImageDto getById(Long id, PageInfoDto pageInfoDtoComments);
 	
 	/**
-	 * Find PublicatedImage by its id(pubImaId)
+	 * Find PublicatedImage by its id.
 	 * 
 	 * @return Optional<PublicatedImage>
 	 * @throws IllegalArgumentException if @param id is null.

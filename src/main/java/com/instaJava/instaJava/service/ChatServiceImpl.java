@@ -254,7 +254,6 @@ public class ChatServiceImpl implements ChatService {
 		return chatDto;
 	}
 
-	// check tests
 	@Override
 	@Transactional
 	public ChatDto changeAdminStatus(Long chatId, Long userId) {

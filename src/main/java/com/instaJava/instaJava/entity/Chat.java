@@ -22,19 +22,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Builder
+@Data
 @Entity
 @Table(name = "chats")
-public class Chat{
-
+public class Chat implements IBaseEntity{
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Long id;
-
+	
 	@Column(name = "name")
 	private String name;
 
@@ -81,4 +82,10 @@ public class Chat{
 		}
 		return listUser;
 	}
+
+	@Override
+	public Long getBaseEntityId() {
+		return this.id;
+	}
+
 }
