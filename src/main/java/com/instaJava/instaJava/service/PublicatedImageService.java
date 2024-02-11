@@ -2,54 +2,15 @@ package com.instaJava.instaJava.service;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.response.PublicatedImageDto;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.exception.InvalidActionException;
-import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 
 public interface PublicatedImageService {
-	
-	/**
-	 * Convert MuliparFile to Base64 and try to save a PublicatedImage in the
-	 * database
-	 * 
-	 * @param description. Description of the image.
-	 * @param file.        Image to save.
-	 * @return PublicatedImageDto with PublicatedImage record info.
-	 * @throws IllegalArgumentException if @param file is null or empty.
-	 * @throws InvalidImageException           if there was an error when was tried to
-	 *                                  encode the image to Base64
-	 */
-	PublicatedImageDto save(String Description,MultipartFile file);
-	
-	/**
-	 * Delete a PublicatedImage record by its id(pubImaId). If PublicatedImage none
-	 * record will be deleted.
-	 * 
-	 * @param id. is the pubImaId of the PublicatedImage record wanted to delete.
-	 * @throws IllegalArgumentException if @param id is null.
-	 * @throws RecordNotFoundException if the publication wanted to delete was not found.
-	 * @throws InvalidActionException   if the user authenticated is not the same
-	 *                                  owner of the PublicatedImage record.
-	 */
-	void deleteById(Long id);
-	
-	/**
-	 * Find PublicatedImage by its id(pubImaId) with it's root comments and if auth user like or not.
-	 * 
-	 * @param id - publication's id
-	 * @param pageInfoDtoComments - pagination info for publication's root comments.
-	 * @return PublicatedImageDto with PublicatedImage record info.
-	 * @throws RecordNotFoundException if PublicatedImage record was not found.
-	 * @throws IllegalArgumentException if @param id is null.
-	 * @throws InvalidActionException if authenticated user is not following the publication owner.
-	 */
-	PublicatedImageDto getById(Long id, PageInfoDto pageInfoDtoComments);
 	
 	/**
 	 * Find PublicatedImage by its id.
@@ -60,32 +21,6 @@ public interface PublicatedImageService {
 	Optional<PublicatedImage> findById(Long id);
 	
 	/**
-	 * Create a ReqSearch to get a specification object and then search
-	 * PublicatedImages records by User.visible = true.
-	 * 
-	 * @param pageInfoDto. It has pagination info.
-	 * @return ResPaginationG of PublicatedImagesDto with PublicatedImage records info and pagination info.
-	 * @throws IllegalArgumentException if PageInfoDto or pageInfoDto.getSortDir or
-	 *                                  pageInfoDto.sortField are null.
-	 */
-	ResPaginationG<PublicatedImageDto> getAllByOwnersVisibles(PageInfoDto pageInfoDto);
-	
-	/**
-	 * Create a ReqSearch to get a specification object and then search
-	 * PublicatedImages records by ownerId.
-	 * 
-	 * @param pageInfoDto - It has pagination info.
-	 * @param ownerId   -   Id of the owner who will have his PublicatedImages
-	 *                     records fetched.
-	 * @return ResPaginationG of PublicatedImagesDto with PublicatedImage records info and pagination info.
-	 * @throws IllegalArgumentException - if ownerId or PageInfoDto or
-	 *                                  pageInfoDto.getSortDir or
-	 *                                  pageInfoDto.sortField are null.
-	 * @throws InvalidActionException if onwerUser is not visible and followStatus is not accepted.
-	 */
-	ResPaginationG<PublicatedImageDto> getAllByOnwer(Long ownerId, PageInfoDto pageInfoDto);
-	
-	/**
 	 * Method to get how many publication has an user.
 	 * 
 	 * @param id - owner id.
@@ -94,11 +29,66 @@ public interface PublicatedImageService {
 	Long countPublicationsByOwnerId(Long id);
 	
 	/**
+	 * Find PublicatedImage by its id(pubImaId) with it's root comments and if auth user like or not.
+	 * 
+	 * @param id - publication's id
+	 * @return PublicatedImage record
+	 * @throws RecordNotFoundException if PublicatedImage record was not found.
+	 * @throws IllegalArgumentException if @param id is null.
+	 */
+	PublicatedImage getById(Long id);
+	
+	/* Convert MuliparFile to Base64 and try to save a PublicatedImage in the
+	 * database
+	 * 
+	 * @param description. Description of the image.
+	 * @param file.        Image to save.
+	 * @return PublicatedImage saved.
+	 * @throws IllegalArgumentException if @param file is null or empty.
+	 * @throws InvalidImageException           if there was an error when was tried to
+	 *                                  encode the image to Base64
+	 */
+	PublicatedImage save(String description,MultipartFile file); 
+	
+	/**
+	 * Delete publicatedImage record by id.
+	 * @param publicatedImageId - publicatedImage's idto delete.
+	 * @return PublicatedImage record deleted.
+	 * @throws IllegalArgumentException if @param id is null.
+	 * @throws RecordNotFoundException if the publication wanted to delete was not found.
+	 * @throws InvalidActionException   if the user authenticated is not the same
+	 *                                  owner of the PublicatedImage record.
+	 */
+	PublicatedImage deleteById(Long publicatedImageId); 
+	
+	/**
+	 * PublicatedImages records by User.visible = true.
+	 * @param pageInfoDto - pagination info
+	 * @return Page with PublicatedImage records.
+	 * @throws RecordNotFoundException if none record was found.
+	 * @throws IllegalArgumentException if PageInfoDto or pageInfoDto.getSortDir or
+	 * pageInfoDto.sortField are null.
+	 */
+	Page<PublicatedImage> getAllByOwnerVisible(PageInfoDto pageInfoDto);
+	
+	/**
+	 * PublicatedImages records by ownerId.
+	 * @param ownerId - publicatedImage 's onwer's id.
+	 * @param pageInfoDto - pagination info
+	 * @return Page with PublicatedImage records.
+	 * @throws RecordNotFoundException if none record was found.
+	 * @throws IllegalArgumentException if PageInfoDto or pageInfoDto.getSortDir or
+	 * pageInfoDto.sortField are null.
+	 */
+	Page<PublicatedImage> getAllByOnwerId(Long ownerId,PageInfoDto pageInfoDto);
+	
+	/**
 	 * Function to get all publications where the owner user is followed by authenticated user.
 	 * 
-	 * @param pageInfoDtoIt has pagination info.
-	 * @return ResPaginationG of PublicatedImagesDto with PublicatedImage records info and pagination info.
+	 * @param pageInfoDto - has pagination info.
+	 * @return Page with Publicated images and pagination info.
 	 * @throws RecordNotFoundException if there was not found any publicated image.
 	 */
-	ResPaginationG<PublicatedImageDto> getPublicationsFromUsersFollowed(PageInfoDto pageInfoDto);
+	Page<PublicatedImage> getPublicationsFromUsersFollowed(PageInfoDto pageInfoDto);
+	
 }

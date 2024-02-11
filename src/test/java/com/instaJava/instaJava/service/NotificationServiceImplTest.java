@@ -44,7 +44,6 @@ import com.instaJava.instaJava.dto.NotificationChatDto;
 import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.UserDto;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.ChatUser;
 import com.instaJava.instaJava.entity.Comment;
@@ -373,7 +372,7 @@ class NotificationServiceImplTest {
 		verify(messTemplate).convertAndSendToUser(notiDto.getToWho().getId(),"/private" , notiDto);
 	}
 	
-	
+
 	// getNotificationByAuthUser
 	@Test
 	void getNotificationsByAuthUserParamPageInfoDtoNullThrow() {
@@ -415,7 +414,6 @@ class NotificationServiceImplTest {
 		Pageable pageable = Pageable.unpaged();
 		Notification noti = new Notification();
 		Page<Notification> page = new PageImpl<>(List.of(noti));
-		ResPaginationG<NotificationDto> resPagG = new ResPaginationG<NotificationDto>();
 
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
@@ -425,8 +423,6 @@ class NotificationServiceImplTest {
 		when(pageUtils.getPageable(pag)).thenReturn(pageable);
 		// dao
 		when(notiDao.findByToWhoId(user.getId(), pageable)).thenReturn(page);
-		// mapper
-		when(notiMapper.pageAndPageInfoDtoToResPaginationG(page, pag)).thenReturn(resPagG);
 
 		assertNotNull(notiService.getNotificationsByAuthUser(pag));
 	}

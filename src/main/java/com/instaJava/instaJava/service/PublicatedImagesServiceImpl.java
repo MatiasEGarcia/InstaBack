@@ -13,22 +13,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.instaJava.instaJava.dao.CommentDao;
 import com.instaJava.instaJava.dao.PublicatedImagesDao;
-import com.instaJava.instaJava.dto.CommentDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.UserDto;
-import com.instaJava.instaJava.dto.response.PublicatedImageDto;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.entity.Comment;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
-import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
-import com.instaJava.instaJava.mapper.CommentMapper;
-import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
 
@@ -40,18 +31,38 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 
 	private final Clock clock;
 	private final PublicatedImagesDao publicatedImagesDao;
-	private final CommentDao commentDao;
 	private final MessagesUtils messUtils;
 	private final PageableUtils pagUtils;
-	private final FollowService followService;
-	private final UserService userService;
-	private final LikeService likeService;
-	private final PublicatedImageMapper publicatedImageMapper;
-	private final CommentMapper commentMapper;
+	
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<PublicatedImage> findById(Long id) {
+		if (id == null)
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+		return publicatedImagesDao.findById(id);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Long countPublicationsByOwnerId(Long id) {
+		if (id == null)
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+		return publicatedImagesDao.countByUserOwnerId(id);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PublicatedImage getById(Long id) {
+		if (id == null)
+			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+		return publicatedImagesDao.findById(id)
+				.orElseThrow(() -> new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"),
+						List.of(id.toString()), HttpStatus.NOT_FOUND));
+	}
 
 	@Override
 	@Transactional
-	public PublicatedImageDto save(String description, MultipartFile file) {
+	public PublicatedImage save(String description, MultipartFile file) {
 		if (file == null || file.isEmpty())
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		PublicatedImage publicatedImage;
@@ -64,79 +75,29 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 			throw new InvalidImageException(messUtils.getMessage("generic.image-base-64"), HttpStatus.BAD_REQUEST, e);
 		}
 
-		publicatedImage = publicatedImagesDao.save(publicatedImage);
-
-		return publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage);
+		return publicatedImagesDao.save(publicatedImage);
 	}
-
+	
 	@Override
 	@Transactional
-	public void deleteById(Long id) {
-		if (id == null)
+	public PublicatedImage deleteById(Long publicatedImageId) {
+		if (publicatedImageId == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User authUser;
-		PublicatedImage publiImage = publicatedImagesDao.findById(id).orElseThrow(
+		PublicatedImage publiImage = publicatedImagesDao.findById(publicatedImageId).orElseThrow(
 				() -> new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"), HttpStatus.NOT_FOUND));
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (!publiImage.getUserOwner().getId().equals(authUser.getId())) {
 			throw new InvalidActionException(messUtils.getMessage("generic.auth-user-no-owner"),
 					HttpStatus.BAD_REQUEST);
 		}
-		publicatedImagesDao.deleteById(id);
+		publicatedImagesDao.delete(publiImage);
+		return publiImage;
 	}
-
-	//TESTS
+	
 	@Override
 	@Transactional(readOnly = true)
-	public PublicatedImageDto getById(Long id, PageInfoDto pageInfoDtoComments) {
-		if (id == null || pageInfoDtoComments == null || pageInfoDtoComments.getSortDir() == null
-				|| pageInfoDtoComments.getSortField() == null)
-			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
-		PublicatedImageDto publicatedImageDto;
-		ResPaginationG<CommentDto> commentResPaginationG;
-		Page<Comment> commentsPage;
-		FollowStatus followStatus;
-		User authUser;
-		PublicatedImage publicatedImage = publicatedImagesDao.findById(id)
-				.orElseThrow(() -> new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"),
-						List.of(id.toString()), HttpStatus.NOT_FOUND));
-		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		// if authUser is owner then we don't need to check the owner visibility or
-		// follow status
-		if (!publicatedImage.getUserOwner().equals(authUser)) {
-			followStatus = followService.getFollowStatusByFollowedId(publicatedImage.getUserOwner().getId());
-			// check ownerUser visibility and follow status
-			if (!publicatedImage.getUserOwner().isVisible() && followStatus != FollowStatus.ACCEPTED) {
-				throw new InvalidActionException(messUtils.getMessage("publiImage.follow-status-not-accepted"),
-						HttpStatus.BAD_REQUEST);
-			}
-		}
-		//like or not?
-		likeService.setItemDecision(publicatedImage);
-		//mapping
-		publicatedImageDto = publicatedImageMapper.publicatedImageToPublicatedImageDto(publicatedImage);
-		// getting root comments
-		// getting from dao
-		commentsPage = commentDao.getRootCommentsByAssociatedImage(id, pagUtils.getPageable(pageInfoDtoComments));
-		// mapping
-		commentResPaginationG = commentMapper.pageAndPageInfoDtoToResPaginationG(commentsPage, pageInfoDtoComments);
-		// set
-		publicatedImageDto.setRootComments(commentResPaginationG);
-		return publicatedImageDto;
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public Optional<PublicatedImage> findById(Long id) {
-		if (id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
-		return publicatedImagesDao.findById(id);
-	}
-
-	// check testss
-	@Override
-	@Transactional(readOnly = true)
-	public ResPaginationG<PublicatedImageDto> getAllByOwnersVisibles(PageInfoDto pageInfoDto) {
+	public Page<PublicatedImage> getAllByOwnerVisible(PageInfoDto pageInfoDto) {
 		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
@@ -146,74 +107,26 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 			throw new RecordNotFoundException(messUtils.getMessage("publiImage.group-not-found"),
 					HttpStatus.NO_CONTENT);
 		}
-		// setting like decisions
-		likeService.setItemDecisions(page.getContent());
-		return publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto);
-
+		return page;
 	}
-
-	// CHEKC TESTS
+	
 	@Override
 	@Transactional(readOnly = true)
-	public ResPaginationG<PublicatedImageDto> getAllByOnwer(Long ownerId, PageInfoDto pageInfoDto) {
+	public Page<PublicatedImage> getAllByOnwerId(Long ownerId, PageInfoDto pageInfoDto) {
 		if (ownerId == null || pageInfoDto == null || pageInfoDto.getSortDir() == null
 				|| pageInfoDto.getSortField() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
-		Page<PublicatedImage> publicatedImageFoundPage;
-		UserDto ownerUser;
-
-		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (authUser.getId() != ownerId) {
-			ownerUser = userService.getById(ownerId);
-			// if the owner user is not visible we need to check the followStatus
-			if (!ownerUser.isVisible()) {
-				FollowStatus followStatus = followService.getFollowStatusByFollowedId(ownerId);
-				switch (followStatus) {
-				case NOT_ASKED:
-					throw new InvalidActionException(messUtils.getMessage("follow.followStatus-not-asked"),
-							HttpStatus.BAD_REQUEST);
-				case REJECTED:
-					throw new InvalidActionException(messUtils.getMessage("follow.followStatus-rejected"),
-							HttpStatus.BAD_REQUEST);
-				case IN_PROCESS:
-					throw new InvalidActionException(messUtils.getMessage("follow.followStatus-in-process"),
-							HttpStatus.BAD_REQUEST);
-				case ACCEPTED:
-					break;
-				default:
-					throw new IllegalArgumentException("Unexpected value: " + followStatus);
-				}
-			}
-
-		}
-
-		// if owner is the same than the user is auth then we return publications, and
-		// if the user is visible or follow status is Accepted too.
-		publicatedImageFoundPage = publicatedImagesDao.findByUserOwnerId(ownerId, pagUtils.getPageable(pageInfoDto));
-		if (!publicatedImageFoundPage.hasContent()) {
+		Page<PublicatedImage> page = publicatedImagesDao.findByUserOwnerId(ownerId, pagUtils.getPageable(pageInfoDto));
+		if (!page.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("publiImage.group-not-found"),
 					HttpStatus.NO_CONTENT);
 		}
-		// setting like decisions
-		likeService.setItemDecisions(publicatedImageFoundPage.getContent());
-		return publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(publicatedImageFoundPage, pageInfoDto);
+		return page;
 	}
-
+	
 	@Override
-	@Transactional(readOnly = true)
-	public Long countPublicationsByOwnerId(Long id) {
-		if (id == null)
-			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
-		userService.getById(id);// if there is not an exception then the user exists and the request can
-								// continue.
-		return publicatedImagesDao.countByUserOwnerId(id);
-	}
-
-	// CHECK TESTS
-	@Override
-	@Transactional(readOnly = true)
-	public ResPaginationG<PublicatedImageDto> getPublicationsFromUsersFollowed(PageInfoDto pageInfoDto) {
+	public Page<PublicatedImage> getPublicationsFromUsersFollowed(PageInfoDto pageInfoDto) {
 		if (pageInfoDto == null || pageInfoDto.getSortField() == null || pageInfoDto.getSortField().isBlank()
 				|| pageInfoDto.getSortDir() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
@@ -225,9 +138,7 @@ public class PublicatedImagesServiceImpl implements PublicatedImageService {
 			throw new RecordNotFoundException(messUtils.getMessage("publiImage.group-not-found"),
 					HttpStatus.NO_CONTENT);
 		}
-		// setting like decisions
-		likeService.setItemDecisions(page.getContent());
-		return publicatedImageMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto);
+		return page;
 	}
 
 }

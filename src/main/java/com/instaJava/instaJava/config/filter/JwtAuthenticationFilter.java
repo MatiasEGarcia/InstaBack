@@ -75,7 +75,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 			try {
 				username = jwtService.extractUsername(jwt);
-				if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {//my app is stateless so there shouldn't be any auth before the request
+				if (username != null) {//my app is stateless so there shouldn't be any auth before the request
 					// we need to autenticate
 					UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 					//if token is not valid because is expired, then return a forbidden status

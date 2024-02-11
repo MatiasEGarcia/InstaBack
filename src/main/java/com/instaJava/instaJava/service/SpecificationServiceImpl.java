@@ -33,6 +33,9 @@ public class SpecificationServiceImpl<T> implements SpecificationService<T> {
 			OpI opI = null;
 
 			for (ReqSearch reqSearch : reqSearchList) {
+				if(reqSearch == null || reqSearch.getOperation() == null ) {
+					throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+				}
 				opI = OPERATIONS.get(reqSearch.getOperation().getOperation());
 				predicates.add(opI.getPredicate(root,criteriaBuilder,reqSearch));
 			}

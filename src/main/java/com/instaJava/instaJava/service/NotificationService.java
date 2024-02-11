@@ -2,10 +2,10 @@ package com.instaJava.instaJava.service;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+
 import com.instaJava.instaJava.dto.MessageDto;
-import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.Comment;
 import com.instaJava.instaJava.entity.Follow;
@@ -50,12 +50,12 @@ public interface NotificationService {
 	 * Method to get notifications with toWho atribute equal to the auth user.
 	 * 
 	 * @param pageInfoDto pagination details.
-	 * @return ResPaginationG object with Notifications and pagination info.
+	 * @return Page with Notifications and pagination info.
 	 * @throws IllegalArgumentException if pageInfoDto is null, pageInfoDto.sortDir
 	 *                                  is null or pageInfoDto.sortField is null.
 	 * @throws RecordNotFoundException  if none notification was found.
 	 */
-	ResPaginationG<NotificationDto> getNotificationsByAuthUser(PageInfoDto pageInfoDto);
+	Page<Notification> getNotificationsByAuthUser(PageInfoDto pageInfoDto);
 
 	/**
 	 * Method to delete a notification record by its id.
@@ -67,8 +67,11 @@ public interface NotificationService {
 	 *                                  the same user information than the
 	 *                                  authenticated user.
 	 */
-	void deleteNotificationById(Long notiId);
+	Notification deleteNotificationById(Long notiId);
 
+	/**
+	 * Delete all auth user's notifications
+	 */
 	void deleteAllByAuthUser();
 
 	/**

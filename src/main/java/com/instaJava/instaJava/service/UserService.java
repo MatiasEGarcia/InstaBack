@@ -3,14 +3,12 @@ package com.instaJava.instaJava.service;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.PersonalDetailsDto;
-import com.instaJava.instaJava.dto.UserDto;
-import com.instaJava.instaJava.dto.request.ReqSearch;
-import com.instaJava.instaJava.dto.request.ReqSearchList;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
@@ -44,41 +42,29 @@ public interface UserService {
 
 	/**
 	 * Get personal details by authenticated user.
-	 * @return PersonalDetailsDto with PersonalDetails info.
+	 * @return PersonalDetails info.
 	 * @throws RecordNotFoundException if there is not a PersonalDetails record associated with authentication user.
 	 */
-	PersonalDetailsDto getPersonalDetailsByUser();
+	PersonalDetails getPersonalDetailsByUser();
 
 
 	/**
 	 * Save PersonalDetails record with authenticated user associated.
 	 * 
-	 * @return PersonalDetailsDto with PersonalDetial record saved info.
-	 * @throws IllegalArgumentException if personalDetailsDto is null.
+	 * @param name - user's name.
+	 * @param lastname - user's lastname.
+	 * @param age - user's age.
+	 * @param email - user's email.
+	 * @return PersonalDetial record saved info.
 	 */
-	PersonalDetailsDto savePersonalDetails(PersonalDetailsDto personalDetailsDto);
+	PersonalDetails savePersonalDetails(String name, String lastname, byte age, String email);
 
 	/**
 	 * Change the visible state of the User. public or private / true or false
 	 * 
-	 * @return UserDto object with User info updated.
+	 * @return  User info updated.
 	 */
-	UserDto changeVisible();
-
-	/**
-	 * Method to get authenticated user info.
-	 */
-	UserDto getByPrincipal();
-
-	/**
-	 * Get a User record by id.
-	 * 
-	 * @param id. id of the user record wanted.
-	 * @return UserDto object with User record info.
-	 * @throws IllegalArgumentException if @param id is null.
-	 * @throws RecordNotFoundException if none user record was found.
-	 */
-	UserDto getById(Long id);
+	User changeVisible();
 	
 	/**
 	 * Get a User record by id.
@@ -90,65 +76,28 @@ public interface UserService {
 	 */
 	User findById(Long id);
 	
-
-	/**
-	 * Method to get a list of users by it's username.
-	 * @param usernameList - list of username
-	 * @throws IllegalArgumentException if usernameList is null
-	 * @throws RecordNotFoundException if none user was found.
-	 * @return List of users. 
-	 */
-	List<User> getByUsernameIn(Set<String> usernameList);
-
-	/**
-	 * 
-	 * Get a only one User record by only one condition ( can't be by password)
-	 * 
-	 * @param reqSearch. Object necessary to get a specficiation and do the
-	 *                   research.
-	 * @return UserDto object with User found info.
-	 * @throws IllegalArgumentException if @param reqSearch is null.
-	 * @throws RecordNotFoundException if no user was found.
-	 */
-	UserDto getOneUserOneCondition(ReqSearch reqSearch);
-
 	/**
 	 * Get only one User record by many conditions (can't be by password)
 	 * 
-	 * @param reqSearchList. Object that contain collection of ReqSearch objects and
-	 *                       a GlobalOperator to define how combine all the
-	 *                       conditions.
-	 * @return UserDto object with User found info.
+	 * @param spec - specification that have info to search the users.                     
+	 * @return	User info.
 	 * @throws IllegalArgumentException if @param reqSearchList is null
 	 * @throws RecordNotFoundException if no user was found.
 	 */
-	UserDto getOneUserManyConditions(ReqSearchList reqSearchList);
-
-	/**
-	 * Get many User records by one condition(can't be password).
-	 * 
-	 * @param pageInfoDto, It has pagination info.
-	 * @param reqSearch.   condition
-	 * @return ResPaginationG with all users info and pagination info.
-	 * @throws IllegalArgumentException if @param reqSearch or @param pageInfoDto or
-	 *                                  pageInfoDto.sortDir or pageInfoDto.sortField
-	 *                                  null.
-	 * @throws RecordNotFoundException if no user was found.
-	 */
-	ResPaginationG<UserDto> getManyUsersOneCondition(PageInfoDto pageInfoDto, ReqSearch reqSearch);
+	User getOneUserManyConditions(Specification<User> spec);
 
 	/**
 	 * Get many User records by many conditions(can't be password).
 	 * 
 	 * @param pageInfoDto,   It has pagination info.
-	 * @param reqSearchList. Collection of conditions
-	 * @return ResPaginationG with all users info and pagination info.
+	 * @param spec - specification that have info to search the users.
+	 * @return Page<User> with users and pagination info.
 	 * @throws IllegalArgumentException if @param reqSearchList or @param
 	 *                                  pageInfoDto or pageInfoDto.sortDir or
 	 *                                  pageInfoDto.sortField null.
 	 * @throws RecordNotFoundException if no user was found.
 	 */
-	ResPaginationG<UserDto> getManyUsersManyConditions(PageInfoDto pageInfoDto, ReqSearchList reqSearchList);
+	Page<User> getManyUsersManyConditions(PageInfoDto pageInfoDto, Specification<User> spec);
 
 	/**
 	 * Ask if exists User record by username.
@@ -158,22 +107,14 @@ public interface UserService {
 	 * @throws IllegalArgumentException if @param username is null.
 	 */
 	boolean existsByUsername(String username);
-
+	
 	/**
-	 * Ask if exists User record by one condition(can't be password).
-	 * 
-	 * @param reqSearch. conditions details
-	 * @return true if User record exists, else false.
-	 * @throws IllegalArgumentException if @param reqSearch is null.
+	 * Method to get a list of users by it's username.
+	 * @param usernameList - list of username
+	 * @throws IllegalArgumentException if usernameList is null
+	 * @throws RecordNotFoundException if none user was found.
+	 * @return List of users. 
 	 */
-	boolean existsOneCondition(ReqSearch reqSearch);
+	List<User> getByUsernameIn(Set<String> usernameList);
 
-	/**
-	 * Ask if exists User record by many conditions(can't be password).
-	 * 
-	 * @param reqSearchList. Collection of conditions details
-	 * @return true if User record exists, else false.
-	 * @throws IllegalArgumentException if @param reqSearchList is null.
-	 */
-	boolean existsManyConditions(ReqSearchList reqSearchList);
 }

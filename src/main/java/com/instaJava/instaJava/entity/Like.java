@@ -49,4 +49,15 @@ public class Like {
 	@Column(name = "liked_at")
 	private ZonedDateTime likedAt;
 
+	public Like(TypeItemLikedEnum itemType, Long itemId, boolean decision, User ownerLike, ZonedDateTime likedAt) {
+		super();
+		this.itemType = itemType;
+		this.itemId = itemId;
+		this.decision = decision;
+		this.ownerLike = ownerLike;
+		this.likedAt = likedAt;
+	}
+
+	
+	
 }

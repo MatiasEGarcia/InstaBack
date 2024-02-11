@@ -2,9 +2,9 @@ package com.instaJava.instaJava.service;
 
 import java.util.List;
 
-import com.instaJava.instaJava.dto.request.ReqLike;
-import com.instaJava.instaJava.dto.response.LikeDto;
 import com.instaJava.instaJava.entity.IBaseEntity;
+import com.instaJava.instaJava.entity.Like;
+import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
@@ -42,12 +42,15 @@ public interface LikeService {
 	/**
 	 * Save a like object in the database.
 	 * 
-	 * @param reqLike. object with the data of the Like to be saved.
-	 * @throws IllegalArgumentException if the param is null.
+	 * @param itemId - liked item's id.
+	 * @param decision - like decision(true = liked, false = dislike).
+	 * @param type - liked item's type(a publicatedImage, a comment, etc) 
+	 * @param userOwner - like's owner.
+	 * @throws IllegalArgumentException if one  param is null.
 	 * @Throws InvalidActionException if item trying to like no exist, or if like record already exist
-	 * @return LikeDto object with Like record info.
+	 * @return created Like.
 	 */
-	LikeDto save(ReqLike reqLike);
+	Like save(Long itemId,Boolean decision, TypeItemLikedEnum type, User userOwner);
 
 	/**
 	 * get like decisions by it's item and auth user.(basically to know if auth user likes or not the item)

@@ -19,7 +19,6 @@ import com.instaJava.instaJava.dto.MessageDto;
 import com.instaJava.instaJava.dto.NotificationChatDto;
 import com.instaJava.instaJava.dto.NotificationDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.Comment;
 import com.instaJava.instaJava.entity.Follow;
@@ -144,7 +143,7 @@ public class NotificationServiceImpl implements NotificationService {
 	
 	@Override
 	@Transactional(readOnly = true)
-	public ResPaginationG<NotificationDto> getNotificationsByAuthUser(PageInfoDto pageInfoDto) {
+	public Page<Notification> getNotificationsByAuthUser(PageInfoDto pageInfoDto) {
 		if (pageInfoDto == null || pageInfoDto.getSortDir() == null || pageInfoDto.getSortField() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
@@ -154,22 +153,24 @@ public class NotificationServiceImpl implements NotificationService {
 		if (!notiPage.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("notif.group-not-found"), HttpStatus.NO_CONTENT);
 		}
-		return notificationMapper.pageAndPageInfoDtoToResPaginationG(notiPage, pageInfoDto);
+		return notiPage;
 	}
 
 	
 	@Override
 	@Transactional
-	public void deleteNotificationById(Long notiId) {
+	public Notification deleteNotificationById(Long notiId) {
 		if (notiId == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User authUser;
-		Optional<Notification> notiToDelete = findNotificationById(notiId);
+		Notification notiToDelete = findNotificationById(notiId).orElseThrow(() -> 
+				new RecordNotFoundException(messUtils.getMessage("notif.not-found"), HttpStatus.NOT_FOUND));
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (!notiToDelete.get().getToWho().equals(authUser)) {
+		if (!notiToDelete.getToWho().equals(authUser)) {
 			throw new InvalidActionException(messUtils.getMessage("notif.owner-not-same"), HttpStatus.BAD_REQUEST);
 		}
-		notiDao.delete(notiToDelete.get());
+		notiDao.delete(notiToDelete);
+		return notiToDelete;
 	}
 
 	@Override

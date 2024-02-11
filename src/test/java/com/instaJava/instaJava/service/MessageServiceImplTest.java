@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -34,10 +33,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.instaJava.instaJava.dao.ChatDao;
 import com.instaJava.instaJava.dao.MessageDao;
-import com.instaJava.instaJava.dto.ChatDto;
 import com.instaJava.instaJava.dto.MessageDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.ChatUser;
 import com.instaJava.instaJava.entity.Message;
@@ -81,66 +78,52 @@ class MessageServiceImplTest {
 
 	// create
 	@Test
-	void createParamChatIdNullThrow() {
+	void createParamChatNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> messageService.create("random", null));
 	}
 
 	@Test
 	void createParamMessageNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> messageService.create(null, 1L));
+		Chat chat = new Chat(1L);
+		assertThrows(IllegalArgumentException.class, () -> messageService.create(null, chat));
 	}
 
 	@Test
 	void createParamMessageBlankThrow() {
-		assertThrows(InvalidActionException.class, () -> messageService.create("", 1L));
+		Chat chat = new Chat(1L);
+		assertThrows(InvalidActionException.class, () -> messageService.create("", chat));
 	}
 
 	@Test
-	void createChatNotFoundThrow() {
-		Long chatId = 1L;
-		User user = User.builder().username("random").build();// differente user than auth user.
-		ChatUser chatUser = ChatUser.builder().user(user).build();
-		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
-
-		// chatDao
-		when(chatDao.findById(chatId)).thenReturn(Optional.empty());
-
-		assertThrows(RecordNotFoundException.class, () -> messageService.create("randomMessage", chatId));
-		verify(msgDao, never()).save(any(Message.class));
-		verify(notifSerivce, never()).saveNotificationOfMessage(eq(chat), any(MessageDto.class));
+	void createParamChatIdNullThrow() {
+		Chat chat = new Chat();
+		assertThrows(IllegalArgumentException.class, () -> messageService.create("random", chat));
 	}
-
+	
 	@Test
 	void createAuthUserIsNotFromChatThrow() {
-		Long chatId = 1L;
 		User randomUser = User.builder().username("random").build();// differente user than auth user.
 		ChatUser chatUser = ChatUser.builder().user(randomUser).build();
-		Chat chat = Chat.builder().id(chatId).chatUsers(List.of(chatUser)).build();
+		Chat chat = Chat.builder().id(1L).chatUsers(List.of(chatUser)).build();
 
-		// chatDao
-		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 
-		assertThrows(InvalidActionException.class, () -> messageService.create("randomMessage", chatId));
+		assertThrows(InvalidActionException.class, () -> messageService.create("randomMessage", chat));
 		verify(msgDao, never()).save(any(Message.class));
 		verify(notifSerivce, never()).saveNotificationOfMessage(eq(chat), any(MessageDto.class));
 	}
 
 	@Test
 	void createAuthUserIsInChatReturnsNotNull() {
-		Long id = 1L;
 		String messageToSend = "randomMessage";
 		ChatUser chatUser = ChatUser.builder().user(user)// same user than authUser
 				.build();
-		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
+		Chat chat = Chat.builder().id(1L).chatUsers(List.of(chatUser)).build();
 		Message message = new Message();
-		MessageDto messageDto = new MessageDto();
 
-		// chatDao
-		when(chatDao.findById(id)).thenReturn(Optional.of(chat));
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -150,11 +133,8 @@ class MessageServiceImplTest {
 		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
 		// dao
 		when(msgDao.save(any(Message.class))).thenReturn(message);
-		// mapper
-		when(msgMapper.messageToMessageDto(message)).thenReturn(messageDto);
 
-		assertNotNull(messageService.create(messageToSend, id));
-		verify(notifSerivce).saveNotificationOfMessage(chat, messageDto);
+		assertNotNull(messageService.create(messageToSend, chat));
 	}
 
 	// getMessagesByChat
@@ -166,66 +146,51 @@ class MessageServiceImplTest {
 
 	@Test
 	void getMessagesByChatParamPageInfoDtoNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> messageService.getMessagesByChat(1L, null));
+		Chat chat = new Chat(1L);
+		assertThrows(IllegalArgumentException.class, () -> messageService.getMessagesByChat(chat, null));
 	}
 
 	@Test
 	void getMessagesByChatParamPageInfoDtoSortFieldNullThrow() {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir(Direction.ASC).build();
-		assertThrows(IllegalArgumentException.class, () -> messageService.getMessagesByChat(1L, pageInfoDto));
+		Chat chat = new Chat(1L);
+		assertThrows(IllegalArgumentException.class, () -> messageService.getMessagesByChat(chat, pageInfoDto));
 	}
 
 	@Test
 	void getMessagesByChatParamPageInfoDtoSortDirNullThrow() {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("randomSorfield").build();
-		assertThrows(IllegalArgumentException.class, () -> messageService.getMessagesByChat(1L, pageInfoDto));
-	}
-
-	@Test
-	void getMessagesByChatChatNotFoundThrow() {
-		Long chatId = 1L;
-		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("randomSorfield").sortDir(Direction.ASC).build();
-		// chatDao
-		when(chatDao.findById(chatId)).thenReturn(Optional.empty());
-
-		assertThrows(RecordNotFoundException.class, () -> messageService.getMessagesByChat(chatId, pageInfoDto));
-
-		verify(msgDao, never()).findByChatId(eq(chatId), any(Pageable.class));
+		Chat chat = new Chat(1L);
+		assertThrows(IllegalArgumentException.class, () -> messageService.getMessagesByChat(chat, pageInfoDto));
 	}
 
 	@Test
 	void getMessagesByChatUserIsNotInChatThrow() {
-		Long chatId = 1L;
 		User randomUser = User.builder().username("random").build();// differente user than auth user.
 		ChatUser chatUser = ChatUser.builder().user(randomUser)// same user than authUser
 				.build();
-		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
+		Chat chat = Chat.builder().id(1L).chatUsers(List.of(chatUser)).build();
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("randomSorfield").sortDir(Direction.ASC).build();
 
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		// chatDao
-		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
 
-		assertThrows(InvalidActionException.class, () -> messageService.getMessagesByChat(chatId, pageInfoDto));
+		assertThrows(InvalidActionException.class, () -> messageService.getMessagesByChat(chat, pageInfoDto));
 
-		verify(msgDao, never()).findByChatId(eq(chatId), any(Pageable.class));
+		verify(msgDao, never()).findByChatId(eq(chat.getId()), any(Pageable.class));
 	}
 
 	@Test
 	void getMessagesByChatNoContentThrow() {
-		Long chatId = 1L;
 		ChatUser chatUser = ChatUser.builder().user(user)// same user than authUser
 				.build();
-		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
+		Chat chat = Chat.builder().id(1L).chatUsers(List.of(chatUser)).build();
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("randomSorfield").sortDir(Direction.ASC).build();
 		Pageable pageable = Pageable.unpaged();
 		Page<Message> page = Page.empty();
-
-		// chatDao
-		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
+		
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -234,25 +199,22 @@ class MessageServiceImplTest {
 		// pageUtils
 		when(pagUtils.getPageable(pageInfoDto)).thenReturn(pageable);
 		// dao
-		when(msgDao.findByChatId(chatId, pageable)).thenReturn(page);
+		when(msgDao.findByChatId(chat.getId(), pageable)).thenReturn(page);
 
-		assertThrows(RecordNotFoundException.class, () -> messageService.getMessagesByChat(chatId, pageInfoDto));
+		assertThrows(RecordNotFoundException.class, () -> messageService.getMessagesByChat(chat, pageInfoDto));
 	}
 
 	@Test
 	void getMessagesByChatReturnsNotNull() {
-		Long chatId = 1L;
 		Message message = new Message();
 		ChatUser chatUser = ChatUser.builder().user(user)// same user than authUser
 				.build();
-		Chat chat = Chat.builder().chatUsers(List.of(chatUser)).build();
+		Chat chat = Chat.builder().id(1L).chatUsers(List.of(chatUser)).build();
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("randomSorfield").sortDir(Direction.ASC).build();
 		Pageable pageable = Pageable.unpaged();
 		Page<Message> page = new PageImpl<>(List.of(message));
-		ResPaginationG<MessageDto> resPaginationG = new ResPaginationG<MessageDto>();
 
-		// chatService
-		when(chatDao.findById(chatId)).thenReturn(Optional.of(chat));
+
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
@@ -260,11 +222,9 @@ class MessageServiceImplTest {
 		// pageUtils
 		when(pagUtils.getPageable(pageInfoDto)).thenReturn(pageable);
 		// dao
-		when(msgDao.findByChatId(chatId, pageable)).thenReturn(page);
-		// Mapper
-		when(msgMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto)).thenReturn(resPaginationG);
+		when(msgDao.findByChatId(chat.getId(), pageable)).thenReturn(page);
 
-		assertNotNull(messageService.getMessagesByChat(chatId, pageInfoDto));
+		assertNotNull(messageService.getMessagesByChat(chat, pageInfoDto));
 	}
 
 	// messagesWatched
@@ -313,8 +273,6 @@ class MessageServiceImplTest {
 
 		doReturn(Collections.emptyList()).when(spyMessageService)
 				.getMessagesNotWatchedCountByChatIds(List.of(chat.getId()), user.getUsername());
-		// mapper
-		when(chatMapper.chatAndMessagesNoWatchedToChatDto(chat, 0L)).thenReturn(new ChatDto());
 
 		assertNotNull(spyMessageService.messagesWatched(messageWatchedIds));
 
@@ -346,8 +304,6 @@ class MessageServiceImplTest {
 
 		doReturn(Collections.emptyList()).when(spyMessageService)
 				.getMessagesNotWatchedCountByChatIds(List.of(chat.getId()), user.getUsername());
-		// mapper
-		when(chatMapper.chatAndMessagesNoWatchedToChatDto(chat, 0L)).thenReturn(new ChatDto());
 
 		assertNotNull(spyMessageService.messagesWatched(messageWatchedIds));
 
@@ -389,28 +345,34 @@ class MessageServiceImplTest {
 
 	// setAllMessagesNotWatchedAsWatchedByChatId
 	@Test
-	void setAllMessagesNotWatchedAsWatchedByChatIdParamChatIdNullThrow() {
+	void setAllMessagesNotWatchedAsWatchedByChatIdParamChatNullThrow() {
 		assertThrows(IllegalArgumentException.class,
 				() -> messageService.setAllMessagesNotWatchedAsWatchedByChatId(null));
+	}
+	@Test
+	void setAllMessagesNotWatchedAsWatchedByChatIdParamChatIdNullThrow() {
+		Chat chat = new Chat();
+		assertThrows(IllegalArgumentException.class,
+				() -> messageService.setAllMessagesNotWatchedAsWatchedByChatId(chat));
 	}
 
 	@Test
 	void setAllMessagesNotWatchedAsWatchedByChatIdNoMessages() {
-		Long chatId = 1L;
+		Chat chat = new Chat(1L);
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		// dao
-		when(msgDao.findAllByChatIdAndUserNoWatched(chatId, user.getUsername())).thenReturn(Collections.emptyList());
-		messageService.setAllMessagesNotWatchedAsWatchedByChatId(chatId);
+		when(msgDao.findAllByChatAndUserNoWatched(chat, user.getUsername())).thenReturn(Collections.emptyList());
+		messageService.setAllMessagesNotWatchedAsWatchedByChatId(chat);
 
 		verify(msgDao, never()).saveAll(anyList());
 	}
 
 	@Test
 	void setAllMessagesNotWatchedAsWatchedByChatId() {
-		Long chatId = 1L;
+		Chat chat = new Chat(1L);
 		Message mess = Message.builder()
 				.watchedBy("julio,")
 				.build();
@@ -421,8 +383,8 @@ class MessageServiceImplTest {
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		// dao
-		when(msgDao.findAllByChatIdAndUserNoWatched(chatId, user.getUsername())).thenReturn(listMess);
-		messageService.setAllMessagesNotWatchedAsWatchedByChatId(chatId);
+		when(msgDao.findAllByChatAndUserNoWatched(chat, user.getUsername())).thenReturn(listMess);
+		messageService.setAllMessagesNotWatchedAsWatchedByChatId(chat);
 
 		listMess.get(0).setWatchedBy("julio,"+user.getUsername()+",");
 		

@@ -177,8 +177,7 @@ class MessageCTest {
 				.contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("id", is("1")))//messages are from chat with id = 1
-				.andExpect(jsonPath("messagesNoWatched", is("0"))); //now , there are not messages in this chat not watched by the auth user.
+				.andExpect(jsonPath("numberOfMessagesNoWatched", is("0"))); //now , there are not messages in this chat not watched by the auth user.
 		
 	}
 	

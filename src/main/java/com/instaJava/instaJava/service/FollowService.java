@@ -1,11 +1,14 @@
 package com.instaJava.instaJava.service;
 
-import com.instaJava.instaJava.dto.FollowDto;
+import org.springframework.data.domain.Page;
+
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.entity.Follow;
+import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
 import com.instaJava.instaJava.exception.AlreadyExistsException;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 
 public interface FollowService {
@@ -14,13 +17,12 @@ public interface FollowService {
 	 * 
 	 * Get the user wanted to follow, set as follower the autheticated user and save
 	 * the Follower record.
-	 * 
-	 * @param FollowedId. user id to follow.
-	 * @throws IllegalArgumentException - if @param FollowedId is null
+	 * @param userFollowed - user wanted to follow
+	 * @throws IllegalArgumentException - if @param userFollowed.id is null
 	 * @throws AlreadyExistsException - if follow record already exists.
 	 * @return FollowDto object with Follow record created info.
 	 */
-	FollowDto save(Long FollowedId);
+	Follow save(User userFollowed);
 
 	/**
 	 * 
@@ -34,19 +36,19 @@ public interface FollowService {
 	 * @throws IllegalArgumentException if @param reqSearchList or @param pageInfoDto or pageInfoDto.SortField or 
 	 * pageInfoDto.SortDir are null.
 	 */
-	ResPaginationG<FollowDto> search(PageInfoDto pageInfoDto, ReqSearchList reqSearchList);
+	Page<Follow> search(PageInfoDto pageInfoDto, ReqSearchList reqSearchList);
 
 
 	/**
-	 * Update followStatus in the Follow record.
+	 * Update followStatus in the Follow record. just the followed user can update follow status
 	 * 
-	 * @return FollowDto object with Follow record updated info.
+	 * @return Updated Follow.
 	 * @throws IllegalArgumentException if any of the params are null.
-	 * @throws IllegalArgumentException if the user authenticated and who wants to
+	 * @throws InvalidActionException if the user authenticated and who wants to
 	 *                                  change the follow status are not the
 	 *                                  followed user in the Follow record.
 	 */
-	FollowDto updateFollowStatusById(Long id, FollowStatus newStatus);
+	Follow updateFollowStatusById(Long id, FollowStatus newStatus);
 	
 	/**
 	 * Method to update follow status on follow record where auth user is the followed and the otherUser follower.
@@ -54,19 +56,9 @@ public interface FollowService {
 	 * @param followerUserId - follower user
 	 * @param flag - flag to know if the other user is follower or followed. other user is follower = true, otherwise false.
 	 * @param newStatus - new follow status.
-	 * @return FollowDto object with Follow record updated info.
+	 * @return Updated Follow record;
 	 */
-	FollowDto updateFollowStatusByFollower(Long followerUserId, FollowStatus newStatus);
-	
-	/**
-	 * 
-	 * Find Follow record by id.
-	 * 
-	 * @param id. Id of the Follow record.
-	 * @return FollowDto object with follow record info.
-	 * @throws IllegalArgumentException if the follow record no exists
-	 */
-	FollowDto findById(Long id);
+	Follow updateFollowStatusByFollowerId(Long followerUserId, FollowStatus newStatus);
 
 	/**
 	 * To see if a follow exists by followed and current user
@@ -79,21 +71,22 @@ public interface FollowService {
 	boolean existsByFollowedAndFollower(Long followedId);// follower is the current user authenticated
 
 	/**
-	 * Get Follow record by id and compare the owner with the user authenticated, if
-	 * are same user then delete the follow record.
+	 * Delete follow record by id.
 	 * 
 	 * @param id. Id of the Follow record to delete
+	 * @return deleted follow.
 	 * @throws IllegalArgumentException if @param id is null.
 	 * @throws InvalidActionException if follower != auth user
 	 */
-	void deleteById(Long id);
+	Follow deleteById(Long id);
 	
 	/**
 	 * To delete a follow record by it's followed id, and auth user as follower
 	 * @param followedId - followed's id.
+	 * @return deleted follow.
 	 * @throws RecordNotFoundException if none follow record was found.
 	 */
-	void deleteByFollwedId(Long followedId);
+	Follow deleteByFollwedId(Long followedId);
 
 	/**
 	 * 
@@ -131,5 +124,4 @@ public interface FollowService {
 	 * @throws IllegalArgumentException  if one param is null
 	 */
 	Long countByFollowStatusAndFollower(FollowStatus followStatus, Long followerId);
-
 }

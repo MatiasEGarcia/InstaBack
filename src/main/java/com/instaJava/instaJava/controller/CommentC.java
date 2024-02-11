@@ -14,13 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.instaJava.instaJava.application.CommentApplication;
 import com.instaJava.instaJava.dto.CommentDto;
-import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqComment;
 import com.instaJava.instaJava.dto.request.ReqUpdateComment;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.service.CommentService;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import jakarta.validation.Valid;
@@ -32,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class CommentC {
 
-	private final CommentService commentService;
+	private final CommentApplication commentApplication;
 	private final MessagesUtils messUtils;
 
 	/**
@@ -42,7 +41,7 @@ public class CommentC {
 	 */
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<CommentDto> save(@Valid @RequestBody ReqComment reqComment){
-		return ResponseEntity.ok().body(commentService.save(reqComment));
+		return ResponseEntity.ok().body(commentApplication.save(reqComment));
 	}
 	
 	/**
@@ -62,9 +61,8 @@ public class CommentC {
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		ResPaginationG<CommentDto> page = commentService.getRootCommentsByPublicationImageId(id, pageInfoDto);
+		ResPaginationG<CommentDto> page = commentApplication.getRootCommentsByPublicationImageId(id,Integer.parseInt(pageNo),
+				Integer.parseInt(pageSize), sortField, sortDir);
 		return ResponseEntity.ok().body(page);
 	}
 	
@@ -85,9 +83,8 @@ public class CommentC {
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		ResPaginationG<CommentDto> page = commentService.getAssociatedCommentsByParentCommentId(id, pageInfoDto);
+		ResPaginationG<CommentDto> page = commentApplication.getAssociatedCommentsByParentCommentId(id,Integer.parseInt(pageNo),
+				Integer.parseInt(pageSize), sortField, sortDir);
 		return ResponseEntity.ok().body(page);
 	}
 	
@@ -98,7 +95,7 @@ public class CommentC {
 	 */
 	@DeleteMapping(value="/byId/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResMessage> deleteById(@PathVariable(name = "id") Long id){
-		commentService.deleteById(id);
+		commentApplication.deleteById(id);
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
 	
@@ -109,7 +106,7 @@ public class CommentC {
 	 */
 	@PutMapping(value="/byId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<CommentDto> updateById(@RequestBody ReqUpdateComment reqUpdateComment){
-		CommentDto commmentUpdated = commentService.updateById(reqUpdateComment.getId(),reqUpdateComment.getBody());
+		CommentDto commmentUpdated = commentApplication.updateBodyById(reqUpdateComment.getId(),reqUpdateComment.getBody());
 		return ResponseEntity.ok().body(commmentUpdated);
 	}
 	

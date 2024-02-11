@@ -3,8 +3,6 @@ package com.instaJava.instaJava.service;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -31,10 +29,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.instaJava.instaJava.dao.CommentDao;
-import com.instaJava.instaJava.dto.CommentDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.request.ReqComment;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Comment;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
@@ -74,171 +69,128 @@ class CommentServiceImplTest {
 
 	// Save
 	@Test
-	void saveParamReqCommentBodyNullthrow() {
-		ReqComment reqComment = ReqComment.builder().publImgId("1").build();
-		assertThrows(IllegalArgumentException.class, () -> commentService.save(reqComment));
+	void saveBodyNullThrow() {
+		String body = null;
+		PublicatedImage pImage = new PublicatedImage(1L);
+
+		assertThrows(IllegalArgumentException.class, () -> commentService.save(body, null, pImage));
 	}
 
 	@Test
-	void saveParamReqCommentBodyBlankthrow() {
-		ReqComment reqComment = ReqComment.builder().publImgId("1").body("").build();
-		assertThrows(IllegalArgumentException.class, () -> commentService.save(reqComment));
+	void savepBodyBlankThrow() {
+		String body = "";
+		PublicatedImage pImage = new PublicatedImage(1L);
+
+		assertThrows(IllegalArgumentException.class, () -> commentService.save(body, null, pImage));
 	}
 
 	@Test
-	void saveParamReqCommentPublImgIdNullthrow() {
-		ReqComment reqComment = ReqComment.builder().body("random").build();
-		assertThrows(IllegalArgumentException.class, () -> commentService.save(reqComment));
+	void savePImageThrow() {
+		String body = "random";
+		PublicatedImage pImage = null;
+
+		assertThrows(IllegalArgumentException.class, () -> commentService.save(body, null, pImage));
 	}
 
 	@Test
-	void saveParamReqCommentPublImgIdBlankthrow() {
-		ReqComment reqComment = ReqComment.builder().publImgId("").body("random").build();
-		assertThrows(IllegalArgumentException.class, () -> commentService.save(reqComment));
+	void savePImageWithoutIdThrow() {
+		String body = "random";
+		PublicatedImage pImage = new PublicatedImage();
+
+		assertThrows(IllegalArgumentException.class, () -> commentService.save(body, null, pImage));
 	}
 
 	@Test
-	void savePublicatedImageNoExistsThrow() {
-		ReqComment reqComment = ReqComment.builder().publImgId("1").body("random").build();
-		when(publicatedImageService.findById(1L)).thenReturn(Optional.empty());
-		assertThrows(RecordNotFoundException.class, () -> commentService.save(reqComment));
+	void saveParentNotFoundThrow() {
+		String body = "random";
+		String parentId = "1";
+		PublicatedImage pImage = new PublicatedImage(1L);
 
+		when(commentDao.findById(1L)).thenReturn(Optional.empty());
+
+		assertThrows(RecordNotFoundException.class, () -> commentService.save(body, parentId, pImage));
 	}
 
 	@Test
-	void saveWithParentNotFoundThrow() {
-		ReqComment reqComment = ReqComment.builder().publImgId("1").body("random").parentId("2").build();
-
-		PublicatedImage p = new PublicatedImage();
+	void saveReturnNotNull() {
+		String body = "random";
+		String parentId = "1";
+		PublicatedImage pImage = new PublicatedImage(1L);
+		Comment parentComment = new Comment();
 		Comment commentSaved = new Comment();
 
-		// service
-		when(publicatedImageService.findById(1L)).thenReturn(Optional.of(p));
-		// dao search of parent comment
-		when(commentDao.findById(anyLong())).thenReturn(Optional.empty());
-
-		assertThrows(RecordNotFoundException.class, () -> commentService.save(reqComment));
-
-		verify(commentDao, never()).save(any(Comment.class));
-		verify(notiService, never()).saveNotificationOfComment(eq(commentSaved), anyString());
-	}
-
-	@Test
-	void saveWithParentReturnNotNull() {
-		ReqComment reqComment = ReqComment.builder().publImgId("1").body("random").parentId("2").build();
-
-		PublicatedImage p = new PublicatedImage();
-		Comment commentSaved = new Comment();
-		CommentDto commentDto = new CommentDto();
-
-		// service
-		when(publicatedImageService.findById(1L)).thenReturn(Optional.of(p));
-		// dao search of parent comment
-		when(commentDao.findById(anyLong())).thenReturn(Optional.of(new Comment()));
+		when(commentDao.findById(1L)).thenReturn(Optional.of(parentComment));
 		// clock
 		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
 		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
-		// auth
+		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		// dao
+
 		when(commentDao.save(any(Comment.class))).thenReturn(commentSaved);
-		// mapping
-		when(commentMapper.commentToCommentDto(commentSaved)).thenReturn(commentDto);
-
-		assertNotNull(commentService.save(reqComment));
-
-		verify(notiService).saveNotificationOfComment(eq(commentSaved), anyString());
+		assertNotNull(commentService.save(body, parentId, pImage));
 	}
 
 	@Test
-	void saveWhitoutParentReturnsNotNull() {
-		ReqComment reqComment = ReqComment.builder().publImgId("1").body("random").build();
-		PublicatedImage p = new PublicatedImage();
-		Comment commentSaved = new Comment();
-		CommentDto commentDto = new CommentDto();
+	void getRootCommentsByAssociatedImgIdParamAssociatedImgIdNullThrow() {
+		Long associatedImgId = null;
+		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir(Direction.ASC).sortField("random").build();
 
-		// service
-		when(publicatedImageService.findById(1L)).thenReturn(Optional.of(p));
-		// clock
-		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
-		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
-		// auth
-		when(securityContext.getAuthentication()).thenReturn(auth);
-		SecurityContextHolder.setContext(securityContext);
-		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		// dao
-		when(commentDao.save(any(Comment.class))).thenReturn(commentSaved);
-		// mapping
-		when(commentMapper.commentToCommentDto(commentSaved)).thenReturn(commentDto);
-
-		assertNotNull(commentService.save(reqComment));
-
-		verify(notiService).saveNotificationOfComment(eq(commentSaved), anyString());
-		verify(commentDao, never()).findById(anyLong());
-	}
-
-	// getCommentsByPublicationImageId
-	@Test
-	void getCommentsByPublicationImageIdParamPublicationImageIdNullThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("random").sortDir(Direction.ASC).build();
 		assertThrows(IllegalArgumentException.class,
-				() -> commentService.getRootCommentsByPublicationImageId(null, pageInfoDto));
+				() -> commentService.getRootCommentsByAssociatedImgId(associatedImgId, pageInfoDto));
+		verify(commentDao, never()).getRootCommentsByAssociatedImage(eq(null), any(Pageable.class));
 	}
 
 	@Test
-	void getCommentsByPublicationImageIdParamPageInfoDtoNullThrow() {
-		assertThrows(IllegalArgumentException.class,
-				() -> commentService.getRootCommentsByPublicationImageId(1L, null));
-	}
-
-	@Test
-	void getCommentsByPublicationImageIdParamPageInfoDtoSortFieldNullThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir(Direction.ASC).build();
-		assertThrows(IllegalArgumentException.class,
-				() -> commentService.getRootCommentsByPublicationImageId(1L, pageInfoDto));
-	}
-
-	@Test
-	void getCommentsByPublicationImageIdParamPageInfoDtoSortDirThrow() {
+	void getRootCommentsByAssociatedImgIdParamPageInfoDtoSortDirNullThrow() {
+		Long associatedImgId = 1L;
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("random").build();
+
 		assertThrows(IllegalArgumentException.class,
-				() -> commentService.getRootCommentsByPublicationImageId(1L, pageInfoDto));
+				() -> commentService.getRootCommentsByAssociatedImgId(associatedImgId, pageInfoDto));
+		verify(commentDao, never()).getRootCommentsByAssociatedImage(eq(1L), any(Pageable.class));
 	}
 
 	@Test
-	void getCommentsByPublicationImageIdNoContentThrow() {
-		Long publicationImageId = 1L;
+	void getRootCommentsByAssociatedImgIdParamPageInfoDtoSortFieldNullThrow() {
+		Long associatedImgId = 1L;
+		PageInfoDto pageInfoDto = PageInfoDto.builder().sortDir(Direction.ASC).build();
+
+		assertThrows(IllegalArgumentException.class,
+				() -> commentService.getRootCommentsByAssociatedImgId(associatedImgId, pageInfoDto));
+		verify(commentDao, never()).getRootCommentsByAssociatedImage(eq(1L), any(Pageable.class));
+	}
+
+	@Test
+	void getRootCommentsByAssociatedImgIdNoContentThrow() {
+		Long associatedImgId = 1L;
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("random").sortDir(Direction.ASC).build();
 
-		// pageUtils
-		when(pagUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
-		// dao
-		when(commentDao.getRootCommentsByAssociatedImage(eq(publicationImageId), any(Pageable.class)))
+		when(pagUtils.getPageable(any(PageInfoDto.class))).thenReturn(Pageable.unpaged());
+		when(commentDao.getRootCommentsByAssociatedImage(eq(associatedImgId), any(Pageable.class)))
 				.thenReturn(Page.empty());
 
 		assertThrows(RecordNotFoundException.class,
-				() -> commentService.getRootCommentsByPublicationImageId(publicationImageId, pageInfoDto));
-		verify(commentMapper, never()).commentToCommentDto(any(Comment.class));
+				() -> commentService.getRootCommentsByAssociatedImgId(associatedImgId, pageInfoDto));
 	}
 
 	@Test
-	void getCommentsByPublicationImageIdReturnsNotNull() {
-		Long publicationImageId = 1L;
+	void getRootCommentsByAssociatedImgIdReturnNotNull() {
+		Long associatedImgId = 1L;
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("random").sortDir(Direction.ASC).build();
 		Comment comment = new Comment();
-		Page<Comment> page = new PageImpl<>(List.of(comment));
-		ResPaginationG<CommentDto> resPaginationG = new ResPaginationG<>();
+		Page<Comment> pageComments = new PageImpl<>(List.of(comment));
 
-		when(pagUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
-		when(commentDao.getRootCommentsByAssociatedImage(eq(publicationImageId), any(Pageable.class))).thenReturn(page);
-		when(commentMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto)).thenReturn(resPaginationG);
+		when(pagUtils.getPageable(any(PageInfoDto.class))).thenReturn(Pageable.unpaged());
+		when(commentDao.getRootCommentsByAssociatedImage(eq(associatedImgId), any(Pageable.class)))
+				.thenReturn(pageComments);
 
-		assertNotNull(commentService.getRootCommentsByPublicationImageId(publicationImageId, pageInfoDto));
+		assertNotNull(commentService.getRootCommentsByAssociatedImgId(associatedImgId, pageInfoDto));
 	}
 
 	// getAssociatedCommentsByParentCommentid
+
 	@Test
 	void getAssociatedCommentsByParentCommentIdParamParentIdNullThrow() {
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("random").sortDir(Direction.ASC).build();
@@ -271,14 +223,11 @@ class CommentServiceImplTest {
 		Long parentId = 1L;
 		PageInfoDto pageInfoDto = PageInfoDto.builder().sortField("random").sortDir(Direction.ASC).build();
 		Pageable pageable = Pageable.unpaged();
-		Page<Comment> page = Page.empty();
 
-		// dao
 		when(commentDao.findById(parentId)).thenReturn(Optional.empty());
 		assertThrows(RecordNotFoundException.class,
 				() -> commentService.getAssociatedCommentsByParentCommentId(parentId, pageInfoDto));
 		verify(commentDao, never()).findByParent(any(Comment.class), eq(pageable));
-		verify(commentMapper, never()).pageAndPageInfoDtoToResPaginationG(page, pageInfoDto);
 	}
 
 	@Test
@@ -297,7 +246,6 @@ class CommentServiceImplTest {
 		when(commentDao.findByParent(comment, pageable)).thenReturn(page);
 		assertThrows(RecordNotFoundException.class,
 				() -> commentService.getAssociatedCommentsByParentCommentId(parentId, pageInfoDto));
-		verify(commentMapper, never()).pageAndPageInfoDtoToResPaginationG(page, pageInfoDto);
 	}
 
 	@Test
@@ -307,7 +255,6 @@ class CommentServiceImplTest {
 		Pageable pageable = Pageable.unpaged();
 		Comment comment = new Comment();
 		Page<Comment> page = new PageImpl<Comment>(List.of(comment));
-		ResPaginationG<CommentDto> resPaginationG = new ResPaginationG<>();
 
 		// dao
 		when(commentDao.findById(parentId)).thenReturn(Optional.of(comment));
@@ -315,64 +262,156 @@ class CommentServiceImplTest {
 		when(pagUtils.getPageable(pageInfoDto)).thenReturn(pageable);
 		// dao
 		when(commentDao.findByParent(comment, pageable)).thenReturn(page);
-		// mapper
-		when(commentMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto)).thenReturn(resPaginationG);
 		assertNotNull(commentService.getAssociatedCommentsByParentCommentId(parentId, pageInfoDto));
 	}
 
-	// delete
+	// deleteById
+
 	@Test
-	void deleteParamCommentIdNullThrow() {
+	void deleteByIdParamCommentIdNullThrow() {
 		assertThrows(IllegalArgumentException.class, () -> commentService.deleteById(null));
 	}
 
 	@Test
-	void deleteCommentNotFoundThrow() {
+	void deleteByIdCommentNotFoundThrow() {
 		Long commentId = 1L;
 		when(commentDao.findById(commentId)).thenReturn(Optional.empty());
-
 		assertThrows(RecordNotFoundException.class, () -> commentService.deleteById(commentId));
-
 		verify(commentDao, never()).deleteById(commentId);
 	}
 
 	@Test
-	void deleteCommentAuthUserNoOwnerThrow() {
-		Comment comment = Comment.builder().id(1L).ownerUser(new User()) // different user than auht user.
-				.build();
+	void deleteByIdCommentAuthUserNoOwnerThrow() {
+		Long commentId = 1L;
+		Comment comment = Comment.builder().id(1L).ownerUser(new User()).build();// no auth user
 
-		// find comment
-		when(commentDao.findById(comment.getId())).thenReturn(Optional.of(comment));
+		when(commentDao.findById(commentId)).thenReturn(Optional.of(comment));
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 
-		assertThrows(InvalidActionException.class, () -> commentService.deleteById(comment.getId()));
-
-		verify(commentDao, never()).deleteById(comment.getId());
+		assertThrows(InvalidActionException.class, () -> commentService.deleteById(commentId));
 	}
 
 	@Test
-	void delete() {
+	void deleteByIdAfter5MinThrow() {
+		Long commentId = 1L;
 		ZonedDateTime commentCreationDate = ZonedDateTime.parse("2020-12-01T10:04:23.653Z[Europe/Prague]");
+		Comment comment = Comment.builder().id(1L).ownerUser(user).createdAt(commentCreationDate).build();// no auth
+																											// user
 
-		Comment comment = Comment.builder().id(1L).ownerUser(user) // same user than auht user.
-				.createdAt(commentCreationDate).build();
-
-		// find comment
-		when(commentDao.findById(comment.getId())).thenReturn(Optional.of(comment));
+		when(commentDao.findById(commentId)).thenReturn(Optional.of(comment));
 		// auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
-		// clock
+
 		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
-		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));// just a 1 min after creation time
+		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:20:23.653Z"));// more than 5 minuts after comment
+																					// creation
 
-		commentService.deleteById(comment.getId());
+		assertThrows(InvalidActionException.class, () -> commentService.deleteById(commentId));
 
-		verify(commentDao).deleteById(comment.getId());
 	}
 
+	@Test
+	void deleteByIReturnNotNull() {
+		Long commentId = 1L;
+		ZonedDateTime commentCreationDate = ZonedDateTime.parse("2020-12-01T10:04:23.653Z[Europe/Prague]");
+		Comment comment = Comment.builder().id(1L).ownerUser(user).createdAt(commentCreationDate).build();// no auth
+																											// user
+
+		when(commentDao.findById(commentId)).thenReturn(Optional.of(comment));
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+
+		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
+		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));// just 1 minuts after comment
+																					// creation
+
+		assertNotNull(commentService.deleteById(commentId));
+	}
+
+	// updateById
+
+	@Test
+	void updateByIdParamCommentIdNullThrow() {
+		Long commentId = null;
+		String newCommentBody = "random";
+
+		assertThrows(IllegalArgumentException.class, () -> commentService.updateById(commentId, newCommentBody));
+	}
+
+	@Test
+	void updateByIdParamNewCommentBodyNullThrow() {
+		Long commentId = 1L;
+		String newCommentBody = null;
+
+		assertThrows(IllegalArgumentException.class, () -> commentService.updateById(commentId, newCommentBody));
+	}
+
+	@Test
+	void updateByIdCommentNotFoundThrow() {
+		Long commentId = 1L;
+		String newCommentBody = "random";
+		when(commentDao.findById(commentId)).thenReturn(Optional.empty());
+		assertThrows(RecordNotFoundException.class, () -> commentService.updateById(commentId, newCommentBody));
+	}
+
+	@Test
+	void updateByIdOwnerNotSameThrow() {
+		Long commentId = 1L;
+		String newCommentBody = "random";
+		Comment comment = Comment.builder().id(1L).ownerUser(new User()).build();// no auth user
+
+		when(commentDao.findById(commentId)).thenReturn(Optional.of(comment));
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+
+		assertThrows(InvalidActionException.class, () -> commentService.updateById(commentId, newCommentBody));
+	}
+
+	@Test
+	void updateByIdAfter5MinThrow() {
+		Long commentId = 1L;
+		String newCommentBody = "random";
+		ZonedDateTime commentCreationDate = ZonedDateTime.parse("2020-12-01T10:04:23.653Z[Europe/Prague]");
+		Comment comment = Comment.builder().id(1L).ownerUser(user).createdAt(commentCreationDate).build();// authUser
+
+		when(commentDao.findById(commentId)).thenReturn(Optional.of(comment));
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+
+		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
+		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:20:23.653Z"));// more than 5 minuts after comment
+																					// creation
+
+		assertThrows(InvalidActionException.class, () -> commentService.updateById(commentId, newCommentBody));
+	}
+
+	@Test
+	void updateByIdReturnNotNull() {
+		Long commentId = 1L;
+		String newCommentBody = "random";
+		ZonedDateTime commentCreationDate = ZonedDateTime.parse("2020-12-01T10:04:23.653Z[Europe/Prague]");
+		Comment comment = Comment.builder().id(1L).ownerUser(user).createdAt(commentCreationDate).build();// authUser
+
+		when(commentDao.findById(commentId)).thenReturn(Optional.of(comment));
+		// auth user
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+
+		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
+		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));// just 1 minute after
+
+		assertNotNull(commentService.updateById(commentId, newCommentBody));
+	}
 }

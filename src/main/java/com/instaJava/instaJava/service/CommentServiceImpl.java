@@ -1,8 +1,8 @@
 package com.instaJava.instaJava.service;
 
 import java.time.Clock;
-import java.time.ZonedDateTime;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -11,16 +11,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.instaJava.instaJava.dao.CommentDao;
-import com.instaJava.instaJava.dto.CommentDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.request.ReqComment;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Comment;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
-import com.instaJava.instaJava.mapper.CommentMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
 
@@ -34,66 +30,52 @@ public class CommentServiceImpl implements CommentService {
 	private final CommentDao commentDao;
 	private final MessagesUtils messUtils;
 	private final PageableUtils pagUtils;
-	private final CommentMapper commentMapper;
-	private final NotificationService notiService;
-	private final PublicatedImageService publicatedImageService;
 
 	@Override
 	@Transactional
-	public CommentDto save(ReqComment reqComment) {
-		if (reqComment.getBody() == null || reqComment.getBody().isBlank() || reqComment.getPublImgId() == null
-				|| reqComment.getPublImgId().isBlank()) {
+	public Comment save(String body, String parentId, PublicatedImage pImage) {
+		if (body == null || body.isBlank() || pImage == null || pImage.getId() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null-or-empty"));
 		}
 		Comment comment;
 		Comment parentComment;
 		User authUser;
-		PublicatedImage publicatedImage = publicatedImageService.findById(Long.parseLong(reqComment.getPublImgId()))
-				.orElseThrow(() -> new RecordNotFoundException(messUtils.getMessage("publiImage.not-found"),
-						HttpStatus.NOT_FOUND));
-
 		comment = new Comment();
 		// checking parent comment
-		if (reqComment.getParentId() != null && !reqComment.getParentId().isBlank()) {
-			parentComment = commentDao.findById(Long.parseLong(reqComment.getParentId()))
+		if (parentId != null && !parentId.isBlank()) {
+			parentComment = commentDao.findById(Long.parseLong(parentId))
 					.orElseThrow(() -> new RecordNotFoundException(messUtils.getMessage("comment.parent-not-found"),
 							HttpStatus.NOT_FOUND));
 			comment.setParent(parentComment);
 		}
-		comment.setBody(reqComment.getBody());
+		comment.setBody(body);
 		comment.setCreatedAt(ZonedDateTime.now(clock));
 		// auth user
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		comment.setOwnerUser(authUser);
 		// image
-		comment.setAssociatedImg(publicatedImage);
-		// saving
-		comment = commentDao.save(comment);
-		// sending notification?
-		notiService.saveNotificationOfComment(comment, "Tienes un nuevo comentario en una publicacion.");
-
-		return commentMapper.commentToCommentDto(comment);
+		comment.setAssociatedImg(pImage);
+		return commentDao.save(comment);
 	}
-
+	
 	@Override
 	@Transactional(readOnly = true)
-	public ResPaginationG<CommentDto> getRootCommentsByPublicationImageId(Long publicationImageId,
-			PageInfoDto pageInfoDto) {
-		if (publicationImageId == null || pageInfoDto == null || pageInfoDto.getSortField() == null
+	public Page<Comment> getRootCommentsByAssociatedImgId(Long associatedImgId, PageInfoDto pageInfoDto){
+		if (associatedImgId == null || pageInfoDto == null || pageInfoDto.getSortField() == null
 				|| pageInfoDto.getSortDir() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
-		Page<Comment> pageComments = commentDao.getRootCommentsByAssociatedImage(publicationImageId,
+		Page<Comment> pageComments = commentDao.getRootCommentsByAssociatedImage(associatedImgId,
 				pagUtils.getPageable(pageInfoDto));
 		if (!pageComments.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("comment-no-content"), HttpStatus.NO_CONTENT);
 		}
-		return commentMapper.pageAndPageInfoDtoToResPaginationG(pageComments, pageInfoDto);
+		return pageComments;
 	}
-
+	
 	@Override
 	@Transactional(readOnly = true)
-	public ResPaginationG<CommentDto> getAssociatedCommentsByParentCommentId(Long parentId, PageInfoDto pageInfoDto) {
+	public Page<Comment> getAssociatedCommentsByParentCommentId(Long parentId,PageInfoDto pageInfoDto){
 		if (parentId == null || pageInfoDto == null || pageInfoDto.getSortField() == null
 				|| pageInfoDto.getSortDir() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
@@ -101,18 +83,16 @@ public class CommentServiceImpl implements CommentService {
 		Comment parentComment = commentDao.findById(parentId)
 				.orElseThrow(() -> new RecordNotFoundException(messUtils.getMessage("comment.parent-not-found"),
 						HttpStatus.NOT_FOUND));
-
 		Page<Comment> pageComments = commentDao.findByParent(parentComment, pagUtils.getPageable(pageInfoDto));
 		if (!pageComments.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("comment-no-content"), HttpStatus.NO_CONTENT);
 		}
-		return commentMapper.pageAndPageInfoDtoToResPaginationG(pageComments, pageInfoDto);
+		return pageComments;
 	}
 
-	// tests
 	@Override
 	@Transactional
-	public void deleteById(Long commentId) {
+	public Comment deleteById(Long commentId) {
 		if (commentId == null)
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		Comment commentToDelete;
@@ -139,12 +119,13 @@ public class CommentServiceImpl implements CommentService {
 					HttpStatus.BAD_REQUEST);
 		}
 		commentDao.deleteById(commentId);
+		return commentToDelete;
 	}
 
-	//falta testss
+	
 	@Override
 	@Transactional
-	public CommentDto updateById(Long commentId, String newCommentBody) {
+	public Comment updateById(Long commentId, String newCommentBody) {
 		if (commentId == null || newCommentBody == null || newCommentBody.isBlank()) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
@@ -174,8 +155,33 @@ public class CommentServiceImpl implements CommentService {
 		}
 		//update
 		commentToUpdate.setBody(newCommentBody);
-		commentToUpdate = commentDao.save(commentToUpdate);
-		return commentMapper.commentToCommentDto(commentToUpdate);
+		return commentToUpdate;
 	}
 
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

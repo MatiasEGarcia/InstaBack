@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.Message;
 
 public interface MessageDao extends JpaRepository<Message,Long> {
@@ -29,6 +30,6 @@ public interface MessageDao extends JpaRepository<Message,Long> {
 	 * @param username - user's username.
 	 * @return List with all messages-
 	 */
-	@Query(value="SELECT m FROM Message m JOIN Chat c ON m.chat = c.id WHERE c.id = :chatId AND m.watchedBy NOT LIKE %:username%")
-	List<Message> findAllByChatIdAndUserNoWatched(@Param(value = "chatId")Long chatId, @Param(value ="username") String username);
+	@Query(value="SELECT m FROM Message m JOIN Chat c ON m.chat = c.id WHERE c = :chat AND m.watchedBy NOT LIKE %:username%")
+	List<Message> findAllByChatAndUserNoWatched(@Param(value = "chat")Chat chat, @Param(value ="username") String username);
 }

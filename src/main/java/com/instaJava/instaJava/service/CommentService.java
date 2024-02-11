@@ -1,54 +1,64 @@
 package com.instaJava.instaJava.service;
 
-import com.instaJava.instaJava.dto.CommentDto;
+import org.springframework.data.domain.Page;
+
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.request.ReqComment;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
+import com.instaJava.instaJava.entity.Comment;
+import com.instaJava.instaJava.entity.PublicatedImage;
+import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 
 public interface CommentService {
 	
 	/**
 	 * To save a Comment record
-	 * @param ReqComment - comment data transfer object
+	 * @param body - comment's message
+	 * @param parentId - comment's parent id. if there is.
+	 * @param pImage - commnet's publicated image.
 	 * @return a comment data transfer object with info of comment record saved.
 	 * @throws RecordNotFoundException if publicated image no exists.
 	 */
-	CommentDto save(ReqComment reqComment);
+	Comment save(String body, String parentId, PublicatedImage pImage);
 	
 	/**
 	 * To get a paginated list of comments by publicationImage Id.
-	 * 
-	 * @param publicationImageId - to know from what publicated image search
+	 * @param associatedImgId - to know from what publicated image search
 	 * @param pageInfoDto - pagination info
-	 * @return ResPaginationG of CommentDto with Comment records info and pagination info.
+	 * @return Page with comments and pagination info. If there is no comments then return a page with no content(empty list).
 	 * @throws IllegalArgumentException if some required param is null.
 	 * @throws RecordNotFoundException if no comment was found.
 	 */
-	ResPaginationG<CommentDto> getRootCommentsByPublicationImageId(Long publicationImageId,PageInfoDto pageInfoDto);
+	Page<Comment> getRootCommentsByAssociatedImgId(Long associatedImgId, PageInfoDto pageInfoDto);
 	
 	/**
 	 * To get a paginated list of comments by parent id
 	 * 
 	 * @param publicationImageId - to know from what publicated image search
 	 * @param pageInfoDto - pagination info
-	 * @return ResPaginationG of CommentDto with Comment records info and pagination info.
+	 * @return Page of Comment records info and pagination info.
 	 * @throws IllegalArgumentException if some required param is null.
-	 * @throws RecordNotFoundException if no comment was found.
+	 * @throws RecordNotFoundException if parent not found or no comment was found.
 	 */
-	ResPaginationG<CommentDto> getAssociatedCommentsByParentCommentId(Long parentId,PageInfoDto pageInfoDto);
+	Page<Comment> getAssociatedCommentsByParentCommentId(Long parentId,PageInfoDto pageInfoDto);
 	
 	/**
 	 * To delete comment by id.
 	 * @param commentId - comments'id.
+	 * @return deleted comment.
+	 * @throws IllegalArgumentException if commentId is null.
+	 * @throws RecordNotFoundException if comment record was not found.
+	 * @throws InvalidActionException if the auth user is not the owner of the comment or if 5 min has passed from the creation.
 	 */
-	void deleteById(Long commentId);
+	Comment deleteById(Long commentId);
 	
 	/**
 	 * To update comment by id
 	 * @param commentId - comment's id
 	 * @param newCommentBody - new comment body(content)
+	 * @return updated comment.
+	 * @throws IllegalArgumentException if commentId is null.
+	 * @throws RecordNotFoundException if comment record was not found.
+	 * @throws InvalidActionException if the auth user is not the owner of the comment or if 5 min has passed from the creation
 	 */
-	CommentDto updateById(Long commentId, String newCommentBody);
-	
+	Comment updateById(Long commentId, String newCommentBody);
 }

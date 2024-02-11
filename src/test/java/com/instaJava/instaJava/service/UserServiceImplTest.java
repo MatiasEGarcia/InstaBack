@@ -5,21 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Set;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,6 +26,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -39,14 +36,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.instaJava.instaJava.dao.PersonalDetailsDao;
 import com.instaJava.instaJava.dao.UserDao;
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.PersonalDetailsDto;
-import com.instaJava.instaJava.dto.UserDto;
-import com.instaJava.instaJava.dto.request.ReqSearch;
-import com.instaJava.instaJava.dto.request.ReqSearchList;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.PersonalDetails;
 import com.instaJava.instaJava.entity.User;
-import com.instaJava.instaJava.enums.GlobalOperationEnum;
 import com.instaJava.instaJava.exception.InvalidImageException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.PersonalDetailsMapper;
@@ -67,36 +58,9 @@ class UserServiceImplTest {
 	@Mock private PersonalDetailsMapper personalDetailsMapper;
 	@Mock private SpecificationService<User> specService;
 	@InjectMocks private UserServiceImpl userService;
-	static private MockMultipartFile multipartFile;
-	static private User user;
-	static private UserDto userDto;
-	static private PersonalDetails personalDetails;
-	static private PersonalDetailsDto personalDetailsDto;
+	 private User authUser = User.builder().id(1L).username("Mati").visible(true).build();
 	
-	@BeforeAll
-	static void entitiesSetUp() throws IOException {
-		multipartFile = new MockMultipartFile("file", "test.txt",
-			      "text/plain", "testing".getBytes());
-		String image64 = Base64.getEncoder().encodeToString(multipartFile.getBytes());
-		
-		user = User.builder()
-				.id(1L)
-				.username("Mati")
-				.image(image64)
-				.visible(true)
-				.build();
-		
-		userDto = UserDto.builder()
-				.id("1")
-				.username("Mati")
-				.image(image64)
-				.visible(true)
-				.build();
-		personalDetails = new PersonalDetails();
-		personalDetailsDto = new PersonalDetailsDto();
-		
-	}
-	
+
 	//save
 	@Test
 	void saveArgumentNullThrow() {
@@ -105,6 +69,7 @@ class UserServiceImplTest {
 	
 	@Test
 	void saveReturnNotNull() {
+		User user = new User();
 		when(userDao.save(user)).thenReturn(user);
 		assertNotNull(userService.save(user));
 		verify(userDao).save(user);
@@ -113,97 +78,87 @@ class UserServiceImplTest {
 	//loadByUsername
 	@Test
 	void loadUserByUsernameUserNull() {
-		when(userDao.findByUsername(user.getUsername())).thenReturn(null);
-		assertThrows(UsernameNotFoundException.class,() -> {userService.loadUserByUsername(user.getUsername());});
-		verify(userDao).findByUsername(user.getUsername());
+		String username = "randomUsername";
+		when(userDao.findByUsername(username)).thenReturn(null);
+		assertThrows(UsernameNotFoundException.class,() -> userService.loadUserByUsername(username));
 	}
 
 	@Test
 	void loadUserByUsernameUserNotNull() {
-		when(userDao.findByUsername(user.getUsername())).thenReturn(user);
-		assertEquals(user, userService.loadUserByUsername(user.getUsername()));
-		verify(userDao).findByUsername(user.getUsername());
+		String username = "randomUsername";
+		User user = new User();
+		when(userDao.findByUsername(username)).thenReturn(user);
+		assertEquals(user, userService.loadUserByUsername(username));
 	}
-	
+
 	//udpateImage
 	@Test
 	void updateImageArgumentNullThrow() {
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.thenReturn(user);
-		assertThrows(InvalidImageException.class,() -> {userService.updateImage(null);});
-		verify(userDao,never()).save(user);
+				.thenReturn(authUser);
+		assertThrows(InvalidImageException.class,() -> userService.updateImage(null));
+		verify(userDao,never()).save(any(User.class));
 	}
 	
 	@Test
 	void updateImageArgumentNotNullNotThrow() {
+		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", MediaType.IMAGE_JPEG_VALUE, new byte[0]);
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.thenReturn(user);
-		userService.updateImage(multipartFile);
-		verify(userDao).save(user);
+				.thenReturn(authUser);
+		userService.updateImage(img);
+		verify(userDao).save(any(User.class));
 	}
 	
 	//getImage
 	@Test
-	void getImageReturnImage() {
+	void getImageReturnImage() throws IOException {
+		MockMultipartFile img = new MockMultipartFile("img", "hello.txt", MediaType.IMAGE_JPEG_VALUE, new byte[0]);
+		String image64 = Base64.getEncoder().encodeToString(img.getBytes());
+		authUser.setImage(image64);
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.thenReturn(user);
-		assertEquals(user.getImage(), userService.getImage());
+				.thenReturn(authUser);
+		assertNotNull(userService.getImage());
 	}
 	
 	//getPersonalDetailsByUser
 	@Test
 	void getPersonalDetailsUserNotHaveThrow() {
-		user.setPersonalDetails(null);
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.thenReturn(user);
+				.thenReturn(authUser);
 		assertThrows(RecordNotFoundException.class, () -> userService.getPersonalDetailsByUser());
 	}
 	
 	@Test
 	void getPersonalDetailsReturnNotNull() {
-		user.setPersonalDetails(personalDetails);
+		PersonalDetails p = new PersonalDetails();
+		authUser.setPersonalDetails(p);
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.thenReturn(user);
-		when(personalDetailsMapper.personalDetailsToPersonalDetailsDto(personalDetails)).thenReturn(personalDetailsDto);
-		
+				.thenReturn(authUser);
 		assertNotNull(userService.getPersonalDetailsByUser());
 	}
 	
 	//savePersonalDetails
-	@Test
-	void savePersonalDetailsParamPesonalDetailsDtoNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> {userService.savePersonalDetails(null);});
-		verify(personalDetailsMapper,never()).personalDetailsDtoAndUserToPersonalDetails(personalDetailsDto, user);
-		verify(personalDetailsDao,never()).save(personalDetails);
-	}
 	
 	@Test
 	void savePersonalDetailsReturnsNotNull() {
+		byte age = 15;
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.thenReturn(user);
-		when(personalDetailsMapper.
-				personalDetailsDtoAndUserToPersonalDetails(personalDetailsDto, user))
-				.thenReturn(personalDetails);
-		when(personalDetailsDao.save(personalDetails)).thenReturn(personalDetails);
-		when(personalDetailsMapper.personalDetailsToPersonalDetailsDto(personalDetails)).thenReturn(personalDetailsDto);
+				.thenReturn(authUser);
+		when(personalDetailsDao.save(any(PersonalDetails.class))).thenReturn(new PersonalDetails());
 		
-		assertNotNull(userService.savePersonalDetails(personalDetailsDto));
-		
-		verify(personalDetailsMapper)
-			.personalDetailsDtoAndUserToPersonalDetails(personalDetailsDto, user);
-		verify(personalDetailsDao).save(personalDetails);
+		assertNotNull(userService.savePersonalDetails("randomName","randomLastname", age, "randomEmail"));
 	}
 	
 	//changeVisible
@@ -212,43 +167,12 @@ class UserServiceImplTest {
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.thenReturn(user);//here the user is visible = true
-		user.setVisible(false);
-		when(userDao.save(user)).thenReturn(user);
-		when(userMapper.userToUserDto(user)).thenReturn(userDto);
+				.thenReturn(authUser);//here the user is visible = true
+		authUser.setVisible(false);
+		when(userDao.save(authUser)).thenReturn(authUser);
 		assertNotNull(userService.changeVisible());
-		verify(userDao).save(user);
 	}
-	
-	//getByPrincipal
-	@Test
-	void getByPrincipalReturnsNotNull() {
-		when(securityContext.getAuthentication()).thenReturn(auth);
-		SecurityContextHolder.setContext(securityContext);
-		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.thenReturn(user);//here the user is visible = true
-		when(userMapper.userToUserDto(user)).thenReturn(userDto);
-		assertNotNull(userService.getByPrincipal());
-	}
-	
-	//getById
-	@Test
-	void getByIdArgNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> userService.getById(null));
-	}
-	
-	@Test
-	void getByIdNoMatchesThrow() {
-		when(userDao.findById(1L)).thenReturn(Optional.empty());
-		assertThrows(RecordNotFoundException.class, () -> userService.getById(1L));
-	}
-	
-	@Test
-	void getByIdMatchesReturnsNotNull() {
-		when(userDao.findById(1L)).thenReturn(Optional.of(user));
-		when(userMapper.userToUserDto(user)).thenReturn(userDto);
-		assertNotNull(userService.getById(1L));
-	}
+
 	
 	//findById
 	void findByIdParamIdNullThrow() {
@@ -270,207 +194,103 @@ class UserServiceImplTest {
 		assertNotNull(userService.findById(id));
 	}
 	
-	//getOneUserOneCondition
-	@Test
-	void getOneUserOneConditionParamReqSearchNullThrow() {
-		assertThrows(IllegalArgumentException.class,() -> userService.getOneUserOneCondition(null));
-	}
-	
-	@Test
-	void getOneUserOneConditionReturnsNotNull() {
-		ReqSearch reqSearch = ReqSearch.builder()
-				.column("password")
-				.build();
-		UserDto userDto = new UserDto();
-		
-		UserServiceImpl spyUserServiceImpl = spy(userService);
-		doReturn(userDto).when(spyUserServiceImpl).getOneUserManyConditions(any(ReqSearchList.class));
-		
-		assertNotNull(spyUserServiceImpl.getOneUserOneCondition(reqSearch));
-		
-		verify(spyUserServiceImpl).getOneUserManyConditions(any(ReqSearchList.class));
-	}
 	
 	//getOneUserManyConditions
 	@Test
-	void getOneUserManyConditionsParamReqSearchListNullThrow() {
-		assertThrows(IllegalArgumentException.class ,() -> userService.getOneUserManyConditions(null));
+	void getOneUserManyConditionsParamSpecNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> userService.getOneUserManyConditions(null));
 	}
 	
 	@Test
-	void getOneUserManyConditionsNoMatchesThrow() {
-		ReqSearch reqSearch = ReqSearch.builder().build();
-		List<ReqSearch> reqSearchs = List.of(reqSearch);
-		ReqSearchList reqSearchList = ReqSearchList.builder()
-				.reqSearchs(reqSearchs)
-				.globalOperator(GlobalOperationEnum.AND)
+	void getOneUserManyConditionsNotFoundThrow() {
+		// spec for example only, does not match 
+		Specification<User> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("username"),
+				"random");
+		when(userDao.findOne(spec)).thenReturn(Optional.empty());	
+		assertThrows(RecordNotFoundException.class, () -> userService.getOneUserManyConditions(spec));
+	}
+	
+	@Test
+	void getOneUserManyConditionsReturnNotNull() {
+		// spec for example only, does not match 
+				Specification<User> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("username"),
+						"random");
+				User user = new User();
+		when(userDao.findOne(spec)).thenReturn(Optional.of(user));		
+		assertNotNull(userService.getOneUserManyConditions(spec));
+	}
+
+	//getOneUserManyConditions
+	@Test
+	void getManyUsersManyConditionsParamSpecNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> userService.getManyUsersManyConditions(new PageInfoDto(), null));
+	}
+	
+	@Test
+	void getManyUsersManyConditionsParamPageInfoDtoNullThrow() {
+		// spec for example only, does not match 
+				Specification<User> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("username"),
+						"random");
+		assertThrows(IllegalArgumentException.class, () -> userService.getManyUsersManyConditions(null, spec));
+	}
+	
+	@Test
+	void getManyUsersManyConditionsParamPageInfoDtoSortDirNullThrow() {
+		PageInfoDto p = PageInfoDto.builder()
+				.sortField("Random")
 				.build();
-		//spec for example only, does not match reqSearchList
-		Specification<User> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("username"), user.getUsername());
-		when(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator())).thenReturn(spec);
-		when(userDao.findOne(spec)).thenReturn(Optional.empty());
-		
-		assertThrows(RecordNotFoundException.class,() -> userService.getOneUserManyConditions(reqSearchList));
-		
-		verify(specService).getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator());
-		verify(userDao).findOne(spec);
+		// spec for example only, does not match 
+		Specification<User> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("username"),
+				"random");
+		assertThrows(IllegalArgumentException.class, () -> userService.getManyUsersManyConditions(p, spec));
 	}
 	
 	@Test
-	void getOneUserManyConditionsMatchesReturnsNotNull() {
-		ReqSearch reqSearch = ReqSearch.builder().build();
-		List<ReqSearch> reqSearchs = List.of(reqSearch);
-		ReqSearchList reqSearchList = ReqSearchList.builder()
-				.reqSearchs(reqSearchs)
-				.globalOperator(GlobalOperationEnum.AND)
-				.build();
-		//spec for example only, does not match reqSearchList
-		Specification<User> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("username"), user.getUsername());
-		when(specService.getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator())).thenReturn(spec);
-		when(userDao.findOne(spec)).thenReturn(Optional.of(user));
-		when(userMapper.userToUserDto(user)).thenReturn(userDto);
-		
-		assertNotNull(userService.getOneUserManyConditions(reqSearchList));
-		
-		verify(specService).getSpecification(reqSearchList.getReqSearchs(), reqSearchList.getGlobalOperator());
-		verify(userDao).findOne(spec);
-	}
-	
-	
-	//getManyUsersOneCondition
-	@Test
-	void getManyUsersOneConditionArgPageInfoDtoNullThrow() {
-		assertThrows(IllegalArgumentException.class , () -> userService.getManyUsersOneCondition(null, new ReqSearch()));
-	}
-	@Test
-	void getManyUsersOneConditionArgReqSearchNullThrow() {
-		assertThrows(IllegalArgumentException.class , () -> userService.getManyUsersOneCondition(new PageInfoDto(), null));
-	}
-	
-	@Test
-	void getManyUsersOneConditionArgPageInfoDtoSortDirNullThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder()
-				.pageNo(0)
-				.pageSize(10)
-				.sortField("username")
-				.build();
-		assertThrows(IllegalArgumentException.class , () -> userService.getManyUsersOneCondition(pageInfoDto, new ReqSearch()));
-	}
-	
-	@Test
-	void getManyUsersOneConditionArgPageInfoDtoSortFieldNullThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder()
-				.pageNo(0)
-				.pageSize(10)
+	void getManyUsersManyConditionsParamPageInfoDtoSortFieldNullThrow() {
+		PageInfoDto p = PageInfoDto.builder()
 				.sortDir(Direction.ASC)
 				.build();
-		assertThrows(IllegalArgumentException.class , () -> userService.getManyUsersOneCondition(pageInfoDto, new ReqSearch()));
+		// spec for example only, does not match 
+		Specification<User> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("username"),
+				"random");
+		assertThrows(IllegalArgumentException.class, () -> userService.getManyUsersManyConditions(p, spec));
 	}
 	
 	@Test
-	void getManyUsersOneConditionReturnsNotNull() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder()
-				.pageNo(0)
-				.pageSize(10)
+	void getManyUsersManyConditionsNoContentThrow() {
+		PageInfoDto p = PageInfoDto.builder()
 				.sortDir(Direction.ASC)
-				.sortField("username")
+				.sortField("randomField")
 				.build();
-		ReqSearch reqSearch = ReqSearch.builder().build();
-		ResPaginationG<UserDto> resPaginationG = new ResPaginationG<UserDto>();
-		UserServiceImpl spyUserService = spy(userService);
-		doReturn(resPaginationG).when(spyUserService).getManyUsersManyConditions(eq(pageInfoDto), any(ReqSearchList.class));
+		// spec for example only, does not match 
+		Specification<User> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("username"),
+				"random");
+		Pageable pageable = Pageable.unpaged();
 		
-		assertNotNull(spyUserService.getManyUsersOneCondition(pageInfoDto, reqSearch));
-		
-		verify(spyUserService).getManyUsersManyConditions(eq(pageInfoDto), any(ReqSearchList.class));
-		
-	}
-	
-	//getManyUsersManyConditions
-	@Test
-	void getManyUsersManyConditionsArgPageInfoDtoNullThrow() {
-		assertThrows(IllegalArgumentException.class , () -> userService.getManyUsersManyConditions(null, new ReqSearchList()));
-	}
-	@Test
-	void getManyUsersManyConditionsArgReqSearchNullThrow() {
-		assertThrows(IllegalArgumentException.class , () -> userService.getManyUsersOneCondition(new PageInfoDto(), null));
-	}
-	
-	@Test
-	void getManyUsersManyConditionsPageInfoDtoSortDirNullThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder()
-				.pageNo(0)
-				.pageSize(10)
-				.sortField("username")
-				.build();
-		assertThrows(IllegalArgumentException.class , () -> userService.getManyUsersManyConditions(pageInfoDto, new ReqSearchList()));
-	}
-	
-	@Test
-	void getManyUsersManyConditionsrgPageInfoDtoSortFieldNullThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder()
-				.pageNo(0)
-				.pageSize(10)
-				.sortDir(Direction.ASC)
-				.build();
-		assertThrows(IllegalArgumentException.class , () -> userService.getManyUsersManyConditions(pageInfoDto, new ReqSearchList()));
-	}
-	
-	
-	@Test
-	void getManyUsersManyConditionsNoRecordFoundThrow() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder()
-				.pageNo(0)
-				.pageSize(10)
-				.sortDir(Direction.ASC)
-				.sortField("username")
-				.build();
-		ReqSearch reqSearch = ReqSearch.builder().build();
-		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch)).globalOperator(GlobalOperationEnum.AND).build();
-		//spec for example only, does not match reqSearch
-		Specification<User> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("username"), user.getUsername());
-		when(specService.getSpecification(reqSearchList.getReqSearchs(),reqSearchList.getGlobalOperator())).thenReturn(spec);
-		//pageable
-		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
-		//dao
-		when(userDao.findAll(eq(spec), any(Pageable.class))).thenReturn(Page.empty());
-		
-		assertThrows(RecordNotFoundException.class, () -> userService.getManyUsersManyConditions(pageInfoDto,reqSearchList));
-		
-		verify(specService).getSpecification(reqSearchList.getReqSearchs(),reqSearchList.getGlobalOperator());
-		verify(userDao).findAll(eq(spec), any(Pageable.class));
+		when(pageUtils.getPageable(p)).thenReturn(pageable);
+		when(userDao.findAll(spec, pageable)).thenReturn(Page.empty());
+		assertThrows(RecordNotFoundException.class, () -> userService.getManyUsersManyConditions(p, spec));
 	}
 	
 	@Test
 	void getManyUsersManyConditionsReturnNotNull() {
-		PageInfoDto pageInfoDto = PageInfoDto.builder()
-				.pageNo(0)
-				.pageSize(10)
+		PageInfoDto p = PageInfoDto.builder()
 				.sortDir(Direction.ASC)
-				.sortField("username")
+				.sortField("randomField")
 				.build();
-		ReqSearch reqSearch = ReqSearch.builder().build();
-		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch)).globalOperator(GlobalOperationEnum.AND).build();
+		// spec for example only, does not match 
+		Specification<User> spec = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("username"),
+				"random");
+		User user = new User();
 		Page<User> page = new PageImpl<>(List.of(user));
-		ResPaginationG<UserDto> resPaginationG = new ResPaginationG<>();
+		Pageable pageable = Pageable.unpaged();
 		
-		//spec for example only, does not match reqSearch
-		Specification<User> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("username"), user.getUsername());
-		when(specService.getSpecification(reqSearchList.getReqSearchs(),reqSearchList.getGlobalOperator())).thenReturn(spec);
-		//pageable
-		when(pageUtils.getPageable(pageInfoDto)).thenReturn(Pageable.unpaged());
-		//dao
-		when(userDao.findAll(eq(spec), any(Pageable.class))).thenReturn(page);
-		//mapper
-		when(userMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto)).thenReturn(resPaginationG);
-		
-		assertNotNull(userService.getManyUsersManyConditions(pageInfoDto,reqSearchList));
-		
-		verify(specService).getSpecification(reqSearchList.getReqSearchs(),reqSearchList.getGlobalOperator());
-		verify(userDao).findAll(eq(spec), any(Pageable.class));
+		when(pageUtils.getPageable(p)).thenReturn(pageable);
+		when(userDao.findAll(spec, pageable)).thenReturn(page);
+		assertNotNull(userService.getManyUsersManyConditions(p, spec));
 	}
 	
-	
+
 	//existByUsername
 	@Test
 	void existByUsernameArgNullThrow() {
@@ -479,60 +299,9 @@ class UserServiceImplTest {
 	
 	@Test
 	void existByUsernameReturnNotNull() {
-		assertNotNull(userService.existsByUsername(user.getUsername()));
+		assertNotNull(userService.existsByUsername("randomUsername"));
 	}
 	
-	//existsOneCondition
-	@Test
-	void existsOneConditionArgNullThrow() {
-		assertThrows(IllegalArgumentException.class , () -> userService.existsOneCondition(null));
-	}
-	
-	@Test
-	void existsOneConditionColumnPasswordThrow() {
-		ReqSearch reqSearch = ReqSearch.builder().column("password").build();
-		assertThrows(IllegalArgumentException.class , () -> userService.existsOneCondition(reqSearch),
-				"If in the column the value is 'password' then the research is not allowed");
-	}
-
-	@Test
-	void existsOneConditionReturnNotNull() {
-		ReqSearch reqSearch = ReqSearch.builder().build();
-		//spec for example only, does not match reqSearch
-		Specification<User> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("username"), user.getUsername());
-		when(specService.getSpecification(reqSearch)).thenReturn(spec);
-		when(userDao.exists(spec)).thenReturn(true);
-		assertNotNull(userService.existsOneCondition(reqSearch));
-		verify(userDao).exists(spec);
-	}
-	
-	//existsManyConditions
-	@Test
-	void existsManyConditionsArgNullThrow() {
-		assertThrows(IllegalArgumentException.class , () -> userService.existsManyConditions(null));
-	}
-	
-	@Test
-	void existsManyConditionsColumnPasswordThrow() {
-		ReqSearch reqSearch = ReqSearch.builder().column("password").build();
-		ReqSearchList reqSearchList = ReqSearchList.builder().reqSearchs(List.of(reqSearch)).build();
-		assertThrows(IllegalArgumentException.class , () -> userService.existsManyConditions(reqSearchList),
-				"If in the column the value is 'password' then the research is not allowed");
-	}
-	
-	@Test
-	void existsManyConditionsReturnNotNull() {
-		ReqSearchList reqSearchList = ReqSearchList.builder()
-				.reqSearchs(List.of())
-				.globalOperator(GlobalOperationEnum.AND)
-				.build();
-		//spec for example only, does not match reqSearch
-		Specification<User> spec = (root,query,criteriaBuilder) -> criteriaBuilder.equal(root.get("username"), user.getUsername());
-		when(specService.getSpecification(reqSearchList.getReqSearchs(),reqSearchList.getGlobalOperator())).thenReturn(spec);
-		when(userDao.exists(spec)).thenReturn(true);
-		assertNotNull(userService.existsManyConditions(reqSearchList));
-		verify(userDao).exists(spec);
-	}
 	
 	//getByUsernameIn
 	@Test
@@ -560,6 +329,7 @@ class UserServiceImplTest {
 	
 	@Test
 	void getByUsernameInReturnsNotNull() {
+		User user = new User();
 		Set<String> usernameList = Set.of("username1", "username2");
 		List<User> userList = List.of(user);
 		

@@ -14,11 +14,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.instaJava.instaJava.dto.PageInfoDto;
+import com.instaJava.instaJava.application.PublicatedImageApplication;
 import com.instaJava.instaJava.dto.response.PublicatedImageDto;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.validator.Image;
 
@@ -30,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class PublicatedImageC {
 
-	private final PublicatedImageService publicatedImageService;
+	private final PublicatedImageApplication pImageApplication;
 	private final MessagesUtils messUtils;
 
 	/**
@@ -43,7 +42,7 @@ public class PublicatedImageC {
 	@PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
 	public ResponseEntity<PublicatedImageDto> save(@RequestPart("img") @Image MultipartFile file,
 			@RequestParam("description") String description) {
-		return ResponseEntity.ok().body(publicatedImageService.save(description, file));
+		return ResponseEntity.ok().body(pImageApplication.save(description, file));
 	}
 
 	/**
@@ -54,7 +53,7 @@ public class PublicatedImageC {
 	 */
 	@DeleteMapping(value = "/{id}", produces = "application/json")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id) {
-		publicatedImageService.deleteById(id);
+		pImageApplication.deleteById(id);
 		return ResponseEntity.ok()
 				.body(ResMessage.builder().message(messUtils.getMessage("generic.delete-ok")).build());
 	}
@@ -74,9 +73,8 @@ public class PublicatedImageC {
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		return  ResponseEntity.ok().body(publicatedImageService.getById(id,pageInfoDto));
+		return  ResponseEntity.ok().body(pImageApplication.getById(id,Integer.parseInt(pageNo), Integer.parseInt(pageSize),
+				sortField, sortDir));
 	}
 	
 	
@@ -97,11 +95,9 @@ public class PublicatedImageC {
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		
 		return ResponseEntity.ok()
-				.body(publicatedImageService.getAllByOwnersVisibles(pageInfoDto));
+				.body(pImageApplication.getAllByOwnersVisibles(Integer.parseInt(pageNo), Integer.parseInt(pageSize),
+						sortField, sortDir));
 	}
 
 	/**
@@ -121,9 +117,8 @@ public class PublicatedImageC {
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		return ResponseEntity.ok().body(publicatedImageService.getAllByOnwer(ownerId, pageInfoDto));
+		return ResponseEntity.ok().body(pImageApplication.getAllByOnwerId(ownerId, Integer.parseInt(pageNo), 
+				Integer.parseInt(pageSize), sortField, sortDir));
 	}
 	
 	/**
@@ -140,9 +135,8 @@ public class PublicatedImageC {
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		return ResponseEntity.ok().body(publicatedImageService.getPublicationsFromUsersFollowed(pageInfoDto));
+		return ResponseEntity.ok().body(pImageApplication.getPublicationsFromUsersFollowed(Integer.parseInt(pageNo), 
+				Integer.parseInt(pageSize), sortField, sortDir));
 	}
 	
 

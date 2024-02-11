@@ -5,17 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,19 +28,17 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.instaJava.instaJava.dao.LikeDao;
-import com.instaJava.instaJava.dto.UserDto;
-import com.instaJava.instaJava.dto.request.ReqLike;
-import com.instaJava.instaJava.dto.response.LikeDto;
+import com.instaJava.instaJava.dto.dao.IdValueDto;
 import com.instaJava.instaJava.entity.Like;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
 import com.instaJava.instaJava.exception.InvalidActionException;
-import com.instaJava.instaJava.exception.InvalidException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.mapper.LikeMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.SearchsUtils;
 
 @ExtendWith(MockitoExtension.class)
 class LikeServiceImplTest {
@@ -58,6 +57,8 @@ class LikeServiceImplTest {
 	private PublicatedImageService publiImaService;
 	@Mock
 	private MessagesUtils messUtils;
+	@Mock
+	private SearchsUtils searchUtils;
 	@Mock
 	private SpecificationService<Like> specService;
 	@InjectMocks
@@ -94,7 +95,7 @@ class LikeServiceImplTest {
 	}
 
 	@Test
-	void deleteBy() {
+	void deleteById() {
 		Like like = Like.builder().ownerLike(user).build();
 
 		when(likeDao.findById(any(Long.class))).thenReturn(Optional.of(like));
@@ -108,6 +109,42 @@ class LikeServiceImplTest {
 		verify(likeDao).delete(any(Like.class));
 	}
 
+	//deleteByPublicationId
+	@Test
+	void deleteByPublicationIdParamPublicationIdNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> likeService.deleteByPublicationId(null));
+	}
+	
+	@Test
+	void deleteByPublicationIdLikeNotFound() {
+		Long publicationId = 1L;
+		
+		//auth
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		//like dao
+		when(likeDao.getByItemIdAndOwnerLikeId(publicationId, user.getId())).thenReturn(Optional.empty());
+		assertThrows(RecordNotFoundException.class, () -> likeService.deleteByPublicationId(publicationId));
+		verify(likeDao,never()).delete(any(Like.class));
+	}
+	
+	@Test
+	void deleteByPublicationId() {
+		Long publicationId = 1L;
+		Like likeToDelete = new Like();
+		
+		//auth
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		//like dao
+		when(likeDao.getByItemIdAndOwnerLikeId(publicationId, user.getId())).thenReturn(Optional.of(likeToDelete));
+		likeService.deleteByPublicationId(publicationId);
+		verify(likeDao).delete(likeToDelete);
+	}
+	
+	
 //exist
 	@Test
 	void existTypeNullThrow() {
@@ -142,116 +179,128 @@ class LikeServiceImplTest {
 
 	// save
 	@Test
-	void saveParamReqLikeNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> likeService.save(null));
-	}
-
-	@Test
-	void saveParamReqLikeItemIdNullThrow() {
-		ReqLike reqLike = ReqLike.builder().type(TypeItemLikedEnum.PULICATED_IMAGE).build();
-		assertThrows(IllegalArgumentException.class, () -> likeService.save(reqLike));
-	}
-
-	@Test
-	void saveParamReqLikeTypeNullThrow() {
-		ReqLike reqLike = ReqLike.builder().itemId(1L).build();
-		assertThrows(IllegalArgumentException.class, () -> likeService.save(reqLike));
-	}
-
-	@Test
-	void saveLikeTypePublicatedImageNoExistSoNotValidThrow() {
-		User authUser = User.builder() // who is authenticated and wants to create follow record.
-				.id(2L).build();
-		ReqLike reqLike = ReqLike.builder().itemId(1L).type(TypeItemLikedEnum.PULICATED_IMAGE).build();
-
-		// setting authenticated user
-		when(securityContext.getAuthentication()).thenReturn(auth);
-		SecurityContextHolder.setContext(securityContext);
-		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(authUser);
-
-		// checking item existence.
-		when(publiImaService.findById(reqLike.getItemId())).thenReturn(Optional.empty());
-
-		assertThrows(InvalidException.class, () -> likeService.save(reqLike));
-
-		verify(likeDao, never()).save(any(Like.class));
-	}
-
-	@Test
-	void saveLikeTypePublicatedImageExistButLikeRecordAlreadyExistsSoNotValidThrow() {
-		User authUser = User.builder() // who is authenticated and wants to create follow record.
-				.id(2L).build();
-		ReqLike reqLike = ReqLike.builder().itemId(1L).type(TypeItemLikedEnum.PULICATED_IMAGE).build();
-		LikeServiceImpl spyLikeService = spy(likeService);
-		PublicatedImage pubImage = new PublicatedImage();
-
-		// setting authenticated user
-		when(securityContext.getAuthentication()).thenReturn(auth);
-		SecurityContextHolder.setContext(securityContext);
-		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(authUser);
-
-		// checking item existence.
-		when(publiImaService.findById(reqLike.getItemId())).thenReturn(Optional.of(pubImage));
-		// cheking if like already exist (in this test exist)
-		doReturn(true).when(spyLikeService).exist(reqLike.getType(), reqLike.getItemId(), authUser.getId());
-
-		assertThrows(InvalidActionException.class, () -> spyLikeService.save(reqLike));
-
-		verify(likeDao, never()).save(any(Like.class));
-	}
-
-	@Test
-	void saveLikeTypePublicatedImage() {
-		Long itemId = 2L;
-		TypeItemLikedEnum itemType = TypeItemLikedEnum.PULICATED_IMAGE;
-		User authUser = User.builder() // who is authenticated and wants to create follow record.
-				.id(2L).build();
-		UserDto userDto = UserDto.builder()
-				.id("2")
-				.build();
-		ReqLike reqLike = ReqLike.builder().itemId(itemId).type(itemType)
-				.decision(true)
-				.build();
-		LikeServiceImpl spyLikeService = spy(likeService);
-		PublicatedImage pubImage = new PublicatedImage();
+	void saveParamItemIdNullThrow() {
+		Long itemId = null;
+		Boolean decision = true;
+		TypeItemLikedEnum type = TypeItemLikedEnum.PULICATED_IMAGE;
+		User userOwner = new User();
 		
-
-		// setting authenticated user
-		when(securityContext.getAuthentication()).thenReturn(auth);
-		SecurityContextHolder.setContext(securityContext);
-		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(authUser);
-
-		// checking item existence.
-		when(publiImaService.findById(reqLike.getItemId())).thenReturn(Optional.of(pubImage));
-		// cheking if like already exist (in this test exist)
-		doReturn(false).when(spyLikeService).exist(reqLike.getType(), reqLike.getItemId(), authUser.getId());
-
-		// set the clock values //random
+		assertThrows(IllegalArgumentException.class, () -> likeService.save(itemId, decision, type, userOwner));
+		verify(likeDao, never()).save(any(Like.class));
+	}
+	
+	@Test
+	void saveParamDecisionNullThrow() {
+		Long itemId = 1L;
+		Boolean decision = null;
+		TypeItemLikedEnum type = TypeItemLikedEnum.PULICATED_IMAGE;
+		User userOwner = new User();
+		
+		assertThrows(IllegalArgumentException.class, () -> likeService.save(itemId, decision, type, userOwner));
+		verify(likeDao, never()).save(any(Like.class));
+	}
+	
+	@Test
+	void saveParamTypeNullThrow() {
+		Long itemId = 1L;
+		Boolean decision = true;
+		TypeItemLikedEnum type = null;
+		User userOwner = new User();
+		
+		assertThrows(IllegalArgumentException.class, () -> likeService.save(itemId, decision, type, userOwner));
+		verify(likeDao, never()).save(any(Like.class));
+	}
+	
+	@Test
+	void saveParamTypeUserThrow() {
+		Long itemId = 1L;
+		Boolean decision = true;
+		TypeItemLikedEnum type = TypeItemLikedEnum.PULICATED_IMAGE;
+		User userOwner = null;
+		
+		assertThrows(IllegalArgumentException.class, () -> likeService.save(itemId, decision, type, userOwner));
+		verify(likeDao, never()).save(any(Like.class));
+	}
+	
+	@Test
+	void saveReturnNotNull() {
+		Long itemId = 1L;
+		Boolean decision = true;
+		TypeItemLikedEnum type = TypeItemLikedEnum.PULICATED_IMAGE;
+		User userOwner = new User(1L);
+		
 		when(clock.getZone()).thenReturn(ZoneId.of("Europe/Prague"));
-		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:05:23.653Z"));
-		
-		//I need to set clock returns, that is why I create this object after when block
-		Like likeToSave = Like.builder()
-				.itemId(itemId)
-				.itemType(itemType)
-				.decision(true)
-				.ownerLike(authUser)
-				.likedAt(ZonedDateTime.now(clock))
-				.build();
-		LikeDto likeDto = LikeDto.builder()
-				.itemId(itemId.toString())
-				.itemType(itemType)
-				.decision(true)
-				.ownerLike(userDto)
-				.likedAt(ZonedDateTime.now(clock))
-				.build();
-		
-		when(likeDao.save(likeToSave)).thenReturn(likeToSave);
-
-		when(likeMapper.likeToLikeDto(likeToSave)).thenReturn(likeDto);
-
-		assertNotNull(spyLikeService.save(reqLike));
-
-		verify(likeDao).save(any(Like.class));
+		when(clock.instant()).thenReturn(Instant.parse("2020-12-01T10:20:23.653Z"));
+		when(likeDao.save(any(Like.class))).thenReturn(new Like());
+		assertNotNull(likeService.save(itemId, decision, type, userOwner));
 	}
+	
+	//setItemDecisions
+	
+	@Test
+	void setItemDecisionsParamListItemsNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> likeService.setItemDecisions(null));
+	}
+	
+	@Test
+	void setItemDecisionsParamListItemsEmptyThrow() {
+		List<PublicatedImage> listItems = new ArrayList<>();
+		assertThrows(IllegalArgumentException.class, () -> likeService.setItemDecisions(listItems));
+	}
+	 
+	@Test
+	void setItemDecisions() {
+		IdValueDto<Boolean> idValueDto = new IdValueDto<Boolean>();
+		idValueDto.setId(1L);
+		idValueDto.setValue(true);
+		PublicatedImage p = new PublicatedImage(1L);
+		List<PublicatedImage> listItems = new ArrayList<>();
+		Set<Long> setItemsIds = new HashSet<Long>();
+		List<IdValueDto<Boolean>> decisions = new ArrayList<>();
+		decisions.add(idValueDto);
+		
+		listItems.add(p);
+		setItemsIds.add(p.getId());
+		
+		//auth
+		when(securityContext.getAuthentication()).thenReturn(auth);
+		SecurityContextHolder.setContext(securityContext);
+		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
+		//decisions
+		when(likeDao.getDecisionsByItemIdAndOwnerLikeId(setItemsIds, user.getId())).thenReturn(decisions);
+		when(searchUtils.bynarySearchById(listItems, idValueDto.getId())).thenReturn(0);
+		
+		likeService.setItemDecisions(listItems);
+	}
+	
+	//@Test
+	void setItemDecision() {
+		//pending
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

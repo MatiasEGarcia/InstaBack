@@ -15,13 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.instaJava.instaJava.dto.ChatDto;
+import com.instaJava.instaJava.application.MessageApplication;
 import com.instaJava.instaJava.dto.MessageDto;
-import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqNewMessage;
 import com.instaJava.instaJava.dto.response.ResMessage;
+import com.instaJava.instaJava.dto.response.ResNumberOfMessagesNoWatched;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.service.MessageService;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import jakarta.validation.Valid;
@@ -33,8 +32,8 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class MessageC {
 
-	private final MessageService msgService;
 	private final MessagesUtils messUtils;
+	private final MessageApplication mApplication;
 	
 	/**
 	 * To create a message.
@@ -43,7 +42,7 @@ public class MessageC {
 	 */
 	@PostMapping(consumes= MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<MessageDto> create(@Valid @RequestBody ReqNewMessage reqNewMessage){
-		MessageDto messageDto= msgService.create(reqNewMessage.getMessage(), Long.parseLong(reqNewMessage.getChatId()));
+		MessageDto messageDto= mApplication.create(reqNewMessage);
 		return ResponseEntity.ok().body(messageDto);
 	}
 	
@@ -62,9 +61,8 @@ public class MessageC {
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir){
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		ResPaginationG<MessageDto> res = msgService.getMessagesByChat(chatId, pageInfoDto);
+		ResPaginationG<MessageDto> res = mApplication.getMessagesByChat(chatId, Integer.parseInt(pageNo), Integer.parseInt(pageSize), sortField,
+				sortDir);
 		return ResponseEntity.ok().body(res);
 	}
 	
@@ -72,11 +70,11 @@ public class MessageC {
 	/**
 	 * Function to set which messages were watche by auth user and messages id.
 	 * @param messagesWatchedId - watched messages' id.
-	 * @return chat with info updated.
+	 * @return number of messages not watched yet.
 	 */
 	@PutMapping(value="/messagesWatched" ,consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ChatDto> messagesWatched(@RequestBody Set<String> messagesWatchedId){
-		return ResponseEntity.ok().body(msgService.messagesWatched(messagesWatchedId));
+	public ResponseEntity<ResNumberOfMessagesNoWatched> messagesWatched(@RequestBody Set<String> messagesWatchedId){
+		return ResponseEntity.ok().body(new ResNumberOfMessagesNoWatched(mApplication.messagesWatched(messagesWatchedId).toString()));
 	}
 	
 	/**
@@ -86,7 +84,7 @@ public class MessageC {
 	 */
 	@PutMapping(value ="/watchedAllByChatId/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResMessage> watchedAllByChatId(@PathVariable("id") Long chatId){
-		msgService.setAllMessagesNotWatchedAsWatchedByChatId(chatId);
+		mApplication.setAllMessagesNotWatchedAsWatchedByChatId(chatId);
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("message.watched-all-in-chat")));
 	}
 }

@@ -50,7 +50,7 @@ public class PublicatedImage implements IBaseEntity{
 	private List<Comment> comments;
 	
 	@Transient
-	private boolean liked;//true = liked, false = not liked, null = no opinion yet.
+	private String liked;//true = liked, false = not liked, null = no opinion yet.
 	
 	public PublicatedImage(Long id) {
 		this.id = id;
@@ -63,7 +63,7 @@ public class PublicatedImage implements IBaseEntity{
 
 	@Override
 	public void setItemEntityLiked(Boolean value) {
-		this.liked = value;
+		this.liked = value.toString();
 	}
 	
 }

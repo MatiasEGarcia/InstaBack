@@ -11,11 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.instaJava.instaJava.application.NotificationApplication;
 import com.instaJava.instaJava.dto.NotificationDto;
-import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
-import com.instaJava.instaJava.service.NotificationService;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -27,9 +26,8 @@ import lombok.RequiredArgsConstructor;
 public class NotificationC {
 
 	private final MessagesUtils messUtils;
-	private final NotificationService notiService;
+	private final NotificationApplication notiApplication;
 
-	// tengo que testear
 
 	/**
 	 * Handler to get all the notifications by the user that make the request.
@@ -47,9 +45,8 @@ public class NotificationC {
 			@RequestParam(name = "pageSize", defaultValue = "20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue = "id") String sortField,
 			@RequestParam(name = "sortDir", defaultValue = "ASC") Direction sortDir) {
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		return ResponseEntity.ok().body(notiService.getNotificationsByAuthUser(pageInfoDto));
+		return ResponseEntity.ok().body(notiApplication.getNotificationsByAuthUser(Integer.parseInt(pageNo), 
+				Integer.parseInt(pageSize),sortField, sortDir));
 	}
 
 	/**
@@ -60,7 +57,7 @@ public class NotificationC {
 	 */
 	@DeleteMapping(value = "/{id}", produces = "application/json")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id) {
-		notiService.deleteNotificationById(id);
+		notiApplication.deleteNotificationById(id);
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
 	
@@ -70,7 +67,7 @@ public class NotificationC {
 	 */
 	@DeleteMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResMessage> deleteAll(){
-		notiService.deleteAllByAuthUser();
+		notiApplication.deleteAllByAuthUser();
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
 }

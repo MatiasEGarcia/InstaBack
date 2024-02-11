@@ -41,5 +41,5 @@ public class PublicatedImageDto implements Serializable{
 	
 	private ResPaginationG<CommentDto> rootComments;
 	
-	private boolean liked;
+	private String liked; //if is null then is not liked or disliked either.
 }

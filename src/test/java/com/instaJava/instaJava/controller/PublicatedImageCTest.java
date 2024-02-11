@@ -67,7 +67,7 @@ class PublicatedImageCTest {
 	private String sqlAddPublicatedImage2;
 	@Value("${sql.script.create.follow.statusInProcess}")
 	private String sqlAddFollow;
-	@Value("${sql.script.create.like}")
+	@Value("${sql.script.create.like.1}")
 	private String sqlAddLike;
 	@Value("${sql.script.update.follow.statusAccepted.on.follow1}")
 	private String updateFollow1ToAccepted;
@@ -214,7 +214,7 @@ class PublicatedImageCTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is("1")))
 				.andExpect(jsonPath("$.userOwner.id", is("1")))
-				.andExpect(jsonPath("$.liked", is(false)))
+				.andExpect(jsonPath("$.liked", is("true")))
 				.andExpect(jsonPath("$.rootComments.list", hasSize(1)));
 	}
 	

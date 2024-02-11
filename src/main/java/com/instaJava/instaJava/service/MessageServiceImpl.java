@@ -12,19 +12,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.instaJava.instaJava.dao.ChatDao;
 import com.instaJava.instaJava.dao.MessageDao;
-import com.instaJava.instaJava.dto.ChatDto;
-import com.instaJava.instaJava.dto.MessageDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
-import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.Message;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
-import com.instaJava.instaJava.mapper.ChatMapper;
-import com.instaJava.instaJava.mapper.MessageMapper;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.util.PageableUtils;
 
@@ -36,28 +30,20 @@ public class MessageServiceImpl implements MessageService{
 
 	private final Clock clock;
 	private final MessageDao msgDao;
-	private final MessageMapper msgMapper;
-	private final ChatMapper chatMapper;
-	private final ChatDao chatDao;
-	private final NotificationService notifService;
 	private final MessagesUtils messUtils;
 	private final PageableUtils pagUtils;
 	
 	@Override
 	@Transactional
-	public MessageDto create(String message, Long chatId) {
-		if(message == null || chatId == null) {
+	public Message create(String message, Chat chat) {
+		if(message == null || chat == null || chat.getId() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}else if(message.isBlank()) {
 			throw new InvalidActionException(messUtils.getMessage("message.body-not-blank"),HttpStatus.BAD_REQUEST);
 		}
-		Chat chat;
 		Message newMessage;
-		MessageDto newMessageDto;
 		StringBuilder watchedByMessCreator;
 		User user;
-		chat= chatDao.findById(chatId).orElseThrow(() ->
-			new RecordNotFoundException(messUtils.getMessage("chat.not-found"), HttpStatus.NOT_FOUND));
 		user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		
 		isAuthUserAUserFromChat(chat);
@@ -65,38 +51,35 @@ public class MessageServiceImpl implements MessageService{
 		watchedByMessCreator.append(","); //always a come at the end. to separate names.
 		newMessage = Message.builder()
 				.body(message)
-				.chat(new Chat(chatId))
+				.chat(chat)
 				.userOwner(user.getUsername())
 				.sendedAt(ZonedDateTime.now(clock))
 				.watchedBy(watchedByMessCreator.toString())
 				.build();
 		
 		newMessage = msgDao.save(newMessage);
-		newMessageDto = msgMapper.messageToMessageDto(newMessage);
-		notifService.saveNotificationOfMessage(chat, newMessageDto);
-		return newMessageDto;
+		return newMessage;
 	}
 
+	
 	@Override
 	@Transactional(readOnly = true)
-	public ResPaginationG<MessageDto> getMessagesByChat(Long chatId, PageInfoDto pageInfoDto) {
-		if(chatId == null || pageInfoDto == null || pageInfoDto.getSortField() == null || pageInfoDto.getSortDir() == null) {
+	public Page<Message> getMessagesByChat(Chat chat, PageInfoDto pageInfoDto) {
+		if(chat == null || chat.getId() == null || pageInfoDto == null || pageInfoDto.getSortField() == null || pageInfoDto.getSortDir() == null) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
 		Page<Message> page;
-		Chat chat= chatDao.findById(chatId).orElseThrow(() ->
-			new RecordNotFoundException(messUtils.getMessage("chat.not-found"), HttpStatus.NOT_FOUND));
 		isAuthUserAUserFromChat(chat);
-		page = msgDao.findByChatId(chatId, pagUtils.getPageable(pageInfoDto));
+		page = msgDao.findByChatId(chat.getId(), pagUtils.getPageable(pageInfoDto));
 		if(!page.hasContent()) {
 			throw new RecordNotFoundException(messUtils.getMessage("message.group-not-found"), HttpStatus.NO_CONTENT);
 		}
-		return msgMapper.pageAndPageInfoDtoToResPaginationG(page, pageInfoDto);
+		return page;
 	}
 	
 	@Override
 	@Transactional
-	public ChatDto messagesWatched(Set<String> messageWatchedIds) {
+	public Long messagesWatched(Set<String> messageWatchedIds) {
 		if(messageWatchedIds == null || messageWatchedIds.isEmpty()) {
 			throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		}
@@ -115,6 +98,7 @@ public class MessageServiceImpl implements MessageService{
 		wereAllFoundOrNot(listMessages, listLongMessageWatchedIds);
 		
 		authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		//Add auth user as watcher.
 		for(Message message : listMessages) {
 			String str;
 			String[] usersUsername;
@@ -146,7 +130,7 @@ public class MessageServiceImpl implements MessageService{
 		if(!messagesNotWatched.isEmpty()) {
 			messagesNotWatchedNumber = messagesNotWatched.get(0)[1];//there should be 1 chat searched
 		}
-		return chatMapper.chatAndMessagesNoWatchedToChatDto(chatOrigin, messagesNotWatchedNumber);//there should be 1 chat searched
+		return messagesNotWatchedNumber;//there should be 1 chat searched
 	}	
 	
 	@Override
@@ -160,14 +144,11 @@ public class MessageServiceImpl implements MessageService{
 
 	@Override
 	@Transactional
-	public void setAllMessagesNotWatchedAsWatchedByChatId(Long chatId) {
-		if(chatId == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
+	public void setAllMessagesNotWatchedAsWatchedByChatId(Chat chat) {
+		if(chat == null || chat.getId() == null) throw new IllegalArgumentException(messUtils.getMessage("generic.arg-not-null"));
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		
-		List<Message> listMessages = msgDao.findAllByChatIdAndUserNoWatched(chatId, authUser.getUsername());
-		
+		List<Message> listMessages = msgDao.findAllByChatAndUserNoWatched(chat, authUser.getUsername());
 		if(listMessages.isEmpty()) return;
-		
 		for(Message message : listMessages) {
 			StringBuilder stringBuilder = new StringBuilder(message.getWatchedBy());
 			stringBuilder.append(authUser.getUsername());

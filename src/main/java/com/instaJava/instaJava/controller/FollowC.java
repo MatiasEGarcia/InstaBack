@@ -12,13 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.instaJava.instaJava.application.FollowApplication;
 import com.instaJava.instaJava.dto.FollowDto;
-import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.request.ReqSearchList;
 import com.instaJava.instaJava.dto.response.ResMessage;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.enums.FollowStatus;
-import com.instaJava.instaJava.service.FollowService;
 import com.instaJava.instaJava.util.MessagesUtils;
 
 import jakarta.validation.Valid;
@@ -29,8 +28,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FollowC {
 	
-	private final FollowService follService;
 	private final MessagesUtils messUtils;
+	private final FollowApplication fApplication;
 
 	/**
 	 * Save a follow record with the authenticated user as follower and the @param followed as followed.
@@ -40,7 +39,7 @@ public class FollowC {
 	 */
 	@PostMapping(produces = "application/json")
 	public ResponseEntity<FollowDto> save(@RequestParam(name = "followedId") Long followedId){
-		return ResponseEntity.ok().body(follService.save(followedId));
+		return ResponseEntity.ok().body(fApplication.save(followedId));
 	}
 	
 	/**
@@ -60,9 +59,7 @@ public class FollowC {
 			@RequestParam(name = "pageSize" , defaultValue ="20") String pageSize,
 			@RequestParam(name = "sortField", defaultValue="id") String sortField,
 			@RequestParam(name = "sortDir" , defaultValue = "ASC")Direction sortDir){
-		PageInfoDto pageInfoDto = PageInfoDto.builder().pageNo(Integer.parseInt(pageNo))
-				.pageSize(Integer.parseInt(pageSize)).sortField(sortField).sortDir(sortDir).build();
-		return ResponseEntity.ok().body(follService.search(pageInfoDto,reqSearchList));
+		return ResponseEntity.ok().body(fApplication.search(Integer.parseInt(pageNo),Integer.parseInt(pageSize), sortField, sortDir,reqSearchList));
 	}
 	
 	/**
@@ -75,7 +72,7 @@ public class FollowC {
 	@PutMapping(value="/updateFollowStatus", produces = "application/json")
 	public ResponseEntity<FollowDto> updateFollowStatus(@RequestParam(name = "followStatus") FollowStatus followStatus,
 			@RequestParam(name = "id")Long id){
-		return ResponseEntity.ok().body(follService.updateFollowStatusById(id, followStatus));
+		return ResponseEntity.ok().body(fApplication.updateFollowStatusById(id, followStatus));
 	}
 
 	/**
@@ -86,11 +83,10 @@ public class FollowC {
 	 */
 	@DeleteMapping(value="/{id}", produces = "application/json")
 	public ResponseEntity<ResMessage> deleteById(@PathVariable("id") Long id){
-		follService.deleteById(id);
+		fApplication.deleteById(id);
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
 
-	//TESTSSS
 	/**
 	 * To delete a follow record by it's followed id, and as follower the auth user.
 	 * @param id - followed's id
@@ -98,7 +94,7 @@ public class FollowC {
 	 */
 	@DeleteMapping(value="/byFollowedId/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResMessage> deleteByFollowedId(@PathVariable("id") Long id){
-		follService.deleteByFollwedId(id);
+		fApplication.deleteByFollwedId(id);
 		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
 	}
 	
@@ -113,7 +109,7 @@ public class FollowC {
 	public ResponseEntity<FollowDto> updateFollowStatusByFollowerById(
 			@RequestParam(name = "id") Long id,
 			@RequestParam(name = "followStatus") FollowStatus followStatus){
-		FollowDto f = follService.updateFollowStatusByFollower(id, followStatus);
+		FollowDto f = fApplication.updateFollowStatusByFollowerId(id, followStatus);
 		return ResponseEntity.ok().body(f);
 	}
 	

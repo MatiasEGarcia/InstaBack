@@ -15,6 +15,7 @@ import com.instaJava.instaJava.dto.UserDto;
 import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.ChatUser;
+import com.instaJava.instaJava.entity.User;
 
 @Mapper(componentModel = "spring")
 public interface ChatMapper {
@@ -26,7 +27,7 @@ public interface ChatMapper {
 	@Mapping(target = "admin" , source = "chatUser.admin")
 	UserDto chatUserToUserDto(ChatUser chatUser);
 	
-	List<UserDto> chatUserListToUserDtoList(List<ChatUser> chatUserList);
+	List<User> chatUserListToUserList(List<ChatUser> chatUserList);
 	
 	@Named("basicChatToChatDto")
 	@Mapping(target ="id", source = "chat.id")
