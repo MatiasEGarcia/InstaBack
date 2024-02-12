@@ -53,17 +53,15 @@ public class LikeServiceImpl implements LikeService {
 
 	@Override
 	@Transactional
-	public void deleteByPublicationId(Long publicationId) {
-		if(publicationId == null) 
+	public void deleteByItemId(Long itemId) {
+		if(itemId == null) 
 			throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
 		Like likeToDelete;
 		User authUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		likeToDelete = likeDao.getByItemIdAndOwnerLikeId(publicationId, authUser.getId()).orElseThrow(() -> 
+		likeToDelete = likeDao.getByItemIdAndOwnerLikeId(itemId, authUser.getId()).orElseThrow(() -> 
 		new RecordNotFoundException(messUtils.getMessage("like.not-found"), HttpStatus.NOT_FOUND));
 		likeDao.delete(likeToDelete);
 	}
-	
-	
 	
 	@Override
 	@Transactional(readOnly = true)

@@ -109,14 +109,14 @@ class LikeServiceImplTest {
 		verify(likeDao).delete(any(Like.class));
 	}
 
-	//deleteByPublicationId
+	//deleteByItemId
 	@Test
-	void deleteByPublicationIdParamPublicationIdNullThrow() {
-		assertThrows(IllegalArgumentException.class, () -> likeService.deleteByPublicationId(null));
+	void deleteByItemIdIdItemIdNullThrow() {
+		assertThrows(IllegalArgumentException.class, () -> likeService.deleteByItemId(null));
 	}
 	
 	@Test
-	void deleteByPublicationIdLikeNotFound() {
+	void deleteByItemIdLikeNotFound() {
 		Long publicationId = 1L;
 		
 		//auth
@@ -125,12 +125,12 @@ class LikeServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		//like dao
 		when(likeDao.getByItemIdAndOwnerLikeId(publicationId, user.getId())).thenReturn(Optional.empty());
-		assertThrows(RecordNotFoundException.class, () -> likeService.deleteByPublicationId(publicationId));
+		assertThrows(RecordNotFoundException.class, () -> likeService.deleteByItemId(publicationId));
 		verify(likeDao,never()).delete(any(Like.class));
 	}
 	
 	@Test
-	void deleteByPublicationId() {
+	void deleteByItemId() {
 		Long publicationId = 1L;
 		Like likeToDelete = new Like();
 		
@@ -140,7 +140,7 @@ class LikeServiceImplTest {
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(user);
 		//like dao
 		when(likeDao.getByItemIdAndOwnerLikeId(publicationId, user.getId())).thenReturn(Optional.of(likeToDelete));
-		likeService.deleteByPublicationId(publicationId);
+		likeService.deleteByItemId(publicationId);
 		verify(likeDao).delete(likeToDelete);
 	}
 	

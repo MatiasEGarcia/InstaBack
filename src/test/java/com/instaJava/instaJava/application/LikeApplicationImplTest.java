@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.instaJava.instaJava.dto.request.ReqLike;
 import com.instaJava.instaJava.dto.response.LikeDto;
+import com.instaJava.instaJava.dto.response.PublicatedImageDto;
 import com.instaJava.instaJava.entity.Like;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
@@ -26,6 +27,7 @@ import com.instaJava.instaJava.enums.RolesEnum;
 import com.instaJava.instaJava.enums.TypeItemLikedEnum;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.mapper.LikeMapper;
+import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 import com.instaJava.instaJava.service.LikeService;
 import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.util.MessagesUtils;
@@ -38,6 +40,7 @@ class LikeApplicationImplTest {
 	@Mock private LikeService lService;
 	@Mock private PublicatedImageService pImaService;
 	@Mock private LikeMapper lMapper;
+	@Mock private PublicatedImageMapper pMapper;
 	@Mock private MessagesUtils messUtils;
 	@InjectMocks private LikeApplicationImpl lApplication;
 	private final User authUser = User.builder().id(1L).username("Mati").role(RolesEnum.ROLE_USER).build();
@@ -109,11 +112,18 @@ class LikeApplicationImplTest {
 		assertNotNull(lApplication.save(reqLike));
 	}
 	
+	//deleteByPublicatedImageId
 	@Test
-	void deletePublicationId() {
-		Long id = 1L;
-		lApplication.deleteByPublicationId(id);
-		verify(lService).deleteByPublicationId(id);
+	void deleteByPublicatedImageIdReturnNotNull() {
+		Long pId = 1L;
+		PublicatedImage pFound = new PublicatedImage();
+		PublicatedImageDto pDto = new PublicatedImageDto();
+		
+		when(pImaService.getById(pId)).thenReturn(pFound);
+		when(pMapper.publicatedImageToPublicatedImageDto(pFound)).thenReturn(pDto);
+		 
+		assertNotNull(lApplication.deleteByPublicatedImageId(pId));
+		verify(lService).deleteByItemId(pId);
 	}
 	
 

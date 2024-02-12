@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.instaJava.instaJava.application.LikeApplication;
 import com.instaJava.instaJava.dto.request.ReqLike;
 import com.instaJava.instaJava.dto.response.LikeDto;
-import com.instaJava.instaJava.dto.response.ResMessage;
-import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.dto.response.PublicatedImageDto;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class LikeC {
 
-	private final MessagesUtils messUtils;
 	private final LikeApplication likeApplication;
 
 	/**
@@ -38,14 +36,14 @@ public class LikeC {
 		return ResponseEntity.ok().body(likeApplication.save(reqLike));
 	}
 	
+	//FALTA TESTS
 	/**
 	 * To delete the auth user's like from a specific publication.
 	 * @param publicationId - publication that have the like.
-	 * @return {@link ResMessage} 
+	 * @return {@link PublicatedImageDto} with all the info updated. 
 	 */
-	@DeleteMapping(value="/byPublicationId/{publicationId}")
-	public ResponseEntity<ResMessage> deleteByPublicationId(@PathVariable(value="publicationId") Long publicationId){
-		likeApplication.deleteByPublicationId(publicationId);
-		return ResponseEntity.ok().body(new ResMessage(messUtils.getMessage("generic.delete-ok")));
+	@DeleteMapping(value="/byPublicatedImageId/{publicatedImageId}")
+	public ResponseEntity<PublicatedImageDto> byPublicatedImageId(@PathVariable(value="publicatedImageId") Long publicatedImageId){
+		return ResponseEntity.ok().body(likeApplication.deleteByPublicatedImageId(publicatedImageId));
 	}
 }

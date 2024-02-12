@@ -21,10 +21,10 @@ public interface LikeService {
 	void deleteById(Long likeId);
 	
 	/**
-	 * Delete like record by its publication id and auth user id.
-	 * @param publicationId - publication's id.
+	 * Delete like record by its item id and auth user id.
+	 * @param item - item's id.
 	 */
-	void deleteByPublicationId(Long publicationId);
+	void deleteByItemId(Long itemId);
 	
 	
 	/**
@@ -47,7 +47,6 @@ public interface LikeService {
 	 * @param type - liked item's type(a publicatedImage, a comment, etc) 
 	 * @param userOwner - like's owner.
 	 * @throws IllegalArgumentException if one  param is null.
-	 * @Throws InvalidActionException if item trying to like no exist, or if like record already exist
 	 * @return created Like.
 	 */
 	Like save(Long itemId,Boolean decision, TypeItemLikedEnum type, User userOwner);

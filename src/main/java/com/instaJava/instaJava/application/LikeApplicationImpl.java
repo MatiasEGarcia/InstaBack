@@ -8,13 +8,16 @@ import org.springframework.stereotype.Service;
 
 import com.instaJava.instaJava.dto.request.ReqLike;
 import com.instaJava.instaJava.dto.response.LikeDto;
+import com.instaJava.instaJava.dto.response.PublicatedImageDto;
 import com.instaJava.instaJava.entity.Like;
+import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.exception.InvalidActionException;
 import com.instaJava.instaJava.service.LikeService;
 import com.instaJava.instaJava.service.PublicatedImageService;
 import com.instaJava.instaJava.util.MessagesUtils;
 import com.instaJava.instaJava.mapper.LikeMapper;
+import com.instaJava.instaJava.mapper.PublicatedImageMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +28,7 @@ public class LikeApplicationImpl implements LikeApplication{
 	private final LikeService lService;
 	private final PublicatedImageService pImaService;
 	private final LikeMapper lMapper;
+	private final PublicatedImageMapper pMapper;
 	private final MessagesUtils messUtils;
 
 	@Override
@@ -41,9 +45,12 @@ public class LikeApplicationImpl implements LikeApplication{
 		return lMapper.likeToLikeDto(likeSaved);
 	}
 	
+	
 	@Override
-	public void deleteByPublicationId(Long publicationId) {
-		lService.deleteByPublicationId(publicationId);
+	public PublicatedImageDto deleteByPublicatedImageId(Long publicatedImageId) {
+		PublicatedImage publicatedImage = pImaService.getById(publicatedImageId); 
+		lService.deleteByItemId(publicatedImageId);//now in theory if all was ok the like from the auth user is deleted, so return publicatedImage with like = null
+		return pMapper.publicatedImageToPublicatedImageDto(publicatedImage);
 	}
 
 	

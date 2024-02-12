@@ -2,6 +2,7 @@ package com.instaJava.instaJava.application;
 
 import com.instaJava.instaJava.dto.request.ReqLike;
 import com.instaJava.instaJava.dto.response.LikeDto;
+import com.instaJava.instaJava.dto.response.PublicatedImageDto;
 
 public interface LikeApplication {
 
@@ -15,9 +16,10 @@ public interface LikeApplication {
 	LikeDto save(ReqLike reqLike);
 	
 	/**
-	 * Delete like record by its publication id and auth user id.
-	 * @param publicationId - publication's id.
+	 * Delete like record by publicationImage id.
+	 * @param publicatedImageId - publicatedImage's id.
+	 * @return PublicatedImageDto with the publicatedImage info updated.
 	 */
-	void deleteByPublicationId(Long publicationId);
+	PublicatedImageDto deleteByPublicatedImageId(Long publicatedImageId);
 	
 }
