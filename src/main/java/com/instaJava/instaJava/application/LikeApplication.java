@@ -1,7 +1,7 @@
 package com.instaJava.instaJava.application;
 
+import com.instaJava.instaJava.dto.LikeableDto;
 import com.instaJava.instaJava.dto.request.ReqLike;
-import com.instaJava.instaJava.dto.response.LikeDto;
 import com.instaJava.instaJava.dto.response.PublicatedImageDto;
 
 public interface LikeApplication {
@@ -10,10 +10,11 @@ public interface LikeApplication {
 	 * Save a like object in the database.
 	 * 
 	 * @param reqLike. object with the data of the Like to be saved.
-	 * @return LikeDto object with Like record info.
+	 * @return Likeable object. (The like entity dto classes will implement that interface.)
+	 * @throws IllegalArgumentException if reqLike is null or if reqLike.type no exists.
 	 * @Throws InvalidActionException if item trying to like no exist, or if like record already exist
 	 */
-	LikeDto save(ReqLike reqLike);
+	LikeableDto save(ReqLike reqLike);
 	
 	/**
 	 * Delete like record by publicationImage id.

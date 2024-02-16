@@ -112,4 +112,10 @@ public class LikeServiceImpl implements LikeService {
 	public void setItemDecision(IBaseEntity item) {
 		this.setItemDecisions(List.of(item));
 	}
+
+	@Override
+	public Long getLikesNumberByItemIdAndDecision(Long itemId,boolean decision) {
+		if(itemId == null) throw new IllegalArgumentException(messUtils.getMessage("exception.argument.not.null"));
+		return likeDao.countByItemIdAndDecision(itemId,decision);
+	}
 }

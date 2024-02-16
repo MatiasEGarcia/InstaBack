@@ -6,8 +6,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,9 +16,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.instaJava.instaJava.dto.request.ReqLike;
-import com.instaJava.instaJava.dto.response.LikeDto;
 import com.instaJava.instaJava.dto.response.PublicatedImageDto;
-import com.instaJava.instaJava.entity.Like;
 import com.instaJava.instaJava.entity.PublicatedImage;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.RolesEnum;
@@ -53,34 +49,15 @@ class LikeApplicationImplTest {
 	}
 	
 	@Test
-	void savePublicatedImageNoExistsThrow() {
-		ReqLike reqLike = new ReqLike();
-		reqLike.setItemId(1L);
-		reqLike.setType(TypeItemLikedEnum.PULICATED_IMAGE);
-		
-		//auth user
-		when(securityContext.getAuthentication()).thenReturn(auth);
-		SecurityContextHolder.setContext(securityContext);
-		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(authUser);
-		when(pImaService.findById(reqLike.getItemId())).thenReturn(Optional.empty());
-		
-		assertThrows(InvalidActionException.class, ()-> lApplication.save(reqLike));
-		
-		verify(lService, never()).save(reqLike.getItemId(), reqLike.getDecision(), reqLike.getType(), authUser);
-	}
-	
-	@Test
 	void saveLikeAlreadyExistsThrow() {
 		ReqLike reqLike = new ReqLike();
 		reqLike.setItemId(1L);
 		reqLike.setType(TypeItemLikedEnum.PULICATED_IMAGE);
-		PublicatedImage p = new PublicatedImage();
 		
 		//auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(authUser);
-		when(pImaService.findById(reqLike.getItemId())).thenReturn(Optional.of(p));
 		when(lService.exist(reqLike.getType(), reqLike.getItemId(), authUser.getId())).thenReturn(true);
 		
 		assertThrows(InvalidActionException.class, ()-> lApplication.save(reqLike));
@@ -89,27 +66,30 @@ class LikeApplicationImplTest {
 	}
 	
 	@Test
-	void save() {
+	void savePublicatedImageReturnNotNull() {
 		ReqLike reqLike = new ReqLike();
 		reqLike.setItemId(1L);
+		reqLike.setDecision(true);
 		reqLike.setType(TypeItemLikedEnum.PULICATED_IMAGE);
-		PublicatedImage p = new PublicatedImage();
-		Like likeSaved = new Like();
+		PublicatedImage p = new PublicatedImage(1L);
+		Long positiveNegativeLikesNumber = 5L;
 		
 		//auth user
 		when(securityContext.getAuthentication()).thenReturn(auth);
 		SecurityContextHolder.setContext(securityContext);
 		when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(authUser);
-		//check if item exists
-		when(pImaService.findById(reqLike.getItemId())).thenReturn(Optional.of(p));
 		//check if like exists
 		when(lService.exist(reqLike.getType(), reqLike.getItemId(), authUser.getId())).thenReturn(false);
-		//save like
-		when(lService.save(reqLike.getItemId(), reqLike.getDecision(), reqLike.getType(), authUser)).thenReturn(likeSaved);
-		//map like
-		when(lMapper.likeToLikeDto(likeSaved)).thenReturn(new LikeDto());
+		//getting publication
+		when(pImaService.getById(reqLike.getItemId())).thenReturn(p);
+		//map publicatedImage
+		when(pMapper.publicatedImageToPublicatedImageDto(p)).thenReturn(new PublicatedImageDto());
+		//getting positive and negative likes number
+		when(lService.getLikesNumberByItemIdAndDecision(reqLike.getItemId(), true)).thenReturn(positiveNegativeLikesNumber);
+		when(lService.getLikesNumberByItemIdAndDecision(reqLike.getItemId(), false)).thenReturn(positiveNegativeLikesNumber);
 		
 		assertNotNull(lApplication.save(reqLike));
+		verify(lService).save(reqLike.getItemId(), reqLike.getDecision(), reqLike.getType(), authUser);
 	}
 	
 	//deleteByPublicatedImageId

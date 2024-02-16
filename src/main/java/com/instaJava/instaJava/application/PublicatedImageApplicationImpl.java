@@ -53,6 +53,7 @@ public class PublicatedImageApplicationImpl implements PublicatedImageApplicatio
 		return pImageMapper.publicatedImageToPublicatedImageDto(pImage);
 	}
 	
+	//check tests
 	@Override
 	public PublicatedImageDto getById(Long id, int pageNo, int pageSize, String sortField, Direction sortDir) {
 		User authUser;
@@ -60,6 +61,8 @@ public class PublicatedImageApplicationImpl implements PublicatedImageApplicatio
 		PublicatedImage publicatedImage;
 		PublicatedImageDto publicatedImageDto;
 		Page<Comment> pageComments;
+		Long numberOfPositiveLikes;
+		Long numberOfNegativeLikes;
 		PageInfoDto commentsPageInfoDto;
 		//getting publicatedImage
 		publicatedImage = pImageService.getById(id);
@@ -75,6 +78,9 @@ public class PublicatedImageApplicationImpl implements PublicatedImageApplicatio
 		}
 		//is liked by the auth user?
 		likeService.setItemDecision(publicatedImage);
+		//gettting number of likes, positive and negative
+		numberOfPositiveLikes = likeService.getLikesNumberByItemIdAndDecision(id,true);
+		numberOfNegativeLikes = likeService.getLikesNumberByItemIdAndDecision(id,false);
 		//getting rootComments
 		commentsPageInfoDto = new PageInfoDto(pageNo, pageSize, 0, 0, sortField, sortDir);
 		try {
@@ -85,10 +91,12 @@ public class PublicatedImageApplicationImpl implements PublicatedImageApplicatio
 		//mapping
 		publicatedImageDto = pImageMapper.publicatedImageToPublicatedImageDto(publicatedImage);
 		publicatedImageDto.setRootComments(commentMapper.pageAndPageInfoDtoToResPaginationG(pageComments, commentsPageInfoDto));
+		publicatedImageDto.setNumberPositiveLikes(numberOfPositiveLikes.toString());
+		publicatedImageDto.setNumberNegativeLikes(numberOfNegativeLikes.toString());
 		return publicatedImageDto;
 	}
 
-	//falta tests
+	
 	@Override
 	public ResPaginationG<PublicatedImageDto> getAllByOwnersVisibles(int pageNo, int pageSize, String sortField,
 			Direction sortDir) {

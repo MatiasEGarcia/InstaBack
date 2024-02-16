@@ -58,4 +58,13 @@ public interface LikeService {
 	void setItemDecisions(List<? extends IBaseEntity> listItems);
 	
 	void setItemDecision(IBaseEntity item);
+	
+	/**
+	 * Search number of likes for a specific item.
+	 * @param itemId - item's id.
+	 * @return number of likes for item selected
+	 */
+	Long getLikesNumberByItemIdAndDecision(Long itemId, boolean decision);
+	
+	
 }

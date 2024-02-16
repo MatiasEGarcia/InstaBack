@@ -6,6 +6,7 @@ import java.time.ZonedDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 import com.instaJava.instaJava.dto.CommentDto;
+import com.instaJava.instaJava.dto.LikeableDto;
 import com.instaJava.instaJava.dto.UserDto;
 
 import lombok.AllArgsConstructor;
@@ -24,7 +25,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class PublicatedImageDto implements Serializable{
+public class PublicatedImageDto implements Serializable, LikeableDto{
 
 	private static final long serialVersionUID = 1L;
 	
@@ -42,4 +43,8 @@ public class PublicatedImageDto implements Serializable{
 	private ResPaginationG<CommentDto> rootComments;
 	
 	private String liked; //if is null then is not liked or disliked either.
+	
+	private String numberPositiveLikes;
+	
+	private String numberNegativeLikes;
 }

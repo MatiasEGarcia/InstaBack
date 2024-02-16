@@ -26,5 +26,5 @@ public interface LikeDao extends JpaRepository<Like, Long> ,JpaSpecificationExec
 	
 	Optional<Like> getByItemIdAndOwnerLikeId(Long itemId, Long ownerLikeId);
 	
-	
+	Long countByItemIdAndDecision(Long itemId, boolean decision);
 }
