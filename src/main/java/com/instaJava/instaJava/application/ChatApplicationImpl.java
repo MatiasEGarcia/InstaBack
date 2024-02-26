@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.instaJava.instaJava.dto.ChatDto;
 import com.instaJava.instaJava.dto.PageInfoDto;
 import com.instaJava.instaJava.dto.UserDto;
+import com.instaJava.instaJava.dto.dao.IdValueDto;
 import com.instaJava.instaJava.dto.request.ReqAddUserChat;
 import com.instaJava.instaJava.dto.request.ReqCreateChat;
 import com.instaJava.instaJava.dto.request.ReqDelUserFromChat;
@@ -24,6 +25,7 @@ import com.instaJava.instaJava.dto.response.ResPaginationG;
 import com.instaJava.instaJava.entity.Chat;
 import com.instaJava.instaJava.entity.User;
 import com.instaJava.instaJava.enums.FollowStatus;
+import com.instaJava.instaJava.exception.CryptoException;
 import com.instaJava.instaJava.exception.RecordNotFoundException;
 import com.instaJava.instaJava.exception.UserNotApplicableForChatException;
 import com.instaJava.instaJava.mapper.ChatMapper;
@@ -33,6 +35,7 @@ import com.instaJava.instaJava.service.FollowService;
 import com.instaJava.instaJava.service.MessageService;
 import com.instaJava.instaJava.service.UserService;
 import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.RSAUtils;
 import com.instaJava.instaJava.util.SearchsUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -49,17 +52,39 @@ public class ChatApplicationImpl implements ChatApplication {
 	private final UserMapper uMapper;
 	private final MessagesUtils messUtils;
 	private final SearchsUtils searchUtils;
+	private final RSAUtils rsaUtils;
 
+	//check tests
 	@Override
 	public ResPaginationG<ChatDto> getAuhtUserChats(int pageNo, int pageSize) {
 		Page<Chat> pageChats;
 		List<ChatDto> listChatDto;
+		List<IdValueDto<String>> idValuesDtoList;
 		ResPaginationG<ChatDto> resPagChatDto = new ResPaginationG<ChatDto>();
 		User authUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		PageInfoDto pageInfoDto = new PageInfoDto(pageNo, pageSize, 0, 0, "", Direction.ASC);
 		// getting chats
 		pageChats = chService.getUserChats(pageInfoDto, authUser.getId(), authUser.getUsername());
 
+		//decrypt lastMessages
+		idValuesDtoList = new ArrayList<>();
+		for(Chat chat : pageChats.getContent()) {
+			if(chat.getLastMessage() != null) {
+				IdValueDto<String> idValueDto = new IdValueDto<>(chat.getId(),chat.getLastMessage());
+				idValuesDtoList.add(idValueDto);
+			}
+		}
+		try {
+			rsaUtils.decryptAll(idValuesDtoList);			
+		}catch(Exception e) {
+			throw new CryptoException(messUtils.getMessage("message.decrypt-fail") , HttpStatus.BAD_REQUEST, e);
+		}
+		
+		for(IdValueDto<String> idValueDto : idValuesDtoList) {
+			int index = searchUtils.bynarySearchByIdReverse(pageChats.getContent(), idValueDto.getId()); //the list is from higher to lower
+			pageChats.getContent().get(index).setLastMessage(idValueDto.getValue());
+		}
+		
 		// getting how many messages were not watched.
 		listChatDto = new ArrayList<>();
 		setMessagesNotWatched(listChatDto, pageChats.getContent(), authUser.getUsername());

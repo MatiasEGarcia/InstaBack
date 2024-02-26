@@ -21,6 +21,7 @@ public interface ChatApplication {
 	 * @param pageNo.    - For pagination, number of the page.
 	 * @param pageSize.  - For pagination, size of the elements in the same page.
 	 * @return ResPaginationG<ChatDto> - chat list with pagination info.
+	 * @throws CryptoException if there was an error in message decryption.
 	 */
 	ResPaginationG<ChatDto> getAuhtUserChats(int pageNo, int pageSize);
 	

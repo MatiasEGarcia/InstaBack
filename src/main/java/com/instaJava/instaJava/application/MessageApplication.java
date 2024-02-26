@@ -14,7 +14,8 @@ public interface MessageApplication{
 	 * Create a message
 	 * @param reqNewMessage - new message info.
 	 * @return New Message.
-	 * @throws IllegalArgumentException if reqNewMessage is null
+	 * @throws IllegalArgumentException if reqNewMessage is null.
+	 * @throws CryptoException if there was an error in message encryption.
 	 */
 	MessageDto create(ReqNewMessage reqNewMessage);
 
@@ -26,6 +27,7 @@ public interface MessageApplication{
 	 * @param sortField. - For pagination, sorted by..
 	 * @param sortDir.   - In what direction is sorted, asc or desc.
 	 * @return ResPaginationG<MessageDto> with list of messages and it's pagination.
+	 * @throws CryptoException if there was an error in message decryption.
 	 */
 	ResPaginationG<MessageDto> getMessagesByChat(Long chatId, int pageNo, int pageSize, String sortField, Direction sortDir);
 	

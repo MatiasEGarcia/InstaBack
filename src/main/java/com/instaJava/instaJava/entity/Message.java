@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "messages")
-public class Message{
+public class Message implements IBaseEntity{
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -44,4 +44,14 @@ public class Message{
 	
 	@Column(name = "watched_by")
 	private String watchedBy;
+
+	@Override
+	public Long getBaseEntityId() {
+		return this.id;
+	}
+	
+	public Message(Long id) {
+		this.id = id;
+	}
+	
 }

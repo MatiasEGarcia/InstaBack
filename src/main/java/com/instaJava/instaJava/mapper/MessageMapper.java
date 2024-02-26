@@ -14,6 +14,13 @@ public interface MessageMapper {
 
 	MessageDto messageToMessageDto(Message msg);
 	
+	@Mapping(target = "id" , source = "msg.id")
+	@Mapping(target = "userOwner" , source = "msg.userOwner")
+	@Mapping(target = "sendedAt" , source = "msg.sendedAt")
+	@Mapping(target = "body" , source = "messageDecrypt")
+	MessageDto messageEAndMessageDecryptToMessageDto(Message msg, String messageDecrypt);
+	
+	
 	@Mapping(target ="list" , source = "page.content")
 	@Mapping(target ="pageInfoDto.pageNo", source = "pageInfoDto.pageNo")
 	@Mapping(target ="pageInfoDto.pageSize", source = "pageInfoDto.pageSize") 
