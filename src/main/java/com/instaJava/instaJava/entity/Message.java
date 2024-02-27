@@ -2,6 +2,9 @@ package com.instaJava.instaJava.entity;
 
 import java.time.ZonedDateTime;
 
+import com.instaJava.instaJava.converter.MessageBodyCryptoConverter;
+
+import jakarta.persistence.Convert;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -29,6 +32,7 @@ public class Message implements IBaseEntity{
 	@Column(name = "id")
 	private Long id;
 	
+	@Convert(converter = MessageBodyCryptoConverter.class)
 	@Column(name = "body")
 	private String body;
 	

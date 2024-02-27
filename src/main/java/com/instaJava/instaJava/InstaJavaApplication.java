@@ -11,13 +11,3 @@ public class InstaJavaApplication {
 	}
 
 }
-
-
-/**
-*AESUtils class
-*Create message encrypt and decrypt
-*
-*get lastmessage from chat and decrypt it.
-*
-*SearchUtilsTrest
-**/

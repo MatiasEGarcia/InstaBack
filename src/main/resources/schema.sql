@@ -33,7 +33,7 @@ CREATE TABLE chats(
 );
 CREATE TABLE messages(
 	id int primary key auto_increment not null,
-    body varchar(100) not null,
+    body varchar(420) not null, -- encrypted and enconded can be 342 just to be sure I added a litle more.
     user_owner varchar(20) not null,
     chat int not null,
     sended_at datetime not null,

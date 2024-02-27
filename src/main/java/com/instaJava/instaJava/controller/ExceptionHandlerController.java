@@ -47,6 +47,7 @@ public class ExceptionHandlerController {//TENGO QUE AGREGAR EL MANEJO DE HttpRe
 	@ExceptionHandler(value = { Exception.class })
 	public ResponseEntity<ResErrorMessage> exceptionHandler(Exception e) {
 		LOGGER.error("There was some Exception: ", e.getMessage());
+		e.printStackTrace();
 		ResErrorMessage resMessage = new ResErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR.toString(),
 				messUtils.getMessage("generic.internal-server-error"), Map.of(messUtils.getMessage("key.detail-exception"),e.getMessage()));
 		return ResponseEntity.internalServerError().body(resMessage);
@@ -263,6 +264,16 @@ public class ExceptionHandlerController {//TENGO QUE AGREGAR EL MANEJO DE HttpRe
 				.message(e.getMessage())
 				.build());
 	}
+	
+	@ExceptionHandler(value = com.instaJava.instaJava.exception.SecurityException.class)
+	public ResponseEntity<ResErrorMessage> handlerSecurityException(com.instaJava.instaJava.exception.SecurityException e){
+		LOGGER.error("There was some NotFoundException: " , e.getMessage());
+		return ResponseEntity.status(e.getStatus()).body(ResErrorMessage.builder()
+				.error(e.getStatus().toString())
+				.message(e.getMessage())
+				.build());
+	}
+	
 	
 }
 

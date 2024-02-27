@@ -11,10 +11,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 
+import com.instaJava.instaJava.util.MessagesUtils;
+import com.instaJava.instaJava.util.RSAUtils;
+
 @TestPropertySource("/application-test.properties")
+@Import({RSAUtils.class , MessagesUtils.class, ReloadableResourceBundleMessageSource.class})
 @DataJpaTest
 class MessageDaoTest {
 
@@ -81,6 +87,7 @@ class MessageDaoTest {
 		jdbc.update(sqlAddMessage3); //owner is sqlAddUser2
 	}
 	
+	//countByUserNoWatched
 	@Test
 	void countByUserNoWatchedAndChatIdSearchByJulioChat1() {
 		List<Long[]> data = messageDao.countByUserNoWatchedAndChatId(List.of(1L), "julio");//sqlAddUser3 username
@@ -110,9 +117,8 @@ class MessageDaoTest {
 			System.out.println(data);
 			fail();
 		}
-		
-		
 	}
+	
 	
 	@AfterEach
 	void cleanupDatabase() {
