@@ -8,10 +8,10 @@
 		<version>3.0.2</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.instaJava</groupId>
-	<artifactId>instaJava</artifactId>
+	<groupId>com.instaback</groupId>
+	<artifactId>instaback</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>instaJava</name>
+	<name>Instaback</name>
 	<description>Trying to copy instagram</description>
 	<properties>
 		<java.version>17</java.version>
